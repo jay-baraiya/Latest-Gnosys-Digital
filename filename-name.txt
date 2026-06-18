@@ -1,0 +1,472 @@
+Project Structure Details
+=========================
+
+1. MIGRATIONS AND FIELDS
+------------------------
+Migration: 0001_01_01_000000_create_users_table.php
+Table: users
+Fields:
+  - name (string)
+  - email (string)
+  - email_verified_at (timestamp)
+  - password (string)
+
+Migration: 0001_01_01_000001_create_cache_table.php
+Table: cache
+Fields:
+  - key (string)
+  - value (mediumText)
+  - expiration (bigInteger)
+
+Migration: 0001_01_01_000002_create_jobs_table.php
+Table: jobs
+Fields:
+  - queue (string)
+  - payload (longText)
+  - attempts (unsignedTinyInteger)
+  - reserved_at (unsignedInteger)
+  - available_at (unsignedInteger)
+  - created_at (unsignedInteger)
+
+Migration: 2026_03_27_171315_create_roles_table.php
+Table: roles
+Fields:
+  - created_by (unsignedBigInteger)
+  - updated_by (unsignedBigInteger)
+  - name (string)
+  - slug (string)
+  - description (text)
+  - status (tinyInteger)
+  - created_by (foreign)
+  - updated_by (foreign)
+
+Migration: 2026_03_27_171340_create_permissions_table.php
+Table: permissions
+Fields:
+  - name (string)
+  - module (string)
+  - slug (string)
+  - description (text)
+  - status (tinyInteger)
+
+Migration: 2026_03_28_080403_create_countries_table.php
+Table: countries
+Fields:
+  - name (string)
+  - iso3 (string)
+  - iso2 (string)
+  - phone_code (string)
+  - currency_code (string)
+  - currency_name (string)
+  - currency_symbol (string)
+  - status (tinyInteger)
+
+Migration: 2026_03_28_080418_create_states_table.php
+Table: states
+Fields:
+  - name (string)
+  - country_id (unsignedBigInteger)
+  - iso3 (string)
+  - iso2 (string)
+  - status (tinyInteger)
+  - country_id (foreign)
+
+Migration: 2026_03_28_080437_create_cities_table.php
+Table: cities
+Fields:
+  - name (string)
+  - state_id (unsignedBigInteger)
+  - status (tinyInteger)
+  - state_id (foreign)
+
+Migration: 2026_03_28_080438_add_column_in_users_table.php
+Table Modification: users
+Fields Added/Modified:
+  - phone (string)
+  - address (text)
+  - country_id (unsignedBigInteger)
+  - state_id (unsignedBigInteger)
+  - city_id (unsignedBigInteger)
+  - zip (string)
+  - status (tinyInteger)
+  - created_by (unsignedBigInteger)
+  - updated_by (unsignedBigInteger)
+  - created_by (foreign)
+  - updated_by (foreign)
+  - country_id (foreign)
+  - state_id (foreign)
+  - city_id (foreign)
+
+Migration: 2026_04_09_065953_add_soft_delete_to_multiple_tables.php
+Table Modification: users
+
+Migration: 2026_04_09_074611_create_role_permissions_table.php
+Table: role_permissions
+Fields:
+  - role_id (foreignId)
+  - permission_id (foreignId)
+
+Migration: 2026_04_09_102421_create_user_roles_table.php
+Table: user_roles
+Fields:
+  - user_id (foreignId)
+  - role_id (foreignId)
+
+Migration: 2026_04_13_155620_create_branches_table.php
+Table: branches
+Fields:
+  - created_by (unsignedBigInteger)
+  - updated_by (unsignedBigInteger)
+  - name (string)
+  - email (string)
+  - phone (string)
+  - country_id (foreignId)
+  - state_id (foreignId)
+  - city_id (foreignId)
+  - zip (string)
+  - address (string)
+  - status (tinyInteger)
+  - created_by (foreign)
+  - updated_by (foreign)
+
+Migration: 2026_04_14_110629_create_courses_table.php
+Table: courses
+Fields:
+  - created_by (unsignedBigInteger)
+  - updated_by (unsignedBigInteger)
+  - name (string)
+  - status (tinyInteger)
+  - created_by (foreign)
+  - updated_by (foreign)
+
+Migration: 2026_04_14_114634_create_batches_table.php
+Table: batches
+Fields:
+  - created_by (unsignedBigInteger)
+  - updated_by (unsignedBigInteger)
+  - course_id (unsignedBigInteger)
+  - name (string)
+  - batch_no (string)
+  - start_date (date)
+  - end_date (date)
+  - start_time (time)
+  - end_time (time)
+  - batch_seats (integer)
+  - upcoming_batch (boolean)
+  - publish_date_time (dateTime)
+  - status (tinyInteger)
+  - created_by (foreign)
+  - updated_by (foreign)
+  - course_id (foreign)
+
+Migration: 2026_04_15_000001_create_work_distributions_table.php
+Table: work_distributions
+Fields:
+  - created_by (unsignedBigInteger)
+  - updated_by (unsignedBigInteger)
+  - name (string)
+  - description (text)
+  - priority (tinyInteger)
+  - status (tinyInteger)
+  - remark (text)
+  - created_by (foreign)
+  - updated_by (foreign)
+
+Migration: 2026_04_15_082804_create_inquiries_table.php
+Table: inquiries
+Fields:
+  - inquiry_no (string)
+  - inquiry_date (date)
+  - source (enum)
+  - name (string)
+  - email (string)
+  - phone (string)
+  - address (text)
+  - country_id (unsignedBigInteger)
+  - state_id (unsignedBigInteger)
+  - city_id (unsignedBigInteger)
+  - course_id (unsignedBigInteger)
+  - description (text)
+  - status (enum)
+  - priority (enum)
+  - created_by (unsignedBigInteger)
+  - updated_by (unsignedBigInteger)
+  - is_converted (tinyInteger)
+  - country_id (foreign)
+  - state_id (foreign)
+  - city_id (foreign)
+  - course_id (foreign)
+  - created_by (foreign)
+  - updated_by (foreign)
+
+Migration: 2026_04_16_094721_create_follow_ups_table.php
+Table: follow_ups
+Fields:
+  - inquiry_id (foreignId)
+  - followup_date (date)
+  - followup_time (time)
+  - next_followup_datetime (dateTime)
+  - followup_type (tinyInteger)
+  - followup_status (tinyInteger)
+  - followup_remark (text)
+
+Migration: 2026_04_18_102425_create_attendances_table.php
+Table: attendances
+Fields:
+  - created_by (unsignedBigInteger)
+  - updated_by (unsignedBigInteger)
+  - created_by (foreign)
+  - updated_by (foreign)
+  - date (date)
+  - check_in_time (time)
+  - check_out_time (time)
+
+Migration: 2026_04_19_143844_create_leaves_table.php
+Table: leaves
+Fields:
+  - created_by (unsignedBigInteger)
+  - updated_by (unsignedBigInteger)
+  - created_by (foreign)
+  - updated_by (foreign)
+  - start_date (date)
+  - end_date (date)
+  - leave_type (enum)
+  - half_day_type (enum)
+  - reason (text)
+  - status (enum)
+
+2. CONTROLLER CODE PATTERNS (Methods)
+-------------------------------------
+Controller: AttendanceController.php
+Methods:
+  - __construct
+  - index
+  - store
+
+Controller: BatchController.php
+Methods:
+  - __construct
+  - index
+  - getData
+  - create
+  - store
+  - show
+  - edit
+  - update
+  - updateStatus
+  - destroy
+
+Controller: BranchController.php
+Methods:
+  - __construct
+  - index
+  - getData
+  - create
+  - store
+  - show
+  - edit
+  - update
+  - updateStatus
+  - destroy
+  - checkEmail
+  - checkPhone
+
+Controller: CityController.php
+Methods:
+  - __construct
+  - index
+  - create
+  - store
+  - show
+  - edit
+  - update
+  - destroy
+
+Controller: CommonController.php
+Methods:
+  - getCountries
+  - getStates
+  - getCities
+
+Controller: Controller.php
+  No public methods found.
+
+Controller: CountryController.php
+Methods:
+  - __construct
+  - index
+  - create
+  - store
+  - show
+  - edit
+  - update
+  - destroy
+
+Controller: CourseController.php
+Methods:
+  - __construct
+  - index
+  - getData
+  - create
+  - store
+  - show
+  - edit
+  - update
+  - updateStatus
+  - destroy
+
+Controller: InquiryController.php
+Methods:
+  - __construct
+  - index
+  - getData
+  - create
+  - store
+  - show
+  - edit
+  - update
+  - destroy
+
+Controller: LeaveController.php
+Methods:
+  - __construct
+  - index
+  - getData
+  - create
+  - store
+  - edit
+  - update
+  - updateStatus
+  - destroy
+
+Controller: PermissionController.php
+Methods:
+  - __construct
+  - index
+  - create
+  - store
+  - show
+  - edit
+  - update
+  - destroy
+
+Controller: ProfileController.php
+Methods:
+  - edit
+  - update
+  - destroy
+
+Controller: RoleController.php
+Methods:
+  - __construct
+  - index
+  - getData
+  - create
+  - store
+  - show
+  - edit
+  - update
+  - updateStatus
+  - destroy
+  - checkRole
+
+Controller: StateController.php
+Methods:
+  - __construct
+  - index
+  - create
+  - store
+  - show
+  - edit
+  - update
+  - destroy
+
+Controller: UserController.php
+Methods:
+  - __construct
+  - index
+  - getData
+  - create
+  - store
+  - show
+  - edit
+  - update
+  - updateStatus
+  - destroy
+
+Controller: WorkDistributionController.php
+Methods:
+  - __construct
+  - index
+  - getData
+  - create
+  - store
+  - show
+  - edit
+  - update
+  - updateStatus
+  - destroy
+
+3. MODELS
+---------
+Model: Attendance.php
+
+Model: Batch.php
+Relationships:
+  - course (belongsTo)
+
+Model: Branch.php
+Relationships:
+  - user (belongsTo)
+  - country (belongsTo)
+  - state (belongsTo)
+  - city (belongsTo)
+
+Model: City.php
+
+Model: Country.php
+
+Model: Course.php
+
+Model: FollowUp.php
+
+Model: Inquiry.php
+Relationships:
+  - country (belongsTo)
+  - state (belongsTo)
+  - city (belongsTo)
+  - user (belongsTo)
+  - followups (hasMany)
+  - course (belongsTo)
+
+Model: Leave.php
+Fillable: ['user_id', 'start_date', 'end_date', 'leave_type', 'half_day_type', 'reason', 'status']
+Relationships:
+  - user (belongsTo)
+
+Model: Permission.php
+
+Model: Role.php
+Relationships:
+  - role_permissions (hasMany)
+
+Model: RolePermission.php
+Relationships:
+  - permission (belongsTo)
+
+Model: State.php
+
+Model: User.php
+Relationships:
+  - roles (belongsTo)
+  - isSuperAdmin (belongsTo)
+  - state (belongsTo)
+  - city (belongsTo)
+
+Model: UserRole.php
+Fillable: ['user_id', 'role_id',]
+
+Model: WorkDistribution.php
+Relationships:
+  - user (belongsTo)
+
