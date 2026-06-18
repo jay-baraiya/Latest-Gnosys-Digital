@@ -40,7 +40,7 @@
                 {{-- <li class="menu-title"><span>Main Menu</span></li> --}}
                 <li>
                     <ul>
-                        <li class="{{ request()->routeIs('dashboard*') ? 'active' : '' }}">
+                        <li class="{{ request()->routeIs('admin.dashboard*') ? 'active' : '' }}">
                             <a href="{{ route('admin.dashboard') }}">
                                 <i class="ti ti-dashboard"></i>
                                 <span>Dashboard</span>
