@@ -13,4 +13,14 @@ class Order extends Model
     public function orderItems() {
         return $this->hasMany(OrderItem::class, 'order_id', 'id');
     }
+
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class, 'order_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

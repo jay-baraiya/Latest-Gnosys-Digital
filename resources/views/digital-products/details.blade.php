@@ -231,7 +231,7 @@
                                 </div>
 
                                 {{-- Details --}}
-                                <a href="{{ route('products.show', $product->slug) }}" class="group inline-flex items-center justify-center rounded-full py-2 px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 bg-slate-900 text-white hover:bg-slate-800 focus-visible:outline-slate-900 transition-colors">
+                                <a href="{{ route('products.show', $related->slug) }}" class="group inline-flex items-center justify-center rounded-full py-2 px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 bg-slate-900 text-white hover:bg-slate-800 focus-visible:outline-slate-900 transition-colors">
                                     Details
                                 </a>
                             </div>

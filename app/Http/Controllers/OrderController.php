@@ -51,10 +51,6 @@ class OrderController extends Controller
                 ...$commonAddressData
             ]);
 
-            if ($order->id) {
-                $this->createOrderTicket($order);
-            }
-
             $address = Address::updateOrInsert([
                 'user_email'           => $request->email
             ],
@@ -68,45 +64,33 @@ class OrderController extends Controller
                 $orderItems = [];
 
                 foreach ($request->order_product_id as $index => $productId) {
-                    $orderItems[] = [
+                    $orderItem = OrderItem::create([
                         'order_id'      => $order->id,
                         'product_id'    => decrypt($productId),
                         'product_name'  => !empty($request->order_product_title[$index]) ? $request->order_product_title[$index] : null,
                         'product_price' => !empty($request->order_product_price[$index]) ? $request->order_product_price[$index] : null,
                         'product_qty'   => !empty($request->order_product_qty[$index]) ? $request->order_product_qty[$index] : null,
                         'total_amount'  => !empty($request->order_product_total_amount[$index]) ? $request->order_product_total_amount[$index] : null,
-                        'created_at'    => now(),
-                        'updated_at'    => now(),
-                    ];
 
-                    if (!empty($request->order_product_variant_id[$index])) {
-                        $orderItems[$index]['variant_id'] = decrypt($request->order_product_variant_id[$index]);
-                    } else {
-                        $orderItems[$index]['variant_id'] = '';
-                    }
+                        'variant_id'    => !empty($request->order_product_variant_id[$index]) ? decrypt($request->order_product_variant_id[$index]) : null,
+                        'variant_name'  => !empty($request->order_product_variant_name[$index]) ? $request->order_product_variant_name[$index] : null,
+                        'product_type'  => !empty($request->order_product_type[$index]) ? $request->order_product_type[$index] : null,
+                    ]);
 
-                    if (!empty($request->order_product_variant_name[$index])) {
-                        $orderItems[$index]['variant_name'] = ($request->order_product_variant_name[$index]);
-                    } else {
-                        $orderItems[$index]['variant_name'] = '';
-                    }
-
-                    if (!empty($request->order_product_type[$index])) {
-                        $orderItems[$index]['product_type'] = ($request->order_product_type[$index]);
-                    } else {
-                        $orderItems[$index]['product_type'] = '';
-                    }
+                    Ticket::create([
+                        'ticket_number' => 'TCK-' . strtoupper(Str::random(6)),
+                        'datetime'      => now(),
+                        'order_id'      => $order->id,
+                        'order_item_id' => $orderItem->id,
+                        'user_id'       => $order->user_id,
+                        'status'        => 'pending'
+                    ]);
                 }
-
-                OrderItem::insert($orderItems);
-                $pids = array_column($orderItems, 'product_id');
-                $package_ids = array_column($orderItems, 'package_id');
 
                 if ($order->id) {
                     $user_wallet = Auth::user()?->balance;
-
                     $balance = $user_wallet?->balance ?? 0;
-                    $order_total = $order->order_product_grand_total ?? 0;
+                    $order_total = $order->total_amount ?? 0;
                     $netBalance = $balance - $order_total;
 
                     Wallet::query()
@@ -177,16 +161,4 @@ class OrderController extends Controller
         ]);
     }
 
-    public function createOrderTicket($order)
-    {
-        if ($order->id && $order->payment_status === 'success') {
-            Ticket::create([
-                'ticket_number' => 'TCK-' . strtoupper(Str::random(6)),
-                'datetime' => now(),
-                'order_id' => $order->id,
-                'user_id' => $order->user_id,
-                'status' => 'pending'
-            ]);
-        }
-    }
 }

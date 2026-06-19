@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\TicketController;
 use App\Http\Controllers\WalletController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,7 +38,10 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+
     Route::post('/wallet/store', [WalletController::class, 'store'])->name('wallet.store');
+
+    Route::post('/ticket/cancel-ticket', [TicketController::class, 'cancelUserTicket'])->name('tickets.cancel');
 
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');

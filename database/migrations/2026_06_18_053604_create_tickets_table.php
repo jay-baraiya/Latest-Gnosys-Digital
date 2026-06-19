@@ -18,6 +18,9 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('developer_id')->nullable()->constrained('users')->onDelete('set null');
+
+            $table->foreignId('order_item_id')->nullable()->constrained('order_items')->onDelete('set null');
+
             $table->enum('status', [
                 'pending',
                 'assign_requested',
@@ -29,6 +32,8 @@ return new class extends Migration
                 'cancelled',
                 'refund'
             ])->default('pending');
+
+            $table->foreignId('cancelled_by')->nullable()->constrained('users')->onDelete('set null');
 
             $table->text('assign_not_accepted_reason')->nullable();
             $table->text('cancel_reason')->nullable();

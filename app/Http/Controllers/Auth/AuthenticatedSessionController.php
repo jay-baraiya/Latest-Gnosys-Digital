@@ -35,7 +35,8 @@ class AuthenticatedSessionController extends Controller
             CommonController::updateUserData(); // store order and address data in database
         }
 
-        return redirect()->intended(route('home', absolute: false));
+        return redirect()->back();
+        // return redirect()->intended(route('home', absolute: false));
     }
 
     /**

@@ -72,6 +72,16 @@ class WalletController extends Controller
                 'user_id' => $this->authUser->id
             ]);
 
+            if ($wallet->is_approved == 1) {
+                $approved = 1;
+            }
+
+            if ($wallet->is_approved == 2) {
+                return redirect()->back()
+                    ->withFragment('wallet')
+                    ->with('error', 'Your wallet balance request has been rejected by the administrator. Therefore, you are not allowed to add balance to your wallet at this time.');
+            }
+
             $oldBalance = $wallet->balance ?? 0;
 
             $wallet->date = $currentDate;
@@ -97,7 +107,7 @@ class WalletController extends Controller
 
             DB::commit();
 
-            return redirect()->back()->with('success', 'Wallet credit added successfully.');
+            return redirect()->back()->withFragment('wallet')->with('success', 'Wallet credit added successfully.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
 

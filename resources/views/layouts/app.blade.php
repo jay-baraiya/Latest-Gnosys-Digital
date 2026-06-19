@@ -21,6 +21,9 @@
         <!-- Tabler Icons -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 
+        <!-- Sweet Alerts CSS -->
+        <link rel="stylesheet" href="{{ asset('assets/plugins/sweetalert2/sweetalert2.min.css') }}">
+
         <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
         <script>
             document.addEventListener("DOMContentLoaded", () => {
@@ -244,6 +247,10 @@
             <script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/notify/0.4.2/notify.min.js"></script>
+
+            <!-- Sweet Alerts js -->
+            <script src="{{ asset('assets/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+
             @if(session('success'))
                 <script>
                     $.notify("{{ session('success') }}", "success");
@@ -351,5 +358,6 @@
             </script>
 
             @yield('script')
+            @stack('script')
     </body>
 </html>

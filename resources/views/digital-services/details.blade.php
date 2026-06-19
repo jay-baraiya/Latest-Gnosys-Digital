@@ -241,16 +241,22 @@
                             `);
                         });
                     } else {
-                        var featureJsonArray = JSON.parse(dataToRender.features);
+                        if (
+                            Array.isArray(dataToRender.features) &&
+                            dataToRender.features.length > 0 &&
+                            dataToRender.features[0] !== null
+                        ) {
+                            var featureJsonArray = JSON.parse(dataToRender.features);
 
-                        $.each(featureJsonArray, function(index, feature) {
-                            $featuresList.append(`
+                            $.each(featureJsonArray, function(index, feature) {
+                                $featuresList.append(`
                                 <li class="flex items-center gap-2 sm:gap-3">
                                     <i class="ti ti-circle-check-filled text-emerald-500 text-base sm:text-lg mt-0.5"></i>
                                     <span class="text-xs sm:text-sm font-medium text-slate-600">${feature}</span>
-                                </li>
-                            `);
-                        });
+                                    </li>
+                                `);
+                            });
+                        }
                     }
                 }
             }
