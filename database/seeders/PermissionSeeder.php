@@ -316,6 +316,40 @@ class PermissionSeeder extends Seeder
                 'description' => 'Reject Wallets',
                 'status' => 1,
             ],
+
+            // Tasks
+            [
+                'id' => 37,
+                'name' => 'Create',
+                'module' => 'Tasks',
+                'slug' => 'create.tasks',
+                'description' => 'Create Tasks',
+                'status' => 1,
+            ],
+            [
+                'id' => 38,
+                'name' => 'View',
+                'module' => 'Tasks',
+                'slug' => 'view.tasks',
+                'description' => 'View Tasks',
+                'status' => 1,
+            ],
+            [
+                'id' => 39,
+                'name' => 'Edit',
+                'module' => 'Tasks',
+                'slug' => 'edit.tasks',
+                'description' => 'Edit Tasks',
+                'status' => 1,
+            ],
+            [
+                'id' => 40,
+                'name' => 'Delete',
+                'module' => 'Tasks',
+                'slug' => 'delete.tasks',
+                'description' => 'Delete Tasks',
+                'status' => 1,
+            ],
         ];
 
         foreach ($permissions as $permission) {

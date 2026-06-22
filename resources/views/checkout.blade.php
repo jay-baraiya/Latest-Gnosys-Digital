@@ -29,10 +29,16 @@
                             <div class="space-y-2">
                                 <label class="text-sm font-medium text-gray-600">Full Name <span class="text-red-500">*</span> </label>
                                 <input name="first_name" id="full_name" class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all outline-none" placeholder="Full Name" type="text" value="{{ Auth::user()->name }}" />
+                                @error('first_name')
+                                    <span class="text-red-500" >{{ $message }}</span>
+                                @enderror
                             </div>
                             <div class="space-y-2">
                                 <label class="text-sm font-medium text-gray-600">Email Address <span class="text-red-500">*</span> </label>
                                 <input name="email" id="email" class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all outline-none" placeholder="example@gmail.com" type="email" value="{{ Auth::user()->email }}" />
+                                @error('email')
+                                    <span class="text-red-500" >{{ $message }}</span>
+                                @enderror
                             </div>
                         </div>
                     </section>
@@ -53,7 +59,10 @@
                             <!-- Street Address -->
                             <div class="md:col-span-2 space-y-2">
                                 <label class="text-sm font-medium text-gray-600">Street Address <span class="text-red-500">*</span></label>
-                                <input name="billing_address" id="address" class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all outline-none" placeholder="123 Innovation Drive" type="text" value="{{ $address?->billing_address }}" />
+                                <input name="billing_address" id="address" class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all outline-none" placeholder="123 Innovation Drive" type="text" value="{{ $address?->billing_address ?? '' }}" />
+                                @error('billing_address')
+                                    <span class="text-red-500" >{{ $message }}</span>
+                                @enderror
                             </div>
 
                             <!-- Country, State, and City Row -->
@@ -67,18 +76,27 @@
                                             <option value="{{ $country->id }}" {{ $address?->billing_country == $country->id ? 'selected' : '' }}>{{ $country->name }}</option>
                                         @endforeach
                                     </select>
+                                    @error('billing_country')
+                                        <span class="text-red-500" >{{ $message }}</span>
+                                    @enderror
                                 </div>
 
                                 <!-- State Input -->
                                 <div class="space-y-2">
                                     <label class="text-sm font-medium text-gray-600">State / Province <span class="text-red-500">*</span></label>
                                     <input name="billing_state" id="state" class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all outline-none" placeholder="State / Province" type="text" value="{{ $address?->billing_state }}" />
+                                    @error('billing_state')
+                                        <span class="text-red-500" >{{ $message }}</span>
+                                    @enderror
                                 </div>
 
                                 <!-- City Input -->
                                 <div class="space-y-2">
                                     <label class="text-sm font-medium text-gray-600">City <span class="text-red-500">*</span></label>
                                     <input name="billing_city" id="city" class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all outline-none" placeholder="City" type="text" value="{{ $address?->billing_city }}" />
+                                    @error('billing_city')
+                                        <span class="text-red-500" >{{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
                         </div>

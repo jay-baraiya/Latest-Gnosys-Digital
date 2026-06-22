@@ -20,6 +20,15 @@ class OrderController extends Controller
 {
     public function store(Request $request)
     {
+        $request->validate([
+            'first_name' => 'required',
+            'email' => 'required|email',
+            'billing_country' => 'required',
+            'billing_address' => 'required',
+            'billing_state' => 'required',
+            'billing_city' => 'required',
+        ]);
+
         if (!$request->has('order_product_id')) {
             return redirect()->route('home');
         }

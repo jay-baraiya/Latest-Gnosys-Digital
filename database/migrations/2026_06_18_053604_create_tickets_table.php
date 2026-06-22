@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('ticket_number')->unique();
             $table->dateTime('datetime')->nullable();
-            $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('order_id')->nullable()->constrained('orders')->onDelete('set null');
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('developer_id')->nullable()->constrained('users')->onDelete('set null');
 
             $table->foreignId('order_item_id')->nullable()->constrained('order_items')->onDelete('set null');

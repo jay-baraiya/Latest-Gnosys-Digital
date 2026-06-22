@@ -286,15 +286,15 @@ class CartController extends Controller
         $approvel = $user_wallet?->is_approved;
 
         if ($approvel == 0) {
-            return redirect()->back()->with('warning', 'your wallet balance request are pending, please wait for admin approval!');
+            // return redirect()->back()->with('warning', 'your wallet balance request are pending, please wait for admin approval!');
         } else if ($approvel == 2) {
-            return redirect()->back()->with('error', 'your wallet balance request are rejected, please contact for admin.');
+            // return redirect()->back()->with('error', 'your wallet balance request are rejected, please contact for admin.');
         }
 
         $total_price = $reqQty * $price;
 
         if ($balance < $total_price) {
-            return redirect()->back()->with('error', 'your wallet balance is low please add balance in your wallet!');
+            // return redirect()->back()->with('error', 'your wallet balance is low please add balance in your wallet!');
         }
 
         try {

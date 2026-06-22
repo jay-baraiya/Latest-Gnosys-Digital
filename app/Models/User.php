@@ -33,6 +33,8 @@ class User extends Authenticatable
 
     const SUPERADMIN_ROLE_ID = 1;
 
+    const IS_DEVELOPER = 8;
+
     /**
      * Get the attributes that should be cast.
      *
@@ -103,5 +105,9 @@ class User extends Authenticatable
 
     public function orders() {
         return $this->hasOne(Order::class, 'user_id', 'id')->orderBy('created_at', 'desc');
+    }
+
+    public function designation() {
+        return $this->belongsTo(Designation::class, 'designation_id', 'id');
     }
 }

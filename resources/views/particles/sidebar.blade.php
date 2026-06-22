@@ -142,6 +142,34 @@
                     </li>
                 @endcan
 
+                {{-- @can('view.orders') --}}
+                    <li class="menu-title"><span>Order Management</span></li>
+                    <li>
+                        <ul>
+                            <li class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                                <a href="{{ route('admin.orders.index') }}">
+                                    <i class="ti ti-category"></i>
+                                    <span>Orders</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {{-- @endcan --}}
+
+                {{-- @can('view.wallets') --}}
+                    <li class="menu-title"><span>Task Management</span></li>
+                    <li>
+                        <ul>
+                            <li class="{{ request()->routeIs('admin.tasks.*') ? 'active' : '' }}">
+                                <a href="{{ route('admin.tasks.index') }}">
+                                    <i class="ti ti-category"></i>
+                                    <span>Tasks</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {{-- @endcan --}}
+
             </ul>
         </div>
     </div>

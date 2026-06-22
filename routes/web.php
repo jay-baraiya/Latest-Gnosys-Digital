@@ -11,7 +11,9 @@ use App\Http\Controllers\Admin\CommonController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DigitalProductController;
 use App\Http\Controllers\Admin\DigitalServiceController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\ProfileController as UserProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WalletController;
@@ -118,6 +120,25 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified','check_is_
     Route::post('wallets/get-data', [WalletController::class, 'getData'])->name('wallets.getData');
     Route::post('wallets/get-transaction-histoty', [WalletController::class, 'getTransactionHistoty'])->name('wallets.getTransactionHistoty');
     Route::get('wallets/action/{id}/{user_id}/{action}', [WalletController::class, 'action'])->name('wallets.action');
+
+    /* Order */
+    Route::resource('orders', AdminOrderController::class)->names('orders');
+    Route::post('orders/get-data', [AdminOrderController::class, 'getData'])->name('orders.getData');
+    Route::post('orders/restore/{id}', [AdminOrderController::class, 'restore'])->name('orders.restore');
+    Route::post('orders/update-status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::post('orders/check-email', [AdminOrderController::class, 'checkEmail'])->name('orders.check.email');
+    Route::post('orders/check-phone', [AdminOrderController::class, 'checkPhone'])->name('orders.check.phone');
+
+    /* Task */
+    Route::resource('tasks', TaskController::class)->names('tasks');
+    Route::post('tasks/get-data', [TaskController::class, 'getData'])->name('tasks.getData');
+    Route::post('tasks/restore/{id}', [TaskController::class, 'restore'])->name('tasks.restore');
+    Route::post('tasks/update-status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
+    Route::post('tasks/check-email', [TaskController::class, 'checkEmail'])->name('tasks.check.email');
+    Route::post('tasks/check-phone', [TaskController::class, 'checkPhone'])->name('tasks.check.phone');
+    Route::post('tasks/order-ticket-listing', [TaskController::class, 'getOrderTickets'])->name('tasks.order.ticket.listing');
+    Route::post('tasks/dev-user', [TaskController::class, 'getDevUser'])->name('tasks.dev.user');
+    Route::post('tasks/assign-dev-user', [TaskController::class, 'assignDevUser'])->name('tasks.assign.dev.user');
 
 });
 
