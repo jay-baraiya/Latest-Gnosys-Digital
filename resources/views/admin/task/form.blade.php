@@ -28,7 +28,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-9">
+                <div class="col-md-9" id="dy-1">
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label mb-0" id="main_label">Products <span class="text-danger">*</span></label>
@@ -65,6 +65,15 @@
                             @error('service_id')
                                 <span class="text-danger small service_error">{{ $message }}</span>
                             @enderror
+                        </div>
+
+                        <div id="service_variant_section" style="display: none; margin-top: 10px;">
+                            <input type="hidden" name="is_variant" value="0">
+                            <div class="input-group mb-1">
+                                <select class="form-select" name="service_variant_id" id="service_variant_id">
+                                    <option value="">Select Variant...</option>
+                                </select>
+                            </div>
                         </div>
 
                     </div>
@@ -181,10 +190,14 @@
                     if(currentType === 'product') {
                         $('#product_id').val('').trigger('change');
                         $('#service_id').val('').trigger('change');
+                        $('input[name="is_variant"]').val(0);
                     } else {
                         $('#product_id').val('').trigger('change');
                         $('#service_id').val('').trigger('change');
                     }
+
+                    $('#service_variant_section').hide();
+                    $('#service_variant_id').html('<option value="">Select Variant...</option>');
                 });
 
                 function toggleCancelReason() {
@@ -215,6 +228,54 @@
                     $(this).valid();
                 });
 
+                $('#service_id').on('change', function() {
+                    let serviceId = $(this).val();
+                    let variantSelect = $('#service_variant_id');
+                    let variantSection = $('#service_variant_section');
+
+                    // Reset the variant dropdown
+                    variantSelect.html('<option value="">Select Variant...</option>');
+
+                    if (serviceId) {
+                        // Show loading text while fetching
+                        variantSelect.html('<option value="">Loading variants...</option>');
+                        variantSection.show();
+
+                        $.ajax({
+                            // Ensure this script is inside a blade file for the route() helper to work
+                            url: "{{ route('admin.tasks.get.service.variant') }}",
+                            type: "POST",
+                            data: {
+                                service_id: serviceId
+                            },
+                            success: function(response) {
+                                if (response.success === 1 && response.variants.length > 0) {
+                                    $('input[name="is_variant"]').val(1);
+                                    let options = '<option value="">Select Variant...</option>';
+
+                                    // Loop through returned variants and append to options string
+                                    $.each(response.variants, function(index, variant) {
+                                        // Assuming your variants table has 'id' and 'name' columns.
+                                        // Adjust 'variant.name' if your column is called something else (e.g., 'title')
+                                        options += `<option value="${variant.id}">${variant.name}</option>`;
+                                    });
+
+                                    variantSelect.html(options);
+                                } else {
+                                    $('input[name="is_variant"]').val(0);
+                                    variantSelect.html('<option value="">No variants found</option>');
+                                }
+                            },
+                            error: function(xhr) {
+                                console.error("An error occurred while fetching variants.");
+                                variantSelect.html('<option value="">Error loading variants</option>');
+                            }
+                        });
+                    } else {
+                        variantSection.hide();
+                    }
+                });
+
                 $('#taskForm').validate({
                     rules: {
                         ticket_number: {
@@ -229,6 +290,11 @@
                         service_id: {
                             required: function(element) {
                                 return currentType === 'service';
+                            }
+                        },
+                        service_variant_id: {
+                            required: function(element) {
+                                return $('input[name="is_variant"]').val() ? true : false;
                             }
                         },
                         user_id: {

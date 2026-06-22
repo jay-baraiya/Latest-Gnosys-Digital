@@ -8,6 +8,7 @@ use App\Models\DigitalProduct;
 use App\Models\DigitalService;
 use App\Models\Order;
 use App\Models\Role;
+use App\Models\ServiceVariant;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Models\UserRole;
@@ -207,6 +208,7 @@ class TaskController extends Controller
                 'datetime' => now(),
                 'user_id' => $request->user_id,
                 'developer_id' => $request->developer_id,
+                'variant_id' => $request->service_variant_id ?? null,
                 'order_item_id' => !empty($request->product_id) ? $request->product_id : $request->service_id,
                 'status' => $request->status,
                 'cancelled_by' => ($request->status == 'cancelled' ? Auth::id() : null),
@@ -216,14 +218,14 @@ class TaskController extends Controller
 
             return redirect()->route($this->moduleUrl)->with('success', 'Ticket created successfully.');
         } catch (\Exception $e) {
-            Log::error('User Store Error', [
+            Log::error('Ticket Store Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'request' => $request->all(),
             ]);
 
-            return redirect()->back()->withInput()->with('error', 'Failed to create user. Please try again later.');
+            return redirect()->back()->withInput()->with('error', 'Failed to create ticket. Please try again later.');
         }
     }
 
@@ -471,5 +473,17 @@ class TaskController extends Controller
             'success' => false,
             'message' => 'Ticket not found'
         ], 404);
+    }
+
+    public function getServiceVariant(Request $request)
+    {
+        $service_id = $request->service_id;
+
+        $variants = ServiceVariant::query()->where('service_id', $service_id)->get();
+
+        return response()->json([
+            'success' => 1,
+            'variants' => $variants
+        ]);
     }
 }

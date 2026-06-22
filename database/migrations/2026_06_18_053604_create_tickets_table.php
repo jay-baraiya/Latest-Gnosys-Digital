@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('developer_id')->nullable()->constrained('users')->onDelete('set null');
 
-            $table->foreignId('order_item_id')->nullable()->constrained('order_items')->onDelete('set null');
+            $table->string('order_item_id')->nullable();
 
             $table->enum('status', [
                 'pending',

@@ -139,6 +139,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified','check_is_
     Route::post('tasks/order-ticket-listing', [TaskController::class, 'getOrderTickets'])->name('tasks.order.ticket.listing');
     Route::post('tasks/dev-user', [TaskController::class, 'getDevUser'])->name('tasks.dev.user');
     Route::post('tasks/assign-dev-user', [TaskController::class, 'assignDevUser'])->name('tasks.assign.dev.user');
+    Route::post('tasks/get-service-variant', [TaskController::class, 'getServiceVariant'])->name('tasks.get.service.variant');
 
 });
 
