@@ -87,7 +87,7 @@
 
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label class="form-label" for="billing_first_name">Billing First Name</label>
+                        <label class="form-label" for="billing_first_name">Billing First Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control @error('billing_first_name') is-invalid @enderror" name="billing_first_name" id="billing_first_name" placeholder="John Doe"
                             value="{{ old('billing_first_name', $order->billing_first_name ?? '') }}">
                         @error('billing_first_name')
@@ -110,7 +110,7 @@
                 {{-- ✅ FEATURE 1: Dynamic Country Dropdown (fetched from DB) --}}
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <label class="form-label" for="billing_country">Billing Country</label>
+                        <label class="form-label" for="billing_country">Billing Country <span class="text-danger">*</span></label>
                         <select class="form-select @error('billing_country') is-invalid @enderror" name="billing_country" id="billing_country">
                             <option value="">-- Select Country --</option>
                             @if (isset($countries))
@@ -130,7 +130,7 @@
 
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <label class="form-label" for="billing_state">Billing State</label>
+                        <label class="form-label" for="billing_state">Billing State <span class="text-danger">*</span></label>
                         <input type="text" class="form-control @error('billing_state') is-invalid @enderror" name="billing_state" id="billing_state" placeholder="State/Province"
                             value="{{ old('billing_state', $order->billing_state ?? '') }}">
                         @error('billing_state')
@@ -141,7 +141,7 @@
 
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <label class="form-label" for="billing_city">Billing City</label>
+                        <label class="form-label" for="billing_city">Billing City <span class="text-danger">*</span></label>
                         <input type="text" class="form-control @error('billing_city') is-invalid @enderror" name="billing_city" id="billing_city" placeholder="City"
                             value="{{ old('billing_city', $order->billing_city ?? '') }}">
                         @error('billing_city')
@@ -620,6 +620,18 @@
                         required: true
                     },
                     payment_status: {
+                        required: true
+                    },
+                    billing_first_name: {
+                        required: true
+                    },
+                    billing_country: {
+                        required: true
+                    },
+                    billing_state: {
+                        required: true
+                    },
+                    billing_city: {
                         required: true
                     }
                 },

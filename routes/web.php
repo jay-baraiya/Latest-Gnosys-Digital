@@ -126,8 +126,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('orders/get-data', [AdminOrderController::class, 'getData'])->name('orders.getData');
     Route::post('orders/restore/{id}', [AdminOrderController::class, 'restore'])->name('orders.restore');
     Route::post('orders/update-status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
-    Route::post('orders/check-email', [AdminOrderController::class, 'checkEmail'])->name('orders.check.email');
-    Route::post('orders/check-phone', [AdminOrderController::class, 'checkPhone'])->name('orders.check.phone');
     Route::post('orders/order-ticket-listing', [AdminOrderController::class, 'getOrderTickets'])->name('orders.ticket.listing');
     Route::post('orders/dev-user', [AdminOrderController::class, 'getDevUser'])->name('orders.dev.user');
 
@@ -136,8 +134,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('tasks/get-data', [TaskController::class, 'getData'])->name('tasks.getData');
     Route::post('tasks/restore/{id}', [TaskController::class, 'restore'])->name('tasks.restore');
     Route::post('tasks/update-status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
-    Route::post('tasks/check-email', [TaskController::class, 'checkEmail'])->name('tasks.check.email');
-    Route::post('tasks/check-phone', [TaskController::class, 'checkPhone'])->name('tasks.check.phone');
     Route::post('tasks/order-ticket-listing', [TaskController::class, 'getOrderTickets'])->name('tasks.order.ticket.listing');
     Route::post('tasks/dev-user', [TaskController::class, 'getDevUser'])->name('tasks.dev.user');
     Route::post('tasks/assign-dev-user', [TaskController::class, 'assignDevUser'])->name('tasks.assign.dev.user');

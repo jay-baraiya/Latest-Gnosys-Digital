@@ -44,10 +44,10 @@ class TaskController extends Controller
             return $next($request);
         });
 
-        // $this->middleware('permission:create.users')->only('create', 'store');
-        // $this->middleware('permission:edit.users')->only('edit', 'update');
-        // $this->middleware('permission:delete.users')->only('destroy');
-        // $this->middleware('permission:view.users')->only('index', 'show');
+        $this->middleware('permission:create.tasks')->only('create', 'store');
+        $this->middleware('permission:edit.tasks')->only('edit', 'update');
+        $this->middleware('permission:delete.tasks')->only('destroy');
+        $this->middleware('permission:view.tasks')->only('index', 'show');
     }
 
     /**

@@ -387,6 +387,10 @@ class OrderController extends Controller
                         'order_item_id' => $orderItem->id,
                         'user_id' => $order->user_id,
                         'status' => 'pending',
+                        'product_name' => $productName,
+                        'product_type' => $type,
+                        'variant_id' => $variantId,
+                        'variant_name' => $variantName,
                     ]);
                 }
             }
@@ -493,36 +497,6 @@ class OrderController extends Controller
                 'message' => 'Something went wrong!'
             ]);
         }
-    }
-
-    public function checkEmail(Request $request)
-    {
-        $query = User::query()->where('email', $request->email);
-
-        if ($request->filled('user_id')) {
-            $query->where('id', '!=', $request->user_id);
-        }
-
-        if ($query->exists()) {
-            return response()->json(false);
-        }
-
-        return response()->json(true);
-    }
-
-    public function checkPhone(Request $request)
-    {
-        $query = User::query()->where('phone', $request->phone);
-
-        if ($request->filled('user_id')) {
-            $query->where('id', '!=', $request->user_id);
-        }
-
-        if ($query->exists()) {
-            return response()->json(false);
-        }
-
-        return response()->json(true);
     }
 
     public function getOrderTickets(Request $request)

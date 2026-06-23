@@ -142,7 +142,7 @@
                     </li>
                 @endcan
 
-                {{-- @can('view.orders') --}}
+                @can('view.orders')
                     <li class="menu-title"><span>Order Management</span></li>
                     <li>
                         <ul>
@@ -154,9 +154,9 @@
                             </li>
                         </ul>
                     </li>
-                {{-- @endcan --}}
+                @endcan
 
-                {{-- @can('view.wallets') --}}
+                @can('view.tasks')
                     <li class="menu-title"><span>Task Management</span></li>
                     <li>
                         <ul>
@@ -168,7 +168,7 @@
                             </li>
                         </ul>
                     </li>
-                {{-- @endcan --}}
+                @endcan
 
             </ul>
         </div>

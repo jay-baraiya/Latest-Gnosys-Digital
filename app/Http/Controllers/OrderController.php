@@ -92,7 +92,11 @@ class OrderController extends Controller
                         'order_id'      => $order->id,
                         'order_item_id' => $orderItem->id,
                         'user_id'       => $order->user_id,
-                        'status'        => 'pending'
+                        'status'        => 'pending',
+                        'product_name'  => !empty($request->order_product_title[$index]) ? $request->order_product_title[$index] : null,
+                        'product_type'  => !empty($request->order_product_type[$index]) ? $request->order_product_type[$index] : null,
+                        'variant_id'    => !empty($request->order_product_variant_id[$index]) ? decrypt($request->order_product_variant_id[$index]) : null,
+                        'variant_name'  => !empty($request->order_product_variant_name[$index]) ? $request->order_product_variant_name[$index] : null,
                     ]);
                 }
 
