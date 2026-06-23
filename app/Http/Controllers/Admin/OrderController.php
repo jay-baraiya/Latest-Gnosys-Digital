@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Country;
 use App\Models\Designation;
+use App\Models\DigitalProduct;
+use App\Models\DigitalService;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Role;
+use App\Models\ServiceVariant;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Models\UserRole;
@@ -13,9 +18,11 @@ use App\Notifications\RealTimeNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -57,56 +64,56 @@ class OrderController extends Controller
     {
         if ($request->ajax()) {
 
-        $excludedRoles = [User::IS_ADMIN];
+            $excludedRoles = [User::IS_ADMIN];
 
-        if (isset($request->is_buyer) && $request->is_buyer == 0) {
-            $excludedRoles[] = User::IS_BUYER;
-        }
+            if (isset($request->is_buyer) && $request->is_buyer == 0) {
+                $excludedRoles[] = User::IS_BUYER;
+            }
 
-        $query = Order::query()
-            ->with([
-                'tickets:id,ticket_number,datetime,order_id,user_id,developer_id,order_item_id,status,cancelled_by,cancel_reason',
-                'user:id,name',
-                'tickets.orderItems:id,order_id,product_id,product_name,product_type,variant_id,variant_name,product_price'
-            ])
-            ->select(['id', 'user_id', 'order_number', 'date_time','total_amount']);
+            $query = Order::query()
+                ->with([
+                    'tickets:id,ticket_number,datetime,order_id,user_id,developer_id,order_item_id,status,cancelled_by,cancel_reason',
+                    'user:id,name',
+                    'tickets.orderItems:id,order_id,product_id,product_name,product_type,variant_id,variant_name,product_price'
+                ])
+                ->select(['id', 'user_id', 'order_number', 'date_time', 'total_amount']);
 
-        return DataTables::eloquent($query)
-            ->with('total_tasks', $query->count())
-            ->addIndexColumn()
-            ->addColumn('order_number', function ($row) {
-                return '<span class="fw-semibold">#' . $row->order_number . '</span>';
-            })
-            ->addColumn('order_date', function ($row) {
-                return Carbon::parse($row->date_time)->format('d-m-Y');
-            })
-            ->addColumn('customer_name', function ($row) {
-                return $row->user->name ?? '-';
-            })
-            ->addColumn('total_amount', function ($row) {
-                return '$' . number_format($row->total_amount, 2);
-            })
-            ->addColumn('tickets_list', function ($row) {
-                $count = $row->tickets->count();
+            return DataTables::eloquent($query)
+                ->with('total_tasks', $query->count())
+                ->addIndexColumn()
+                ->addColumn('order_number', function ($row) {
+                    return '<span class="fw-semibold">#' . $row->order_number . '</span>';
+                })
+                ->addColumn('order_date', function ($row) {
+                    return Carbon::parse($row->date_time)->format('d-m-Y');
+                })
+                ->addColumn('customer_name', function ($row) {
+                    return $row->user->name ?? '-';
+                })
+                ->addColumn('total_amount', function ($row) {
+                    return '$' . number_format($row->total_amount, 2);
+                })
+                ->addColumn('tickets_list', function ($row) {
+                    $count = $row->tickets->count();
 
-                if ($count === 0) {
-                    return '<span class="text-muted">No tickets</span>';
-                }
+                    if ($count === 0) {
+                        return '<span class="text-muted">No tickets</span>';
+                    }
 
-                return '<button class="btn btn-sm btn-outline-info view-tickets-btn" data-order-id="' . encrypt($row->id) . '">
+                    return '<button class="btn btn-sm btn-outline-info view-tickets-btn" data-order-id="' . encrypt($row->id) . '">
                             <i class="ti ti-ticket me-1"></i> See Tickets (' . $count . ')
                         </button>';
-            })
-            ->addColumn('actions', function ($row) use ($request) {
-                return view('admin.components.action-links', [
-                    'edit'       => route('admin.tasks.edit', encrypt($row->id)),
-                    'show'       => route('admin.tasks.show', encrypt($row->id)),
-                    'delete'     => route('admin.tasks.destroy', encrypt($row->id)),
-                    'id'         => encrypt($row->id),
-                ])->render();
-            })
-            ->rawColumns(['order_number', 'tickets_list', 'actions'])
-            ->make(true);
+                })
+                ->addColumn('actions', function ($row) use ($request) {
+                    return view('admin.components.action-links', [
+                        'edit'       => route('admin.orders.edit', encrypt($row->id)),
+                        'show'       => route('admin.orders.show', encrypt($row->id)),
+                        'delete'     => route('admin.orders.destroy', encrypt($row->id)),
+                        'id'         => encrypt($row->id),
+                    ])->render();
+                })
+                ->rawColumns(['order_number', 'tickets_list', 'actions'])
+                ->make(true);
         }
     }
 
@@ -116,10 +123,14 @@ class OrderController extends Controller
     public function create()
     {
         view()->share('action', 'Create');
-        $roles = Role::query()->where('status', 1)->where('id', '!=', 1)->get();
-        $designations = Designation::query()->where('status', 1)->get();
+        $users       = User::query()->where('status', 1)->whereNotIn('id', [User::IS_ADMIN])->get(['id', 'name', 'email']);
+        $countries   = Country::query()->orderBy('name')->get(['id', 'name']);
+        $products    = DigitalProduct::query()->whereNull('deleted_at')->get(['id', 'name', 'price']);
+        $services    = DigitalService::with('variants')->where('status', 1)->get();
 
-        return view('admin.order.form', compact('roles', 'designations'));
+        $order_number = 'ORD-' . strtoupper(substr(uniqid(), -6));
+
+        return view('admin.order.form', compact('users', 'countries', 'products', 'services', 'order_number'));
     }
 
     /**
@@ -128,39 +139,108 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'country_id' => 'required|exists:countries,id',
-            'state_id' => 'required|exists:states,id',
-            'city_id' => 'required|exists:cities,id',
-            'zip' => 'nullable|string|max:10',
-            'status' => 'required|in:1,0',
-            'role_id' => 'required|exists:roles,id',
-            // 'image' => 'required|image|mimes:jpeg,jpg,png,webp|max:1024',
-            'designation_id' => 'required'
-        ],
-        [
-            'image.mimes' => 'Only JPEG, JPG, PNG, and WEBP images are allowed.',
-            'image.max' => 'The image size must not exceed 1 MB.',
+            'order_number' => ['required', 'string', 'max:255', Rule::unique('orders')],
+            'date_time' => 'required',
+            'user_id' => 'nullable|exists:users,id',
+            'subtotal' => 'required|numeric|min:0',
+            'total_amount' => 'required|numeric|min:0',
+            'billing_first_name' => 'nullable|string|max:255',
+            'billing_phone' => 'nullable|string|max:255',
+            'billing_country' => 'nullable|string|max:255',
+            'billing_state' => 'nullable|string|max:255',
+            'billing_city' => 'nullable|string|max:255',
+            'status' => 'required|string|in:pending,processing,shipped,delivered,cancelled',
+            'payment_method' => 'nullable|string|in:stripe,paypal,cod',
+            'payment_status' => 'required|string|in:pending,paid,failed,refunded,success',
+            'order_notes' => 'nullable|string',
+
+            'product_type' => 'required|array',
+            'product_type.*' => 'required|string|in:product,service',
+            'product_id' => 'required|array',
+            'product_id.*' => 'required|integer',
+            'variant_id' => 'nullable|array',
+            'variant_id.*' => 'nullable|integer',
+            'quantity' => 'required|array',
+            'quantity.*' => 'required|integer|min:1',
+            'price' => 'required|array',
+            'price.*' => 'required|numeric|min:0',
         ]);
 
+        DB::beginTransaction();
         try {
+            $order = Order::create([
+                'user_id' => $request->user_id,
+                'order_number' => $request->order_number,
+                'date_time' => Carbon::parse($request->date_time),
+                'subtotal' => $request->subtotal,
+                'total_amount' => $request->total_amount,
+                'billing_first_name' => $request->billing_first_name,
+                'billing_phone' => $request->billing_phone,
+                'billing_country' => $request->billing_country,
+                'billing_state' => $request->billing_state,
+                'billing_city' => $request->billing_city,
+                'status' => $request->status,
+                'payment_method' => $request->payment_method,
+                'payment_status' => $request->payment_status,
+                'order_notes' => $request->order_notes,
+            ]);
 
+            foreach ($request->product_id as $index => $productId) {
+                $type = $request->product_type[$index];
+                $qty = $request->quantity[$index];
+                $price = $request->price[$index];
+                $variantId = $request->variant_id[$index] ?? null;
 
+                $productName = '';
+                $variantName = null;
 
-            return redirect()->route($this->moduleUrl)->with('success', 'User created successfully.');
+                if ($type === 'product') {
+                    $prod = DigitalProduct::find($productId);
+                    $productName = $prod ? $prod->name : 'Unknown Product';
+                } else {
+                    $serv = DigitalService::find($productId);
+                    $productName = $serv ? $serv->name : 'Unknown Service';
+                    if ($variantId) {
+                        $variant = ServiceVariant::find($variantId);
+                        $variantName = $variant ? $variant->name : null;
+                    }
+                }
+
+                $orderItem = OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $productId,
+                    'product_name' => $productName,
+                    'product_type' => $type,
+                    'variant_id' => $variantId,
+                    'variant_name' => $variantName,
+                    'product_price' => $price,
+                    'product_qty' => $qty,
+                    'total_amount' => $price * $qty,
+                ]);
+
+                // Create ticket for the order item
+                Ticket::create([
+                    'ticket_number' => 'TCK-' . strtoupper(Str::random(6)),
+                    'datetime' => now(),
+                    'order_id' => $order->id,
+                    'order_item_id' => $orderItem->id,
+                    'user_id' => $order->user_id,
+                    'status' => 'pending',
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route($this->moduleUrl)->with('success', 'Order created successfully.');
         } catch (\Exception $e) {
-            Log::error('User Store Error', [
+            DB::rollBack();
+            Log::error('Order Store Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'request' => $request->all(),
             ]);
 
-            return redirect()->back()->withInput()->with('error', 'Failed to create user. Please try again later.');
+            return redirect()->back()->withInput()->with('error', 'Failed to create order. Please try again later.');
         }
     }
 
@@ -172,7 +252,7 @@ class OrderController extends Controller
         view()->share('action', 'View');
         $user = User::with(['country', 'state', 'city'])->findOrFail(decrypt($id));
         $designations = Designation::query()->where('status', 1)->get();
-        return view('admin.order.show', compact('user','designations'));
+        return view('admin.order.show', compact('user', 'designations'));
     }
 
     /**
@@ -181,15 +261,14 @@ class OrderController extends Controller
     public function edit(string $id)
     {
         view()->share('action', 'Edit');
-        $user = User::with(['country', 'state', 'city'])->findOrFail(decrypt($id));
+        $order = Order::with('orderItems')->findOrFail(decrypt($id));
 
-        // Notify the currently logged in user so they see the toast/alert immediately
-        Auth::user()->notify(new RealTimeNotification('You are editing ' . $user->name . '\'s profile!', []));
+        $users     = User::query()->where('status', 1)->whereNotIn('id', [User::IS_ADMIN])->get(['id', 'name', 'email']);
+        $countries = Country::query()->orderBy('name')->get(['id', 'name']);
+        $products  = DigitalProduct::query()->whereNull('deleted_at')->get(['id', 'name', 'price']);
+        $services  = DigitalService::with('variants')->where('status', 1)->get();
 
-        $roles = Role::query()->where('status', 1)->where('id', '!=', 1)->get();
-        $designations = Designation::query()->where('status', 1)->get();
-
-        return view('admin.order.form', compact('user', 'roles','designations'));
+        return view('admin.order.form', compact('order', 'users', 'countries', 'products', 'services'));
     }
 
     /**
@@ -197,104 +276,159 @@ class OrderController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $orderId = decrypt($id);
+        $order = Order::findOrFail($orderId);
 
+        $validatedData = $request->validate([
+            'order_number' => ['required', 'string', 'max:255', Rule::unique('orders')->ignore($order->id)],
+            'date_time' => 'required',
+            'user_id' => 'nullable|exists:users,id',
+            'subtotal' => 'required|numeric|min:0',
+            'total_amount' => 'required|numeric|min:0',
+            'billing_first_name' => 'nullable|string|max:255',
+            'billing_phone' => 'nullable|string|max:255',
+            'billing_country' => 'nullable|string|max:255',
+            'billing_state' => 'nullable|string|max:255',
+            'billing_city' => 'nullable|string|max:255',
+            'status' => 'required|string|in:pending,processing,shipped,delivered,cancelled',
+            'payment_method' => 'nullable|string|in:stripe,paypal,cod',
+            'payment_status' => 'required|string|in:pending,paid,failed,refunded,success',
+            'order_notes' => 'nullable|string',
+
+            'product_type' => 'required|array',
+            'product_type.*' => 'required|string|in:product,service',
+            'product_id' => 'required|array',
+            'product_id.*' => 'required|integer',
+            'variant_id' => 'nullable|array',
+            'variant_id.*' => 'nullable|integer',
+            'quantity' => 'required|array',
+            'quantity.*' => 'required|integer|min:1',
+            'price' => 'required|array',
+            'price.*' => 'required|numeric|min:0',
+        ]);
+
+        DB::beginTransaction();
         try {
-            $userId = decrypt($id);
-            $user = User::findOrFail($userId);
-
-            $validatedData = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($userId)],
-                'password' => 'nullable|string|min:8|confirmed',
-                'phone' => ['nullable', 'string', 'max:20', Rule::unique('users')->ignore($userId)],
-                'address' => 'nullable|string',
-                'country_id' => 'required|exists:countries,id',
-                'state_id' => 'required|exists:states,id',
-                'city_id' => 'required|exists:cities,id',
-                'zip' => 'nullable|string|max:10',
-                'status' => 'required|in:1,0',
-                // 'image' => 'required|image|mimes:jpeg,jpg,png,webp|max:1024',
-            ],[
-                'image.mimes' => 'Only JPEG, JPG, PNG, and WEBP images are allowed.',
-                'image.max' => 'The image size must not exceed 1 MB.',
+            $order->update([
+                'user_id' => $request->user_id,
+                'order_number' => $request->order_number,
+                'date_time' => Carbon::parse($request->date_time),
+                'subtotal' => $request->subtotal,
+                'total_amount' => $request->total_amount,
+                'billing_first_name' => $request->billing_first_name,
+                'billing_phone' => $request->billing_phone,
+                'billing_country' => $request->billing_country,
+                'billing_state' => $request->billing_state,
+                'billing_city' => $request->billing_city,
+                'status' => $request->status,
+                'payment_method' => $request->payment_method,
+                'payment_status' => $request->payment_status,
+                'order_notes' => $request->order_notes,
             ]);
 
-            $imagePath = $user->image;
+            $updatedItemIds = [];
 
-            if ($request->remove_existing_image == '1') {
-                if ($user->image && !filter_var($user->image, FILTER_VALIDATE_URL)) {
-                    $pathToDelete = str_replace('/storage/', '', $user->image);
-                    if(Storage::disk('public')->exists($pathToDelete)) {
-                        Storage::disk('public')->delete($pathToDelete);
+            foreach ($request->product_id as $index => $productId) {
+                $type = $request->product_type[$index];
+                $qty = $request->quantity[$index];
+                $price = $request->price[$index];
+                $variantId = $request->variant_id[$index] ?? null;
+                $orderItemId = $request->order_item_id[$index] ?? null;
+
+                $productName = '';
+                $variantName = null;
+
+                if ($type === 'product') {
+                    $prod = DigitalProduct::find($productId);
+                    $productName = $prod ? $prod->name : 'Unknown Product';
+                } else {
+                    $serv = DigitalService::find($productId);
+                    $productName = $serv ? $serv->name : 'Unknown Service';
+                    if ($variantId) {
+                        $variant = ServiceVariant::find($variantId);
+                        $variantName = $variant ? $variant->name : null;
                     }
                 }
-                $imagePath = null;
-            }
 
-            if ($request->hasFile('image')) {
-                if ($user->image && !filter_var($user->image, FILTER_VALIDATE_URL)) {
-                    $pathToDelete = str_replace('/storage/', '', $user->image);
-                    if(Storage::disk('public')->exists($pathToDelete)) {
-                        Storage::disk('public')->delete($pathToDelete);
+                if ($orderItemId) {
+                    $orderItem = OrderItem::where('order_id', $order->id)->find($orderItemId);
+                    if ($orderItem) {
+                        $orderItem->update([
+                            'product_id' => $productId,
+                            'product_name' => $productName,
+                            'product_type' => $type,
+                            'variant_id' => $variantId,
+                            'variant_name' => $variantName,
+                            'product_price' => $price,
+                            'product_qty' => $qty,
+                            'total_amount' => $price * $qty,
+                        ]);
+                        $updatedItemIds[] = $orderItem->id;
                     }
+                } else {
+                    $orderItem = OrderItem::create([
+                        'order_id' => $order->id,
+                        'product_id' => $productId,
+                        'product_name' => $productName,
+                        'product_type' => $type,
+                        'variant_id' => $variantId,
+                        'variant_name' => $variantName,
+                        'product_price' => $price,
+                        'product_qty' => $qty,
+                        'total_amount' => $price * $qty,
+                    ]);
+                    $updatedItemIds[] = $orderItem->id;
+
+                    // Create ticket for new order item
+                    Ticket::create([
+                        'ticket_number' => 'TCK-' . strtoupper(Str::random(6)),
+                        'datetime' => now(),
+                        'order_id' => $order->id,
+                        'order_item_id' => $orderItem->id,
+                        'user_id' => $order->user_id,
+                        'status' => 'pending',
+                    ]);
                 }
-
-                $path = $request->file('image')->store('users', 'public');
-                $imagePath = Storage::url($path);
-
             }
 
-            if (empty($validatedData['password'])) {
-                unset($validatedData['password']);
-            } else {
-                $validatedData['password'] = Hash::make($validatedData['password']);
-            }
+            // Delete removed order items
+            OrderItem::where('order_id', $order->id)->whereNotIn('id', $updatedItemIds)->delete();
 
-            $validatedData['image'] = $imagePath;
-            $validatedData['is_user'] = 1;
+            // Delete tickets for removed items
+            Ticket::where('order_id', $order->id)->whereNull('order_item_id')->delete();
 
-            $user->designation_id = $request->designation_id;
+            // Update user_id on existing tickets if the order user has changed
+            Ticket::where('order_id', $order->id)->update(['user_id' => $order->user_id]);
 
-            $user->update($validatedData);
-
-
-            if ($user && !empty($request->role_id)) {
-                UserRole::updateOrCreate([
-                    'user_id' => $user->id,
-                ], [
-                    'role_id' => $request->role_id,
-                ]);
-            } else {
-                UserRole::query()->where('user_id', $user->id)->delete();
-            }
-
-            return redirect()->route($this->moduleUrl)->with('success', 'User updated successfully.');
+            DB::commit();
+            return redirect()->route($this->moduleUrl)->with('success', 'Order updated successfully.');
         } catch (\Exception $e) {
-            Log::error('User Update Error', [
+            DB::rollBack();
+            Log::error('Order Update Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'request' => $request->all(),
             ]);
 
-            return redirect()->back()->withInput()->with('error', 'Failed to update user. Please try again later.');
+            return redirect()->back()->withInput()->with('error', 'Failed to update order. Please try again later.');
         }
     }
 
     public function updateStatus(Request $request)
     {
         try {
-            $user = User::withTrashed()->findOrFail(decrypt($request->id));
+            $user = Order::withTrashed()->findOrFail(decrypt($request->id));
             $user->update([
                 'status' => $request->status,
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => $user->status == 1 ? 'User activated successfully.' : 'User deactivated successfully.'
+                'message' => $user->status == 1 ? 'Order activated successfully.' : 'Order deactivated successfully.'
             ]);
         } catch (\Exception $e) {
-            Log::error('User Status Update Error', [
+            Log::error('Order Status Update Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -314,16 +448,16 @@ class OrderController extends Controller
     public function destroy(string $id)
     {
         try {
-            $user = User::findOrFail(decrypt($id));
+            $user = Order::findOrFail(decrypt($id));
             $user->update(['status' => 0]);
             $user->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'User deleted successfully.'
+                'message' => 'Order deleted successfully.'
             ]);
         } catch (\Exception $e) {
-            Log::error('User Destroy Error', [
+            Log::error('Order Destroy Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -347,7 +481,6 @@ class OrderController extends Controller
                 'success' => true,
                 'message' => 'User restored successfully.'
             ]);
-
         } catch (\Exception $e) {
             Log::error('User Restore Error', [
                 'message' => $e->getMessage(),
@@ -398,7 +531,13 @@ class OrderController extends Controller
             $orderId = decrypt($request->order_id);
 
             $order = Order::with([
-                'tickets:id,ticket_number,datetime,order_id,user_id,developer_id,order_item_id,status,cancelled_by,cancel_reason','user:id,name','orderItems:id,order_id,product_id,product_name,product_type,variant_id,variant_name,product_price,total_amount','tickets.orderItems:id,order_id,product_id,product_name,product_type,variant_id,variant_name,product_price'])->select(['id','user_id','order_number','date_time'
+                'user:id,name',
+                'orderItems:id,order_id,product_id,product_name,product_type,variant_id,variant_name,product_price,total_amount',
+            ])->select([
+                'id',
+                'user_id',
+                'order_number',
+                'date_time'
             ])->findOrFail($orderId);
 
             $html = view('admin.order.ticket_list', compact('order'))->render();
@@ -407,7 +546,6 @@ class OrderController extends Controller
                 'status' => 'success',
                 'html'   => $html
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => 'error',
@@ -419,10 +557,10 @@ class OrderController extends Controller
     public function getDevUser()
     {
         $data = User::query()
-                ->with(['roles'])
-                ->where('status', 1)
-                ->whereNotIn('id', [User::IS_ADMIN])
-                ->get();
+            ->with(['roles'])
+            ->where('status', 1)
+            ->whereNotIn('id', [User::IS_ADMIN])
+            ->get();
 
         return response()->json([
             'success' => true,

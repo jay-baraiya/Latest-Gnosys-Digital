@@ -350,6 +350,41 @@ class PermissionSeeder extends Seeder
                 'description' => 'Delete Tasks',
                 'status' => 1,
             ],
+
+            //orders
+
+            [
+                'id' => 41,
+                'name' => 'Create',
+                'module' => 'Orders',
+                'slug' => 'create.orders',
+                'description' => 'Create Orders',
+                'status' => 1,
+            ],
+            [
+                'id' => 42,
+                'name' => 'View',
+                'module' => 'Orders',
+                'slug' => 'view.orders',
+                'description' => 'View Orders',
+                'status' => 1,
+            ],
+            [
+                'id' => 43,
+                'name' => 'Edit',
+                'module' => 'Orders',
+                'slug' => 'edit.orders',
+                'description' => 'Edit Orders',
+                'status' => 1,
+            ],
+            [
+                'id' => 44,
+                'name' => 'Delete',
+                'module' => 'Orders',
+                'slug' => 'delete.orders',
+                'description' => 'Delete Orders',
+                'status' => 1,
+            ],
         ];
 
         foreach ($permissions as $permission) {

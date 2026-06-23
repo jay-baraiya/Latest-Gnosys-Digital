@@ -25,13 +25,13 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [HomeController::class,'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/admin', function () {
     return auth()->check() ? redirect()->route('admin.dashboard') : redirect()->route('admin.login');
 });
 
-Route::get('/mail-champ', function() {
+Route::get('/mail-champ', function () {
     return view('mail-champ.index');
 });
 
@@ -58,8 +58,8 @@ Route::post('/order/order-item-list', [OrderController::class, 'getOrderItemList
 Route::get('/blogs', [ForntBlogController::class, 'index'])->name('blogs.listing');
 Route::get('/blogs/{slug}', [ForntBlogController::class, 'show'])->name('blogs.show');
 
-Route::prefix('admin')->name('admin.')->middleware(['auth','verified','check_is_agent_is_Admin'])->group(function () {
-    Route::get('dashboard',[DashboardController::class, 'index'])->name('dashboard');
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_is_agent_is_Admin'])->group(function () {
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -128,6 +128,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified','check_is_
     Route::post('orders/update-status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::post('orders/check-email', [AdminOrderController::class, 'checkEmail'])->name('orders.check.email');
     Route::post('orders/check-phone', [AdminOrderController::class, 'checkPhone'])->name('orders.check.phone');
+    Route::post('orders/order-ticket-listing', [AdminOrderController::class, 'getOrderTickets'])->name('orders.ticket.listing');
+    Route::post('orders/dev-user', [AdminOrderController::class, 'getDevUser'])->name('orders.dev.user');
 
     /* Task */
     Route::resource('tasks', TaskController::class)->names('tasks');
@@ -140,7 +142,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified','check_is_
     Route::post('tasks/dev-user', [TaskController::class, 'getDevUser'])->name('tasks.dev.user');
     Route::post('tasks/assign-dev-user', [TaskController::class, 'assignDevUser'])->name('tasks.assign.dev.user');
     Route::post('tasks/get-service-variant', [TaskController::class, 'getServiceVariant'])->name('tasks.get.service.variant');
-
 });
 
 
