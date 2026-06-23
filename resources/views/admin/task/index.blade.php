@@ -36,7 +36,7 @@
                             <th>Order Number</th>
                             <th>Order Date</th>
                             <th class="no-sort">Ticket Number</th>
-                            <th class="no-sort">Ticket Name</th>
+                            <th class="no-sort">Product Name</th>
                             <th>Customer Name</th>
                             <th>Developer Name</th>
                             <th>Total Amount</th>
@@ -255,12 +255,12 @@
                         "columns": [
                             { "data": "DT_RowIndex", "name": "DT_RowIndex", "orderable": false, "searchable": false },
                             { "data": "order_number", "name": "order_number" },
-                            { "data": "order_date", "name": "date_time" },
-                            { "data": "ticket_number", "name": "ticket_number", "orderable": false, "searchable": false },
-                            { "data": "ticket_name", "name": "tickets_list", "orderable": false, "searchable": false },
-                            { "data": "customer_name", "name": "user.name" },
-                            { "data": "developer_name", "name": "developer_name" },
-                            { "data": "total_amount", "name": "total_amount" },
+                            { "data": "order_date", "name": "date_time", "searchable": false },
+                            { "data": "ticket_number", "name": "ticket_number", "orderable": false, "searchable": true },
+                            { "data": "product_name", "name": "product_name", "orderable": false, "searchable": true },
+                            { "data": "customer_name", "name": "user.name", "searchable": false },
+                            { "data": "developer_name", "name": "developer_name", "searchable": false },
+                            { "data": "total_amount", "name": "total_amount", "searchable": false },
                             { "data": "actions", "name": "actions", "orderable": false, "searchable": false }
                         ]
                     });
@@ -274,11 +274,6 @@
                         timeout = setTimeout(function() {
                             table.search(value).draw();
                         }, 500);
-                    });
-
-                    // Optional: Make the refresh button actually reload the datatable
-                    $('#refresh-table').on('click', function() {
-                        table.ajax.reload(null, false);
                     });
                 }
             });

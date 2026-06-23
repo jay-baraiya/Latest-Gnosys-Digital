@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::table('tickets', function (Blueprint $table) {
             $table->string('variant_id')->nullable();
+            $table->string('variant_name')->nullable();
+            $table->string('product_name')->nullable();
+            $table->string('product_type')->nullable();
         });
     }
 
@@ -22,7 +25,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->dropColumn('variant_id');
+            $table->dropColumn(['variant_id','variant_name','product_name','product_type']);
         });
     }
 };

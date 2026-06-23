@@ -7,6 +7,7 @@ use App\Models\Designation;
 use App\Models\DigitalProduct;
 use App\Models\DigitalService;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Role;
 use App\Models\ServiceVariant;
 use App\Models\Ticket;
@@ -54,22 +55,6 @@ class TaskController extends Controller
      */
     public function index(Request $request)
     {
-        $data = Ticket::query()
-            ->with([
-                'order:id,order_number,date_time',
-                'developer:id,name',
-                'developer.roles:id,name',
-                'orderItems:id,order_id,product_id,product_name,product_type,variant_id,variant_name,product_price'
-            ])
-            ->select(['id','ticket_number','datetime','order_id','user_id','developer_id','order_item_id','cancelled_by','status'])
-            ->get();
-
-        // echo '<pre>';
-        // print_r($data->toArray());
-        // echo '</pre>';
-        // exit;
-
-
         return view('admin.task.index');
     }
 
@@ -83,15 +68,38 @@ class TaskController extends Controller
             $excludedRoles[] = User::IS_BUYER;
         }
 
+        $search = $request->input('search.value');
+
+        $digital_products = DigitalProduct::query()
+                            ->select(['id','name'])
+                            ->pluck('name','id')
+                            ->toArray();
+
+        $digital_services = DigitalService::query()
+                            ->select(['id','name'])
+                            ->pluck('name','id')
+                            ->toArray();
+
         $query = Ticket::query()
             ->with([
                 'order:id,order_number,date_time',
                 'developer:id,name',
                 'developer.roles:id,name',
                 'user:id,name',
-                'orderItems:id,order_id,product_id,product_name,product_type,variant_id,variant_name,product_price'
             ])
-            ->select(['id','ticket_number','datetime','order_id','user_id','developer_id','order_item_id','cancelled_by','status']);
+            ->select(['id','ticket_number','datetime','order_id','user_id','developer_id','order_item_id','cancelled_by','status','product_type','product_name','variant_id','variant_name'])
+            ->when(!empty($request->input('search.value')), function ($query) use ($request) {
+                $search = $request->input('search.value');
+                $query->where(function ($q) use ($search) {
+
+                    $q->where('ticket_number', 'like', "%{$search}%")
+                    ->orWhere('product_name', 'like', "%{$search}%")
+                    ->orWhereHas('order', function ($orderQuery) use ($search) {
+                        $orderQuery->where('order_number', 'like', "%{$search}%");
+                    })
+                    ;
+                });
+            });
 
         return DataTables::eloquent($query)
             ->with('total_tasks', $query->count())
@@ -109,9 +117,10 @@ class TaskController extends Controller
             ->addColumn('customer_name', function ($row) {
                 return $row->user->name ?? '-';
             })
-            ->addColumn('ticket_name', function ($row) {
-                $productName = $row?->orderItems?->product_name;
-                $productType = $row?->orderItems?->product_type;
+            ->addColumn('product_name', function ($row) {
+
+                $productName = $row->product_name;
+                $productType = $row->product_type;
 
                 return $productName
                     ? $productName . ($productType ? ' - ( ' . ucfirst($productType) . ' )' : '')
@@ -137,7 +146,7 @@ class TaskController extends Controller
                     'id'         => encrypt($row->id),
                 ])->render();
             })
-            ->rawColumns(['order_number', 'ticket_number', 'order_date', 'customer_name', 'total_amount', 'ticket_name', 'developer_name', 'actions'])
+            ->rawColumns(['order_number', 'ticket_number', 'order_date', 'customer_name', 'total_amount', 'product_name', 'developer_name', 'actions'])
             ->make(true);
         }
     }
@@ -171,9 +180,9 @@ class TaskController extends Controller
                 })
                 ->get();
 
-        $ticket_number = 'TCK-' . strtoupper(Str::random(6));
+        $task_number = 'TCK-' . strtoupper(Str::random(6));
 
-        return view('admin.task.form', compact('products', 'services', 'developers', 'users', 'ticket_number'));
+        return view('admin.task.form', compact('products', 'services', 'developers', 'users', 'task_number'));
     }
 
     /**
@@ -203,12 +212,35 @@ class TaskController extends Controller
 
         try {
 
+            $digital_products = DigitalProduct::query()->select(['id','name'])->pluck('name','id')->toArray();
+
+            $digital_services = DigitalService::query()->select(['id','name'])->pluck('name','id')->toArray();
+
+
+            $product_name = null;
+            if ($request->product_type == 'product' && !empty($request->product_id) && !empty($digital_products[$request->product_id])) {
+                $product_name = $digital_products[$request->product_id];
+            } elseif ($request->product_type == 'service' && !empty($request->service_id) && !empty($digital_services[$request->service_id])) {
+                $product_name = $digital_services[$request->service_id];
+            }
+
+            $variant_id = null;
+            $variant_name = null;
+            if (!empty($request->service_id) && !empty($request->service_variant_id)) {
+                $variantQuery = ServiceVariant::query()->where('id', $request->service_variant_id)->where('service_id', $request->service_id)->first();
+                $variant_id = $variantQuery?->id;
+                $variant_name = $variantQuery?->name;
+            }
+
             $ticket = Ticket::create([
                 'ticket_number' => $request->ticket_number,
                 'datetime' => now(),
                 'user_id' => $request->user_id,
                 'developer_id' => $request->developer_id,
-                'variant_id' => $request->service_variant_id ?? null,
+                'variant_id' => $variant_id,
+                'variant_name' => $variant_name,
+                'product_type' => $request->product_type,
+                'product_name' => $product_name,
                 'order_item_id' => !empty($request->product_id) ? $request->product_id : $request->service_id,
                 'status' => $request->status,
                 'cancelled_by' => ($request->status == 'cancelled' ? Auth::id() : null),
@@ -269,8 +301,11 @@ class TaskController extends Controller
     {
         view()->share('action', 'Edit');
 
-        $ticket = Ticket::find(decrypt($id));
-
+        $task = Ticket::find(decrypt($id));
+        // echo '<pre>';
+        // print_r($task->toArray());
+        // echo '</pre>';
+        // exit;
         $services = DigitalService::query()->select(['id','name'])->where('status', 1)->get();
 
         $products = DigitalProduct::query()->select(['id','name'])->where('status', 1)->get();
@@ -293,7 +328,7 @@ class TaskController extends Controller
                 })
                 ->get();
 
-        return view('admin.task.form', compact('services', 'products', 'developers', 'users', 'ticket'));
+        return view('admin.task.form', compact('services', 'products', 'developers', 'users', 'task'));
     }
 
     /**
@@ -333,9 +368,33 @@ class TaskController extends Controller
                             ? $request->cancel_reason
                             : null;
 
+            $digital_products = DigitalProduct::query()->select(['id','name'])->pluck('name','id')->toArray();
+
+            $digital_services = DigitalService::query()->select(['id','name'])->pluck('name','id')->toArray();
+
+
+            $product_name = null;
+            if ($request->product_type == 'product' && !empty($request->product_id) && !empty($digital_products[$request->product_id])) {
+                $product_name = $digital_products[$request->product_id];
+            } elseif ($request->product_type == 'service' && !empty($request->service_id) && !empty($digital_services[$request->service_id])) {
+                $product_name = $digital_services[$request->service_id];
+            }
+
+            $variant_id = null;
+            $variant_name = null;
+            if (!empty($request->service_id) && !empty($request->service_variant_id)) {
+                $variantQuery = ServiceVariant::query()->where('id', $request->service_variant_id)->where('service_id', $request->service_id)->first();
+                $variant_id = $variantQuery?->id;
+                $variant_name = $variantQuery?->name;
+            }
+
             $ticket->update([
                 'user_id'       => $request->user_id,
                 'developer_id'  => $request->developer_id,
+                'product_type'  => $request->product_type,
+                'variant_id'    => $variant_id,
+                'variant_name'  => $variant_name,
+                'product_name'  => $product_name,
                 'order_item_id' => !empty($request->product_id) ? $request->product_id : $request->service_id,
                 'status'        => $request->status,
                 'cancelled_by'  => $cancelledBy,
