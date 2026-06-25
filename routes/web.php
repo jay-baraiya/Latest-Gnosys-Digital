@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\DigitalProductController;
 use App\Http\Controllers\Admin\DigitalServiceController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\ProfileController as UserProfileController;
 use App\Http\Controllers\Admin\UserController;
@@ -64,6 +65,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::resource('settings', SettingController::class)->names('settings');
+    Route::post('settings/store-website-settings', [SettingController::class, 'storeWebsiteSetting'])->name('settings.storeWebsiteSetting');
+
 
     /* users */
     Route::resource('users', UserController::class)->names('users');
@@ -140,6 +145,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('tasks/get-service-variant', [TaskController::class, 'getServiceVariant'])->name('tasks.get.service.variant');
 });
 
+
+require __DIR__ . '/payment-auth.php';
 
 require __DIR__ . '/user-auth.php';
 

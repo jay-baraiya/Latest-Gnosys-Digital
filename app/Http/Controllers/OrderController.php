@@ -7,6 +7,7 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Ticket;
+use App\Models\User;
 use App\Models\Wallet;
 use Carbon\Carbon;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -15,11 +16,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Srmklive\PayPal\Services\PayPal as PayPalClient;
 
 class OrderController extends Controller
 {
     public function store(Request $request)
     {
+
         $request->validate([
             'first_name' => 'required',
             'email' => 'required|email',
@@ -121,6 +124,36 @@ class OrderController extends Controller
 
             DB::commit();
 
+            // 3. Setup PayPal Integration & Redirect
+            $provider = new PayPalClient;
+            $provider->setApiCredentials(config('paypal'));
+            $provider->getAccessToken();
+
+            $response = $provider->createOrder([
+                "intent" => "CAPTURE",
+                "application_context" => [
+                    "return_url" => route('paypal.success', ['order_id' => encrypt($order->id)]),
+                    "cancel_url" => route('paypal.cancel', ['order_id' => encrypt($order->id)]),
+                ],
+                "purchase_units" => [
+                    [
+                        "amount" => [
+                            "currency_code" => "USD",
+                            "value" => number_format($request->order_product_grand_total, 2, '.', '')
+                        ]
+                    ]
+                ]
+            ]);
+
+            // Redirect user to PayPal
+            if (isset($response['id']) && $response['id'] != null) {
+                foreach ($response['links'] as $links) {
+                    if ($links['rel'] == 'approve') {
+                        return redirect()->away($links['href']);
+                    }
+                }
+            }
+
             return redirect()->route('orders.thank.you')->with('success', 'Order created successfully!');
 
             // return response()->json([
@@ -146,6 +179,60 @@ class OrderController extends Controller
             //     'message' => 'Something went wrong while placing your order.'
             // ], 500);
         }
+    }
+
+    public function paypalSuccess(Request $request)
+    {
+        $provider = new PayPalClient;
+        $provider->setApiCredentials(config('paypal'));
+        $provider->getAccessToken();
+
+        $response = $provider->capturePaymentOrder($request['token']);
+
+        if (isset($response['status']) && $response['status'] == 'COMPLETED') {
+
+            $order = Order::find(decrypt($request->order_id));
+
+            if($order) {
+                // Update Order Status
+                $order->update(['transaction_id' => $response['id'],'getway_response' => json_encode($response),'payment_status' => 'success']);
+
+                // Wallet Deduction Logic (Moved from store method)
+                // if ($order->user_id) {
+                //     $user = User::find($order->user_id);
+                //     $balance = $user?->balance?->balance ?? 0;
+                //     $order_total = $order->total_amount ?? 0;
+                //     $netBalance = $balance - $order_total;
+
+                //     Wallet::query()
+                //         ->where('user_id', $order->user_id)
+                //         ->update(['balance' => $netBalance]);
+                // }
+
+                // Cart Clearing Logic (Moved from store method)
+                if ($order->user_id) {
+                    Cart::query()->where('user_id', $order->user_id)->delete();
+                } else {
+                    session()->forget('cart');
+                }
+
+                return redirect()->route('orders.thank.you')->with('success', 'Order created and payment successful!');
+            }
+        }
+
+        return redirect()->route('home')->with('error', 'Payment declined or incomplete!');
+    }
+
+    // 5. Handle Cancelled Payment
+    public function paypalCancel(Request $request)
+    {
+        $order = Order::find($request->order_id);
+        if($order) {
+            $order->update(['payment_status' => 'failed']);
+        }
+
+        // Return them back to the cart or checkout page so they can try again
+        return redirect()->route('home')->with('error', 'You cancelled the payment process.');
     }
 
     public function thankYouIndex(Request $request) {

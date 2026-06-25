@@ -27,26 +27,24 @@
             </button>
 
             <!-- Search -->
-            <div class="me-auto d-flex align-items-center header-search d-lg-flex d-none">
-                <!-- Search -->
+            {{-- <div class="me-auto d-flex align-items-center header-search d-lg-flex d-none">
                 <div class="input-icon position-relative me-2">
                     <input type="text" class="form-control" placeholder="Search Keyword">
                     <span class="input-icon-addon d-inline-flex p-0 header-search-icon"><i
                             class="ti ti-command"></i></span>
                 </div>
-                <!-- /Search -->
-            </div>
+            </div> --}}
 
         </div>
 
         <div class="d-flex align-items-center">
 
             <!-- Search for Mobile -->
-            <div class="header-item d-flex d-lg-none me-2">
+            {{-- <div class="header-item d-flex d-lg-none me-2">
                 <button class="topbar-link btn" data-bs-toggle="modal" data-bs-target="#searchModal" type="button">
                     <i class="ti ti-search fs-16"></i>
                 </button>
-            </div>
+            </div> --}}
 
 
             <!-- Minimize -->
@@ -65,88 +63,7 @@
                 </button>
             </div>
 
-            <!-- pages -->
-            <div class="header-item d-none d-sm-flex">
-                <div class="dropdown me-2">
-                    <a href="javascript:void(0);" class="btn topbar-link topbar-teal-link" data-bs-toggle="dropdown">
-                        <i class="ti ti-layout-grid-add"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-md p-2">
-
-                        <!-- Item-->
-                        <a href="contacts.html" class="dropdown-item">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <span class="d-flex mb-1 fw-semibold text-dark">Contacts</span>
-                                    <span class="fs-13">View All the Contacts</span>
-                                </div>
-                                <i class="ti ti-chevron-right-pipe text-dark"></i>
-                            </div>
-                        </a>
-
-                        <!-- Item-->
-                        <a href="pipeline.html" class="dropdown-item">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <span class="d-flex mb-1 fw-semibold text-dark">Pipeline</span>
-                                    <span class="fs-13">View All the Pipeline</span>
-                                </div>
-                                <i class="ti ti-chevron-right-pipe text-dark"></i>
-                            </div>
-                        </a>
-
-                        <!-- Item-->
-                        <a href="activities.html" class="dropdown-item">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <span class="d-flex mb-1 fw-semibold text-dark">Activities</span>
-                                    <span class="fs-13">Activities</span>
-                                </div>
-                                <i class="ti ti-chevron-right-pipe text-dark"></i>
-                            </div>
-                        </a>
-
-                        <!-- Item-->
-                        <a href="analytics.html" class="dropdown-item">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <span class="d-flex mb-1 fw-semibold text-dark">Analytics</span>
-                                    <span class="fs-13">Analytics</span>
-                                </div>
-                                <i class="ti ti-chevron-right-pipe text-dark"></i>
-                            </div>
-                        </a>
-
-                    </div>
-                </div>
-            </div>
-
-            <!-- faq -->
-            <div class="header-item d-none d-sm-flex">
-                <div class="dropdown me-2">
-                    <a href="faq.html" class="btn topbar-link topbar-indigo-link"><i class="ti ti-help-hexagon"></i></a>
-                </div>
-            </div>
-
-            <!-- report -->
-            <div class="header-item d-none d-sm-flex">
-                <div class="dropdown me-2">
-                    <a href="lead-reports.html" class="btn topbar-link topbar-warning-link"><i
-                            class="ti ti-chart-pie"></i></a>
-                </div>
-            </div>
-
             <div class="header-line"></div>
-
-            <!-- message -->
-            <div class="header-item">
-                <div class="dropdown me-2">
-                    <a href="chat.html" class="btn topbar-link">
-                        <i class="ti ti-message-circle-exclamation"></i>
-                        <span class="badge rounded-pill">&nbsp;</span>
-                    </a>
-                </div>
-            </div>
 
             <!-- Notification Dropdown -->
             <div class="header-item">
@@ -316,7 +233,7 @@
             <div class="dropdown profile-dropdown d-flex align-items-center justify-content-center">
                 <a href="javascript:void(0);" class="topbar-link dropdown-toggle drop-arrow-none position-relative"
                     data-bs-toggle="dropdown" data-bs-offset="0,22" aria-haspopup="false" aria-expanded="false">
-                    <img src="{{ asset('assets/img/users/user-40.jpg') }}" width="38" class="rounded-1 d-flex"
+                    <img src="{{ !empty(auth()->user()->image) ? asset(auth()->user()->image) : asset("assets/img/empty-image.webp") }}" width="38" class="rounded-1 d-flex"
                         alt="user-image">
                     <span class="online text-success"><i
                             class="ti ti-circle-filled d-flex bg-white rounded-circle border border-1 border-white"></i></span>
@@ -324,36 +241,30 @@
                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-md p-2">
 
                     <div class="d-flex align-items-center bg-light rounded-3 p-2 mb-2">
-                        <img src="{{ asset('assets/img/users/user-40.jpg') }}" class="rounded-circle" width="42"
+                        <img src="{{ !empty(auth()->user()->image) ? asset(auth()->user()->image) : asset("assets/img/empty-image.webp") }}" class="rounded-circle" width="42"
                             height="42" alt="Img">
                         <div class="ms-2">
-                            <p class="fw-medium text-dark mb-0">Katherine Brooks</p>
-                            <span class="d-block fs-13">Installer</span>
+                            <p class="fw-medium text-dark mb-0">{{ auth()->user()->name }}</p>
+                            <span class="d-block fs-13">{{ auth()->user()?->role?->name }}</span>
                         </div>
                     </div>
 
                     <!-- Item-->
-                    <a href="profile-settings.html" class="dropdown-item">
+                    {{-- <a href="profile-settings.html" class="dropdown-item">
                         <i class="ti ti-user-circle me-1 align-middle"></i>
                         <span class="align-middle">Profile Settings</span>
-                    </a>
+                    </a> --}}
 
                     <!-- item -->
-                    <div
+                    {{-- <div
                         class="form-check form-switch form-check-reverse d-flex align-items-center justify-content-between dropdown-item mb-0">
                         <label class="form-check-label" for="notify"><i
                                 class="ti ti-bell"></i>Notifications</label>
                         <input class="form-check-input me-0" type="checkbox" role="switch" id="notify">
-                    </div>
+                    </div> --}}
 
                     <!-- Item-->
-                    <a href="javascript:void(0);" class="dropdown-item">
-                        <i class="ti ti-help-circle me-1 align-middle"></i>
-                        <span class="align-middle">Help & Support</span>
-                    </a>
-
-                    <!-- Item-->
-                    <a href="profile-settings.html" class="dropdown-item">
+                    <a href="{{ route('admin.settings.index') }}" class="dropdown-item">
                         <i class="ti ti-settings me-1 align-middle"></i>
                         <span class="align-middle">Settings</span>
                     </a>

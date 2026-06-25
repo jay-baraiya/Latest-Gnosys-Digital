@@ -295,6 +295,8 @@
 
                                     variantSelect.html(options);
                                 } else {
+                                    console.log('test');
+
                                     $('input[name="is_variant"]').val(0);
                                     variantSelect.html('<option value="">No variants found</option>');
                                 }
@@ -311,6 +313,8 @@
 
                 if (variantId) {
                     $('#service_id').trigger('change');
+                } else {
+                    $('input[name="is_variant"]').val(0);
                 }
 
                 $('#taskForm').validate({
@@ -331,7 +335,7 @@
                         },
                         service_variant_id: {
                             required: function(element) {
-                                return $('input[name="is_variant"]').val() ? true : false;
+                                return $('input[name="is_variant"]').val() == 1 ? true : false;
                             }
                         },
                         user_id: {

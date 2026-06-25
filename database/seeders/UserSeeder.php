@@ -21,6 +21,7 @@ class UserSeeder extends Seeder
             'email' => 'superadmin@gmail.com',
             'name' => 'Super Admin',
             'is_user' => 1,
+            'designation_id' => 2,
             'password' => Hash::make('superadmin123'),
         ]);
 

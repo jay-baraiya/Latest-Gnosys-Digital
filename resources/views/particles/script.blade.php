@@ -458,7 +458,7 @@
                 setTimeout(initEcho, 100);
             }
         };
-        initEcho();
+        // initEcho();
     });
 
     $(document).ready(function(){

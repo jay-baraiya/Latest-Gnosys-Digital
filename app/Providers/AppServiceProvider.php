@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Helpers\Helper;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -36,5 +38,9 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Blade::anonymousComponentPath(resource_path('views/admin/components'), 'admin');
+
+        $settings = Setting::query()->first();
+
+        View::share('settings', $settings);
     }
 }

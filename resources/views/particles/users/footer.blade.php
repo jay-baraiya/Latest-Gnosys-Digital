@@ -11,19 +11,19 @@
                 <div class="space-y-4">
                     <div class="flex items-start gap-3 text-sm text-slate-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="text-blue-600 mt-0.5" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-map-pin"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0" /></svg>
-                        <p><strong>CA:</strong> 1664, 225 The East Mall, Toronto, ON, M9B 0A9</p>
+                        <p><strong>CA:</strong> {{ !empty($settings->asddress_one) ? $settings->asddress_one : '1664, 225 The East Mall, Toronto, ON, M9B 0A9' }}</p>
                     </div>
                     <div class="flex items-start gap-3 text-sm text-slate-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="text-blue-600 mt-0.5"  width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-map-pin"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0" /></svg>
-                        <p><strong>UK:</strong> 20-22 Wenlock Road, London N1 7GU, UK</p>
+                        <p><strong>UK:</strong> {{ !empty($settings->address_two) ? $settings->address_two : '20-22 Wenlock Road, London N1 7GU, UK' }}</p>
                     </div>
                     <div class="flex items-center gap-3 text-sm text-slate-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="text-blue-600" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-phone"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2" /></svg>
-                        <a href="tel:+16479479546" class="hover:text-blue-600 transition-colors">+1 647 947 9546</a>
+                        <a href="tel:+16479479546" class="hover:text-blue-600 transition-colors">{{ !empty($settings->contact_phone) ? $settings->contact_phone : '+1 647 947 9546' }}</a>
                     </div>
                     <div class="flex items-center gap-3 text-sm text-slate-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="text-blue-600" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></svg>
-                        <a href="mailto:connect@gnosysdigital.com" class="hover:text-blue-600 transition-colors">connect@gnosysdigital.com</a>
+                        <a href="mailto:connect@gnosysdigital.com" class="hover:text-blue-600 transition-colors">{{ !empty($settings->contact_email) ? $settings->contact_email : 'connect@gnosysdigital.com' }}</a>
                     </div>
                 </div>
             </div>
@@ -76,8 +76,24 @@
             <div>
                 <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-6">Follow Us</h3>
                 <div class="flex gap-3">
-                    @foreach(['facebook', 'brand-x', 'brand-instagram', 'brand-pinterest', 'brand-linkedin'] as $social)
-                        <a href="#" class="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                    @foreach(['brand-facebook', 'brand-x', 'brand-instagram', 'brand-pinterest', 'brand-linkedin'] as $social)
+
+                        @php
+                            $link = '#';
+                            if ($social == 'brand-facebook') {
+                                $link = !empty($settings->facebook_url) ? $settings->facebook_url : '#';
+                            } else if ($social == 'brand-x') {
+                                $link = !empty($settings->twitter_url) ? $settings->twitter_url : '#';
+                            } else if ($social == 'brand-instagram') {
+                                $link = !empty($settings->instagram_url) ? $settings->instagram_url : '#';
+                            } else if ($social == 'brand-pinterest') {
+                                $link = !empty($settings->pinterest_url) ? $settings->pinterest_url : '#';
+                            } else if ($social == 'brand-linkedin') {
+                                $link = !empty($settings->linkedin_url) ? $settings->linkedin_url : '#';
+                            }
+                        @endphp
+
+                        <a href="{{ $link }}" class="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
                             <i class="ti ti-{{ $social }} text-lg"></i>
                         </a>
                     @endforeach
