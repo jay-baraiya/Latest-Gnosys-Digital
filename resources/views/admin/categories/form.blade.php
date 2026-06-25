@@ -22,7 +22,7 @@
 
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <label class="form-label" for="type">Sub Category <span class="text-danger">*</span></label>
+                        <label class="form-label" for="type">Sub Category </label>
                         <select class="form-select select2" name="sub_cat_id" id="sub_cat_id">
                             <option value="">Select Type</option>
                             @if ($categorys->isNotEmpty())
