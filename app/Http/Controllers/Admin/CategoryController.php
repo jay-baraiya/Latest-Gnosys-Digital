@@ -41,7 +41,7 @@ class CategoryController extends Controller
     {
         if ($request->ajax()) {
 
-            $data = Category::query()
+            $data = Category::query()->with(['subcategory'])
             ->when(!empty($request->is_deleted), function ($q){
                 $q->onlyTrashed();
             })
@@ -49,7 +49,8 @@ class CategoryController extends Controller
                 $query->where(function($q) use ($request) {
                     $q->where('name', 'like', "%{$request->input('search.value')}%");
                 });
-            });
+            })
+            ->orderBy('id', 'DESC');
 
             return DataTables::eloquent($data)
                 ->with('total_categories', $data->count())
@@ -64,6 +65,9 @@ class CategoryController extends Controller
                 ->addColumn('name', function ($row) {
                     return $row->name ?? '-';
                 })
+                ->addColumn('sub_cat_id', function ($row) {
+                    return $row->subcategory?->name ?? '-';
+                })
                 ->addColumn('type', function ($row) {
                     return ucfirst($row->type) ?? '-';
                 })
@@ -77,7 +81,7 @@ class CategoryController extends Controller
                         'is_deleted' => $request->is_deleted,
                     ])->render();
                 })
-                ->rawColumns(['status', 'name', 'type', 'actions'])
+                ->rawColumns(['status', 'name', 'type', 'sub_cat_id', 'actions'])
                 ->make(true);
         }
     }
@@ -96,7 +100,8 @@ class CategoryController extends Controller
     public function create()
     {
         view()->share('action', 'Create');
-        return view('admin.categories.form');
+        $categorys = Category::query()->where('status', 1)->get();
+        return view('admin.categories.form', compact('categorys'));
     }
 
     /**
@@ -115,6 +120,7 @@ class CategoryController extends Controller
                 'name' => $request->name,
                 'slug' => Str::slug($request->name),
                 'type' => $request->type,
+                'sub_cat_id' => $request->sub_cat_id,
                 'status' => $request->status ? 1 : 0,
             ]);
 
@@ -138,7 +144,8 @@ class CategoryController extends Controller
     {
         view()->share('action', 'View');
         $category = Category::findOrFail(decrypt($id));
-        return view('admin.categories.show', compact('category'));
+        $categorys = Category::query()->where('status', 1)->get();
+        return view('admin.categories.show', compact('category','categorys'));
     }
 
     /**
@@ -148,7 +155,9 @@ class CategoryController extends Controller
     {
         view()->share('action', 'Edit');
         $category = Category::findOrFail(decrypt($id));
-        return view('admin.categories.form', compact('category'));
+        $categorys = Category::query()->where('status', 1)->get();
+
+        return view('admin.categories.form', compact('category', 'categorys'));
     }
 
     /**
@@ -169,6 +178,7 @@ class CategoryController extends Controller
                 'name' => $request->name,
                 'type' => $request->type,
                 'status' => $request->status ? 1 : 0,
+                'sub_cat_id' => $request->sub_cat_id
             ]);
 
 

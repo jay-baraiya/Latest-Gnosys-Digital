@@ -50,6 +50,7 @@
                         <tr>
                             <th class="no-sort">#</th>
                             <th>Name</th>
+                            <th>Sub Category</th>
                             <th>Type</th>
                             <th>Status</th>
                             <th class="text-end no-sort">Action</th>
@@ -119,6 +120,10 @@
                             {
                                 "data": "name",
                                 "name": "name"
+                            },
+                            {
+                                "data": "sub_cat_id",
+                                "name": "sub_cat_id"
                             },
                             {
                                 "data": "type",

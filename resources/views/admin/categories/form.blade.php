@@ -7,7 +7,7 @@
                 @method('PUT')
             @endif
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="name">Name <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
@@ -20,7 +20,24 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label" for="type">Sub Category <span class="text-danger">*</span></label>
+                        <select class="form-select select2" name="sub_cat_id" id="sub_cat_id">
+                            <option value="">Select Type</option>
+                            @if ($categorys->isNotEmpty())
+                                @foreach ($categorys as $cat)
+                                    <option value="{{ $cat->id }}" {{ (!empty($category->sub_cat_id) && $category->sub_cat_id == $cat->id) ? 'selected' : '' }} >{{ $cat->name }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                        @error('type')
+                            <span class="text-danger small">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="type">Type <span class="text-danger">*</span></label>
                         <select class="form-select select2" name="type" id="type">
@@ -121,6 +138,11 @@
 
                 $('#type').select2({
                     placeholder: 'Select a type',
+                    allowClear: true,
+                });
+
+                $('#sub_cat_id').select2({
+                    placeholder: 'Select a sub category',
                     allowClear: true,
                 });
             });
