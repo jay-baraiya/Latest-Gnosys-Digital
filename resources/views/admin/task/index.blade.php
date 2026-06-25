@@ -18,14 +18,98 @@
         </x-page-header>
 
         <x-card>
-            <x-slot:header>
-                <div class="input-icon input-icon-start position-relative">
-                    <span class="input-icon-addon text-dark"><i class="ti ti-search"></i></span>
-                    <input type="text" class="form-control" placeholder="Search" id="dataTable-search">
+            <div class="card border-0">
+                <div class="card-body pb-0 pt-0 px-2">
+                    <ul class="nav nav-tabs nav-bordered nav-bordered-primary">
+
+                        <li class="nav-item me-3">
+                            <a href="{{ route('admin.tasks.index') }}?status=pending" data-status="pending" class="nav-link p-2 {{ $status == 'pending' ? 'active' : '' }}">
+                                Pending
+                            </a>
+                        </li>
+
+                        {{-- <li class="nav-item me-3">
+                            <a href="?status=assign_requested" data-status="assign_requested" class="nav-link p-2">
+                                Assign Requested
+                            </a>
+                        </li> --}}
+
+                        <li class="nav-item me-3">
+                            <a href="{{ route('admin.tasks.index') }}?status=assigned" data-status="assigned" class="nav-link p-2 {{ $status == 'assigned' ? 'active' : '' }}">
+                                Assigned
+                            </a>
+                        </li>
+{{--
+                        <li class="nav-item me-3">
+                            <a href="?status=assign_not_accepted" data-status="assign_not_accepted" class="nav-link p-2">
+                                Assign Not Accepted
+                            </a>
+                        </li> --}}
+
+                        <li class="nav-item me-3">
+                            <a href="{{ route('admin.tasks.index') }}?status=in_progress" data-status="in_progress" class="nav-link p-2 {{ $status == 'in_progress' ? 'active' : '' }}">
+                                In Progress
+                            </a>
+                        </li>
+
+                        <li class="nav-item me-3">
+                            <a href="{{ route('admin.tasks.index') }}?status=completed" data-status="completed" class="nav-link p-2 {{ $status == 'completed' ? 'active' : '' }}">
+                                Completed
+                            </a>
+                        </li>
+
+                        <li class="nav-item me-3">
+                            <a href="{{ route('admin.tasks.index') }}?status=cancel_requested" data-status="cancel_requested" class="nav-link p-2 {{ $status == 'cancel_requested' ? 'active' : '' }}">
+                                Cancel Requested
+                            </a>
+                        </li>
+
+                        <li class="nav-item me-3">
+                            <a href="{{ route('admin.tasks.index') }}?status=cancelled" data-status="cancelled" class="nav-link p-2 {{ $status == 'cancelled' ? 'active' : '' }}">
+                                Cancelled
+                            </a>
+                        </li>
+
+                        <li class="nav-item me-3">
+                            <a href="{{ route('admin.tasks.index') }}?status=refund" data-status="refund" class="nav-link p-2 {{ $status == 'refund' ? 'active' : '' }}">
+                                Refund
+                            </a>
+                        </li>
+
+                    </ul>
                 </div>
-                <a href="{{ route('admin.tasks.create') }}" class="btn btn-primary"><i
-                        class="ti ti-square-rounded-plus-filled me-1"></i>Add
-                    {{ rtrim($moduleName, 's') }}</a>
+            </div>
+            <x-slot:header>
+                <div class="d-flex align-items-center flex-wrap gap-2 w-100">
+
+                    <div class="input-icon input-icon-start position-relative">
+                        <span class="input-icon-addon text-dark">
+                            <i class="ti ti-search"></i>
+                        </span>
+                        <input type="text" class="form-control" placeholder="Search" id="dataTable-search">
+                    </div>
+
+                    <div style="min-width: 180px;">
+                        <select name="filter_order_number" id="filter-order-number" class="form-control filter_order_number">
+                            <option value="">Select Order Number</option>
+                        </select>
+                    </div>
+
+                    <div style="min-width: 180px;">
+                        <select name="filter_ticket_number" id="filter-ticket-number" class="form-control filter_ticket_number">
+                            <option value="">Select Ticket Number</option>
+                        </select>
+                    </div>
+
+                    <button type="button" class="btn btn-outline-secondary" id="clear-filters">
+                        <i class="ti ti-refresh me-1"></i>Clear Filters
+                    </button>
+
+                    <a href="{{ route('admin.tasks.create') }}" class="btn btn-primary ms-auto">
+                        <i class="ti ti-square-rounded-plus-filled me-1"></i>Add {{ rtrim($moduleName, 's') }}
+                    </a>
+
+                </div>
             </x-slot:header>
 
             <div class="table-responsive custom-table">
@@ -34,12 +118,13 @@
                         <tr>
                             <th class="no-sort" style="width: 50px;">#</th>
                             <th>Order Number</th>
-                            <th>Order Date</th>
+                            {{-- <th>Order Date</th> --}}
                             <th class="no-sort">Ticket Number</th>
                             <th class="no-sort">Product Name</th>
                             <th>Customer Name</th>
                             <th>Developer Name</th>
                             <th>Total Amount</th>
+                            <th>Status</th>
                             <th class="text-end no-sort">Action</th>
                         </tr>
                     </thead>
@@ -97,6 +182,24 @@
     @push('scripts')
         <script>
             $(document).ready(function() {
+
+                var status = '{{ $status }}';
+                $(document).on('click', '.nav-link', function(e) {
+                    e.preventDefault();
+
+                    status = $(this).data('status');
+
+                    var url = new URL(window.location.href);
+                    url.searchParams.set('status', status);
+
+                    window.history.replaceState({}, '', url);
+
+                    $('.nav-link').removeClass('active');
+                    $(this).addClass('active');
+
+                    $('.dataTableReload').DataTable().ajax.reload(null, false);
+
+                });
 
                 $(document).on('click', '.assign-dev', function() {
                     let $span = $(this);
@@ -157,11 +260,12 @@
                             },
                             success: function(response) {
                                 if (response.success) {
-                                    $parent.html(`<span class="fw-medium text-dark cursor-pointer">${devName}</span>`);
+                                    $parent.html(`<span class="assign-dev fw-medium text-dark cursor-pointer" data-ticket-id="${ticketId}">${devName}</span>`);
                                 } else {
                                     alert('Error: ' + response.message);
                                     $select.prop('disabled', false);
                                 }
+                                $('.dataTableReload').DataTable().ajax.reload(null, false);
                             },
                             error: function() {
                                 alert('Something went wrong. Please try again.');
@@ -223,13 +327,13 @@
                         "processing": true,
                         "serverSide": true,
                         "ajax": {
-                            // Updated route to fetch task/order data
                             "url": "{{ route('admin.tasks.getData') }}",
                             "type": "POST",
                             data: function(d) {
                                 d.is_deleted = $('#is_deleted').val();
-                                // Optional: Keep this if you still use it for filtering
-                                d.is_buyer = $('.buyerRecode').attr('data-buyer-value');
+                                d.status = status;
+                                d.order_number = $('#filter-order-number').val();
+                                d.ticket_number = $('#filter-ticket-number').val();
                             }
                         },
                         "language": {
@@ -249,18 +353,18 @@
                         },
                         drawCallback: function(settings) {
                             var api = this.api();
-                            // Updated to read total_tasks from the new controller setup
                             $('.record-count').text(api.ajax.json().total_tasks ?? 0);
                         },
                         "columns": [
                             { "data": "DT_RowIndex", "name": "DT_RowIndex", "orderable": false, "searchable": false },
                             { "data": "order_number", "name": "order_number" },
-                            { "data": "order_date", "name": "date_time", "searchable": false },
+                            // { "data": "order_date", "name": "date_time", "searchable": false },
                             { "data": "ticket_number", "name": "ticket_number", "orderable": false, "searchable": true },
                             { "data": "product_name", "name": "product_name", "orderable": false, "searchable": true },
                             { "data": "customer_name", "name": "user.name", "searchable": false },
                             { "data": "developer_name", "name": "developer_name", "searchable": false },
                             { "data": "total_amount", "name": "total_amount", "searchable": false },
+                            { "data": "status", "name": "status", "searchable": false },
                             { "data": "actions", "name": "actions", "orderable": false, "searchable": false }
                         ]
                     });
@@ -276,6 +380,65 @@
                         }, 500);
                     });
                 }
+
+                $(document).on('click', '.change-status-btn', function(e) {
+                    e.preventDefault();
+
+                    let $btn = $(this);
+                    let ticketId = $btn.data('id');
+                    let newStatus = $btn.data('status');
+                    let statusLabel = $btn.text().trim();
+
+                    let url = '{{ route('admin.tasks.update.status') }}';
+
+                    if (!ticketId || !newStatus) return;
+
+                    Swal.fire({
+                        title: "Are you sure?",
+                        text: "You want to update status to " + statusLabel + "?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        customClass: {
+                            confirmButton: "btn btn-primary me-2 mt-2",
+                            cancelButton: "btn btn-danger mt-2",
+                        },
+                        confirmButtonText: "Yes, update it!",
+                        buttonsStyling: false,
+                        showCloseButton: true,
+                    }).then(function(result) {
+
+                        if (result.isConfirmed) {
+
+                            $.ajax({
+                                url: url,
+                                type: 'POST',
+                                data: {
+                                    ticket_id: ticketId,
+                                    status: newStatus,
+                                    _token: $('meta[name="csrf-token"]').attr('content') // Laravel CSRF Token
+                                },
+                                success: function(response) {
+
+                                    if (response.success) {
+                                        showToast(response.message, 'success');
+                                    } else {
+                                        showToast(response.message, 'error');
+                                    }
+
+                                    reloadDataTabale(); // તમારું datatable રિલોડ કરવાનું ફંક્શન
+                                },
+                                error: function(xhr) {
+                                    let errorMessage = 'Something went wrong!';
+                                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                                        errorMessage = xhr.responseJSON.message;
+                                    }
+                                    showToast(errorMessage, 'error');
+                                }
+                            });
+
+                        }
+                    });
+                });
             });
         </script>
     @endpush

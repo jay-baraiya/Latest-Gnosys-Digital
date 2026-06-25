@@ -55,12 +55,16 @@ class TaskController extends Controller
      */
     public function index(Request $request)
     {
-        return view('admin.task.index');
+        $status = $request->input('status', 'pending');
+
+        return view('admin.task.index', compact('status'));
     }
 
     public function getData(Request $request)
     {
         if ($request->ajax()) {
+
+        $status = $request->input('status');
 
         $excludedRoles = [User::IS_ADMIN];
 
@@ -96,10 +100,20 @@ class TaskController extends Controller
                     ->orWhere('product_name', 'like', "%{$search}%")
                     ->orWhereHas('order', function ($orderQuery) use ($search) {
                         $orderQuery->where('order_number', 'like', "%{$search}%");
-                    })
-                    ;
+                    });
                 });
-            });
+            })
+            ->when(!empty($request->input('ticket_number')), function ($query) use ($request) {
+                $search = $request->input('ticket_number');
+                $query->where('ticket_number', 'like', "%{$search}%");
+            })
+            ->when(!empty($request->input('order_number')), function ($query) use ($request) {
+                $search = $request->input('order_number');
+                $query->orWhereHas('order', function ($orderQuery) use ($search) {
+                    $orderQuery->where('order_number', 'like', "%{$search}%");
+                });
+            })
+            ->where('status', $status);
 
         return DataTables::eloquent($query)
             ->with('total_tasks', $query->count())
@@ -130,23 +144,39 @@ class TaskController extends Controller
                 $developerName = $row?->developer?->name;
                 $roleName = $row?->developer?->roles?->first()?->name;
 
-                return $developerName
-                    ? $developerName . ($roleName ? ' - (' . $roleName . ')' : '')
-                    : '-';
+                $displayText = $developerName ? $developerName . ($roleName ? ' - (' . $roleName . ')' : '') : '-';
+
+                return '<div class="dev-section"><span class="assign-dev cursor-pointer fw-medium" data-ticket-id="'.encrypt($row->id).'">' . $displayText . '</span></div>';
             })
             ->addColumn('total_amount', function ($row) {
                 $amount = $row?->orderItems?->product_price ?? 0;
                 return '$' . number_format($amount, 2);
             })
+            ->addColumn('status', function ($row) {
+                $badges = [
+                    'pending'             => '<span class="badge bg-warning">Pending</span>',
+                    'assign_requested'    => '<span class="badge bg-info">Assign Requested</span>',
+                    'assigned'            => '<span class="badge bg-primary">Assigned</span>',
+                    'assign_not_accepted' => '<span class="badge bg-secondary">Assign Not Accepted</span>',
+                    'in_progress'         => '<span class="badge bg-dark">In Progress</span>',
+                    'completed'           => '<span class="badge bg-success">Completed</span>',
+                    'cancel_requested'    => '<span class="badge bg-warning">Cancel Requested</span>',
+                    'cancelled'           => '<span class="badge bg-danger">Cancelled</span>',
+                    'refund'              => '<span class="badge bg-danger">Refund</span>',
+                ];
+
+                return $badges[$row->status] ?? '<span class="badge bg-light text-dark">Unknown</span>';
+            })
             ->addColumn('actions', function ($row) use ($request) {
-                return view('admin.components.action-links', [
+                return view('admin.components.task-action-link', [
                     'edit'       => route('admin.tasks.edit', encrypt($row->id)),
                     'show'       => route('admin.tasks.show', encrypt($row->id)),
                     'delete'     => route('admin.tasks.destroy', encrypt($row->id)),
                     'id'         => encrypt($row->id),
+                    'current_status' => $row->status,
                 ])->render();
             })
-            ->rawColumns(['order_number', 'ticket_number', 'order_date', 'customer_name', 'total_amount', 'product_name', 'developer_name', 'actions'])
+            ->rawColumns(['order_number', 'ticket_number', 'order_date', 'customer_name', 'total_amount', 'product_name', 'developer_name', 'status', 'actions'])
             ->make(true);
         }
     }
@@ -511,13 +541,14 @@ class TaskController extends Controller
 
     public function assignDevUser(Request $request)
     {
-        $ticket_id = $request->ticket_id;
+        $ticket_id = decrypt($request->ticket_id);
         $developer_id = $request->developer_id;
 
         $ticket = Ticket::find($ticket_id);
 
         if ($ticket) {
             $ticket->developer_id = $developer_id;
+            $ticket->status = 'assigned';
 
             $ticket->update();
 
@@ -544,5 +575,40 @@ class TaskController extends Controller
             'success' => 1,
             'variants' => $variants
         ]);
+    }
+
+    public function updateTicketStatus(Request $request)
+    {
+        $request->validate([
+            'ticket_id' => 'required',
+            'status' => 'required|in:pending,assign_requested,assigned,assign_not_accepted,in_progress,completed,cancel_requested,cancelled,refund'
+        ]);
+
+        try {
+            $ticket_id = decrypt($request->ticket_id);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid Ticket ID'
+            ], 400);
+        }
+
+        $ticket = Ticket::find($ticket_id);
+
+        if ($ticket) {
+            $ticket->status = $request->status;
+            $ticket->update();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ticket status updated successfully!',
+                'data' => $ticket
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Ticket not found'
+        ], 404);
     }
 }

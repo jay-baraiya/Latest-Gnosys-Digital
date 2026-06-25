@@ -500,8 +500,63 @@
             reloadDataTabale();
         });
 
-        $(document).on('change', '#category_id', function() {
+        $(document).on('change', '#category_id, #filter-order-number, #filter-ticket-number', function() {
             reloadDataTabale();
+        });
+
+        $(document).on('click', '#clear-filters', function() {
+
+            if ($('#filter-order-number').length > 0) {
+                $('#filter-order-number').val('').trigger('change');
+            }
+
+            if ($('#filter-ticket-number').length > 0) {
+                $('#filter-ticket-number').val('').trigger('change');
+            }
+
+            reloadDataTabale();
+        });
+
+        $('#filter-order-number').select2({
+            placeholder: "Select Order Number",
+            allowClear: true,
+            ajax: {
+                url: '{{ route("admin.tickets.get.order_numbers") }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            }
+        });
+
+        $('#filter-ticket-number').select2({
+            placeholder: "Select Ticket Number",
+            allowClear: true,
+            ajax: {
+                url: '{{ route("admin.tickets.get.ticket_numbers") }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            }
         });
 
     });

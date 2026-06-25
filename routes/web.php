@@ -84,6 +84,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('ajax/custom-fields/get-field-type-data', [CommonController::class, 'getFieldTypeData'])->name('custom.fields.getFieldTypeData');
     Route::post('ajax/get-categories', [CommonController::class, 'getCategories'])->name('ajax.categories');
 
+    Route::get('ajax/tickets/get-order-numbers', [CommonController::class, 'getOrderNumbers'])->name('tickets.get.order_numbers');
+    Route::get('ajax/tickets/get-ticket-numbers', [CommonController::class, 'getTicketNumbers'])->name('tickets.get.ticket_numbers');
     /* roles */
     Route::resource('roles', RoleController::class)->names('roles');
     Route::post('roles/get-data', [RoleController::class, 'getData'])->name('roles.getData');
@@ -143,6 +145,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('tasks/dev-user', [TaskController::class, 'getDevUser'])->name('tasks.dev.user');
     Route::post('tasks/assign-dev-user', [TaskController::class, 'assignDevUser'])->name('tasks.assign.dev.user');
     Route::post('tasks/get-service-variant', [TaskController::class, 'getServiceVariant'])->name('tasks.get.service.variant');
+    Route::post('/tasks/update-status', [TaskController::class, 'updateTicketStatus'])->name('tasks.update.status');
+
 });
 
 

@@ -7,9 +7,11 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\CustomField;
 use App\Models\CustomFieldType;
+use App\Models\Order;
 use App\Models\ServiceFeature;
 use App\Models\ServiceVariant;
 use App\Models\State;
+use App\Models\Ticket;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -333,5 +335,57 @@ class CommonController extends Controller
                 Log::error('updateUserData() error -> '. $e->getMessage());
             }
         }
+    }
+
+    public function getOrderNumbers(Request $request)
+    {
+        $search = $request->input('q');
+
+        $query = Order::query();
+
+        if (!empty($search)) {
+            $query->where('order_number', 'LIKE', "%{$search}%");
+        }
+
+        $orders = $query->select('order_number')
+                        ->whereNotNull('order_number')
+                        ->distinct()
+                        ->get();
+
+        $formattedData = [];
+        foreach ($orders as $order) {
+            $formattedData[] = [
+                'id' => $order->order_number,
+                'text' => $order->order_number
+            ];
+        }
+
+        return response()->json(['results' => $formattedData]);
+    }
+
+    public function getTicketNumbers(Request $request)
+    {
+        $search = $request->input('q');
+
+        $query = Ticket::query();
+
+        if (!empty($search)) {
+            $query->where('ticket_number', 'LIKE', "%{$search}%");
+        }
+
+        $tickets = $query->select('ticket_number')
+                         ->whereNotNull('ticket_number')
+                         ->distinct()
+                         ->get();
+
+        $formattedData = [];
+        foreach ($tickets as $ticket) {
+            $formattedData[] = [
+                'id' => $ticket->ticket_number,
+                'text' => $ticket->ticket_number
+            ];
+        }
+
+        return response()->json(['results' => $formattedData]);
     }
 }
