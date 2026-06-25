@@ -39,8 +39,6 @@ class AppServiceProvider extends ServiceProvider
 
         Blade::anonymousComponentPath(resource_path('views/admin/components'), 'admin');
 
-        // અહીં આપણે કન્ડિશન મૂકી છે જેથી જ્યારે કમાન્ડ લાઇન (CLI) રન થતી હોય
-        // અથવા ટેબલ ન હોય ત્યારે એરર ના આવે.
         if (!app()->runningInConsole() && Schema::hasTable('settings')) {
             $settings = Setting::query()->first();
             View::share('settings', $settings);
