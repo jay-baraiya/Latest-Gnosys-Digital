@@ -250,9 +250,14 @@ class OrderController extends Controller
     public function show(string $id)
     {
         view()->share('action', 'View');
-        $user = User::with(['country', 'state', 'city'])->findOrFail(decrypt($id));
-        $designations = Designation::query()->where('status', 1)->get();
-        return view('admin.order.show', compact('user', 'designations'));
+         $order = Order::with('orderItems')->findOrFail(decrypt($id));
+
+        $users     = User::query()->where('status', 1)->whereNotIn('id', [User::IS_ADMIN])->get(['id', 'name', 'email']);
+        $countries = Country::query()->orderBy('name')->get(['id', 'name']);
+        $products  = DigitalProduct::query()->whereNull('deleted_at')->get(['id', 'name', 'price']);
+        $services  = DigitalService::with('variants')->where('status', 1)->get();
+
+        return view('admin.order.show', compact('order', 'users', 'countries', 'products', 'services'));
     }
 
     /**

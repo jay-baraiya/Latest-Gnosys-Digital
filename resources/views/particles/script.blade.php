@@ -36,6 +36,7 @@
 
 <!-- Quill Editor JS -->
 <script src="{{ asset('assets/plugins/quill/quill.min.js') }}"></script>
+<script src="https://unpkg.com/quill-html-edit-button@2.2.7/dist/quill.htmlEditButton.min.js"></script>
 
 <!-- Choices Js -->
 <script src="{{ asset('assets/plugins/choices.js/public/assets/scripts/choices.min.js') }}"></script>

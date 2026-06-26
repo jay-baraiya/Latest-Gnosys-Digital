@@ -1,12 +1,12 @@
 <x-master-layout>
-    <x-form-wrapper action="{{ isset($action) ? $action : (isset($digitalservice) ? 'Edit Digital Product' : 'Create Digital Product') }}">
+    <x-form-wrapper action="{{ isset($action) ? $action : (isset($digitalservice) ? 'Edit Digital Service' : 'Create Digital Service') }}">
 
             <div class="row">
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <label class="form-label" for="name">Product Name <span class="text-danger">*</span></label>
+                        <label class="form-label" for="name">Service Name <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
-                            <input type="text" class="form-control" name="name" id="name" placeholder="Enter product name"
+                            <input type="text" class="form-control" name="name" id="name" placeholder="Enter service name"
                                 value="{{ old('name', $digitalservice->name ?? '') }}">
                         </div>
                         @error('name')
@@ -103,7 +103,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label mb-0" for="image">Product Image</label>
+                            <label class="form-label mb-0" for="image">Service Image</label>
                             <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" id="toggleImageMode">
                                 <i class="ti ti-link"></i> <span id="toggleImageText">Use Image URL instead</span>
                             </button>
@@ -157,7 +157,7 @@
                         <input class="form-check-input" type="checkbox" name="on_sale" id="on_sale" value="1"
                             {{ old('on_sale', $digitalservice->on_sale ?? 0) == 1 ? 'checked' : '' }}>
                         <label class="form-check-label" for="on_sale">
-                            Product is on sale
+                            Off in service
                         </label>
                     </div>
                     @error('on_sale')
@@ -214,14 +214,26 @@
             </div>
 
             <hr>
-
+                <div class="fw-bold mb-3">Services Features</div>
+                @include('admin.digital-services.features', [
+                    'service_id' => !empty($digitalservice->id) ? $digitalservice->id : '' ,
+                    'features' => !empty($digitalservice->serviceFeatures) ? $digitalservice->serviceFeatures : collect([])
+                ])
+            <hr>
+                <div class="fw-bold mb-3">Services Variants</div>
+                @include('admin.digital-services.variants', [
+                    'service_id' => !empty($digitalservice->id) ? $digitalservice->id : '' ,
+                    'variants' => !empty($digitalservice->variants) ? $digitalservice->variants : collect([])
+                ])
+            <hr>
             <div class="fw-bold mb-3">Custom Fields</div>
-
-            @include('custom-field.fields', [
+            @include('admin.custom-field.fields', [
                 'recode_id' => !empty($digitalservice->id) ? $digitalservice->id : '' ,
                 'customfieldtyeps' => $customfieldtyeps,
                 'customfields' => isset($customfields) ? $customfields : collect([]),
             ])
+
+            <hr>
 
             <div class="text-end mt-3">
                 <a href="{{ isset($moduleUrl) ? route($moduleUrl) : url()->previous() }}" class="btn btn-soft-light">Cancel</a>
@@ -260,6 +272,97 @@
                     return this.optional(element) || (element.files[0].size <= param);
                 }, 'File size must be less than 1 MB.');
 
+                let validator = $('#digitalServicesForm').validate({
+                    ignore: ":hidden:not(.select2-hidden-accessible, #description)",
+                    rules: {
+                        name: {
+                            required: true,
+                            maxlength: 255,
+                            remote: {
+                                url: "{{ route('admin.digital.services.check.name') }}",
+                                type: "post",
+                                data: {
+                                    name: function() {
+                                        return $("#name").val();
+                                    },
+                                    service_id: function() {
+                                        return '{{ isset($digitalservice) ? $digitalservice->id : '' }}';
+                                    },
+                                }
+                            }
+                        },
+                        sku: {
+                            required: true,
+                            maxlength: 255,
+                            remote: {
+                                url: "{{ route('admin.digital.services.check.sku') }}",
+                                type: "post",
+                                data: {
+                                    name: function() {
+                                        return $("#sku").val();
+                                    },
+                                    service_id: function() {
+                                        return '{{ isset($digitalservice) ? $digitalservice->id : '' }}';
+                                    },
+                                }
+                            }
+                        },
+                        category_id: { required: true },
+                        price: { required: true, number: true, min: 0 },
+                        price_for_sale: { number: true, min: 0 },
+                        sort_order: { digits: true, min: 0 },
+                        status: { required: true },
+                        image: {
+                            required: function(element) {
+                                return isImageRequired();
+                            },
+                            extension: "jpg|jpeg|png|webp",
+                            filesize: 1048576
+                        },
+                        short_description: { required: true },
+                        description: { required: true },
+                    },
+                    messages: {
+                        name: {
+                            required: "Please enter the service name.",
+                            remote: "This service name is already in use."
+                        },
+                        sku: {
+                            required: "Please provide a unique SKU.",
+                            remote: "This service SKU is already in use."
+                        },
+                        category_id: { required: "Please select a category." },
+                        image: {
+                            extension: "Only JPG, JPEG, PNG and WEBP files are allowed.",
+                            filesize: "File size must not exceed 1 MB."
+                        },
+                        short_description: { required: "Please provide a detailed short description." },
+                        description: { required: "Please provide a detailed description." },
+                    },
+                    errorClass: 'text-danger small mt-1',
+                    errorElement: 'span',
+                    ignore: ":hidden:not(.select2-hidden-accessible)",
+                    highlight: function(element) {
+                        $(element).addClass('is-invalid');
+                    },
+                    unhighlight: function(element) {
+                        $(element).removeClass('is-invalid');
+                    },
+                    errorPlacement: function(error, element) {
+                        if (element.hasClass('select2-hidden-accessible')) {
+                            error.insertAfter(element.next('.select2-container'));
+                        } else if (element.attr('id') === 'description') {
+                            error.insertAfter('#quill-editor');
+                        } else if (element.parent('.input-group').length) {
+                            error.insertAfter(element.parent());
+                        } else if (element.prop('type') === 'radio') {
+                            error.insertAfter(element.closest('.d-flex'));
+                        } else {
+                            error.insertAfter(element);
+                        }
+                    }
+                });
+
                 quill.on('text-change', function() {
                     var html = quill.root.innerHTML;
                     if (quill.getText().trim().length === 0) {
@@ -283,7 +386,9 @@
 
                         $('#image').val('');
                         $('#image').rules('remove', 'extension');
-                        $('#image_url').rules('add', { url: true, messages: { url: "Please enter a valid URL." } });
+                        $('#image_url').rules('add', { required: function(element) {
+                            return isImageRequired();
+                        }, url: true, messages: { url: "Please enter a valid URL." } });
                     } else {
                         $('#urlInputContainer').addClass('d-none');
                         $('#fileInputContainer').removeClass('d-none');
@@ -291,7 +396,9 @@
 
                         $('#image_url').val('');
                         $('#image_url').rules('remove', 'url');
-                        $('#image').rules('add', { extension: "jpg|jpeg|png|webp|gif" });
+                        $('#image').rules('add', { required: function(element) {
+                            return isImageRequired();
+                        }, extension: "jpg|jpeg|png|webp" });
                     }
 
                     clearPreview();
@@ -363,6 +470,13 @@
                     } catch (_) {
                         return false;
                     }
+                }
+
+                function isImageRequired() {
+                    let hasExistingImage = $('#currentImageContainer').length > 0 && !$('#currentImageContainer').hasClass('d-none');
+                    let markedForRemoval = $('#remove_existing_image').val() === "1";
+
+                    return !hasExistingImage || markedForRemoval;
                 }
             });
         </script>

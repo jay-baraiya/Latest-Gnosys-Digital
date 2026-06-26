@@ -6,7 +6,7 @@
     <!-- Meta Tags -->
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{{ isset($moduleName) ? $moduleName . ' | ' : '' }}{{ config('app.name', 'ERP System') }}</title>
+    <title>{{ isset($moduleName) ? $moduleName . ' | ' : '' }}{{ config('app.name', 'Gnosys Digital') }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,10 +18,10 @@
     <meta name="robots" content="index, follow">
 
     <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ asset('assets/img/favicon.png') }}">
+    <link rel="shortcut icon" href="{{ !empty($settings->favicon) ? asset($settings->favicon) : asset('assets/img/cropped-Ginosys-Digital-32x32.png') }}">
 
     <!-- Apple Icon -->
-    <link rel="apple-touch-icon" href="{{ asset('assets/img/apple-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ !empty($settings->favicon) ? asset($settings->favicon) : asset('assets/img/cropped-Ginosys-Digital-32x32.png') }}">
 
     <!-- Theme Config Js -->
     <script src="{{ asset('assets/js/theme-script.js') }}"></script>

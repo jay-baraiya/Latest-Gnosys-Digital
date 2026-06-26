@@ -6,7 +6,7 @@
                     <div class="mb-3">
                         <label class="form-label" for="name">Blog Name <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
-                            <input disabled type="text" class="form-control" name="name" id="name" placeholder="Enter blog name"
+                            <input type="text" class="form-control" name="name" id="name" placeholder="Enter blog name"
                                 value="{{ old('name', $blog->name ?? '') }}">
                         </div>
                         @error('name')
@@ -18,7 +18,7 @@
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label" for="category_id">Category <span class="text-danger">*</span></label>
-                        <select disabled class="form-select select2" name="category_id" id="category_id">
+                        <select class="form-select select2" name="category_id" id="category_id">
                             <option value="">Select Category</option>
                             @if (isset($categories))
                                 @foreach ($categories as $category)
@@ -35,7 +35,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label mb-0" for="image">Blog Image <span class="text-danger">*</span> </label>
@@ -44,14 +44,14 @@
                             </button>
                         </div>
 
-                        <input disabled type="hidden" name="remove_existing_image" id="remove_existing_image" value="0">
+                        <input type="hidden" name="remove_existing_image" id="remove_existing_image" value="0">
 
                         <div id="fileInputContainer">
-                            <input disabled type="file" class="form-control" name="image" id="image" accept="image/*">
+                            <input type="file" class="form-control" name="image" id="image" accept="image/*">
                         </div>
 
                         <div id="urlInputContainer" class="d-none">
-                            <input disabled type="url" class="form-control" name="image_url" id="image_url" placeholder="https://example.com/image.jpg" value="{{ old('image_url') }}">
+                            <input type="url" class="form-control" name="image_url" id="image_url" placeholder="https://example.com/image.jpg" value="{{ old('image_url') }}">
                         </div>
 
                         @error('image')
@@ -81,16 +81,20 @@
                     </div>
                 </div>
 
-                <div class="col-lg-6">
+                <div class="col-lg-4">
                     <label class="form-check-label" for="tags">Tags</label>
-                    <input disabled type="text" name="tags" id="tags" class="form-control", value="{{ !empty($blog->tags) ? $blog->tags : '' }}" placeholder="Enter tags..." data-choices>
+                    <input type="text" name="tags" id="tags" class="form-control", value="{{ !empty($blog->tags) ? $blog->tags : '' }}" placeholder="Enter tags..." data-choices>
                 </div>
 
+                <div class="col-lg-4">
+                    <label class="form-check-label" for="read_time">Read Time</label>
+                    <input type="text" name="read_time" id="read_time" class="form-control", value="{{ !empty($blog->read_time) ? $blog->read_time : '' }}" placeholder="Ex. 12 min read">
+                </div>
 
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label class="form-label" for="short_description">Short Description<span class="text-danger">*</span></label>
-                        <textarea disabled class="form-control" name="short_description" id="short_description" rows="2" placeholder="Brief summary">{{ old('short_description', $blog->short_description ?? '') }}</textarea>
+                        <textarea class="form-control" name="short_description" id="short_description" rows="2" placeholder="Brief summary">{{ old('short_description', $blog->short_description ?? '') }}</textarea>
                         @error('short_description')
                             <span class="text-danger small">{{ $message }}</span>
                         @enderror
@@ -101,7 +105,7 @@
                     <div class="mb-3">
                         <label class="form-label" for="description">Full Description <span class="text-danger">*</span></label>
 
-                        <input disabled type="hidden" name="description" id="description" value="{{ old('description', $blog->description ?? '') }}">
+                        <input type="hidden" name="description" id="description" value="{{ old('description', $blog->description ?? '') }}">
 
                         <div id="quill-editor" style="height: 200px;">{!! old('description', $blog->description ?? '') !!}</div>
 
@@ -118,12 +122,12 @@
                     <label class="form-label">Status <span class="text-danger">*</span></label>
                     <div class="d-flex gap-3 mb-1">
                         <div class="form-check">
-                            <input disabled class="form-check-input" type="radio" name="status" id="status-active"
+                            <input class="form-check-input" type="radio" name="status" id="status-active"
                                 value="1" @if (old('status', $blog->status ?? 1) == 1) checked @endif>
                             <label class="form-check-label" for="status-active">Active</label>
                         </div>
                         <div class="form-check">
-                            <input disabled class="form-check-input" type="radio" name="status" id="status-inactive"
+                            <input class="form-check-input" type="radio" name="status" id="status-inactive"
                                 value="0" @if (old('status', $blog->status ?? 1) == 0) checked @endif>
                             <label class="form-check-label" for="status-inactive">Inactive</label>
                         </div>
@@ -154,16 +158,44 @@
                     paste: true
                 });
 
+                Quill.register("modules/htmlEditButton", htmlEditButton);
+
+                var toolbarOptions = [
+                    [{ 'font': [] }],
+                    [{ 'size': ['small', false, 'large', 'huge'] }],
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+
+                    [{ 'script': 'sub'}, { 'script': 'super' }],
+
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                    [{ 'align': [] }],
+                    [{ 'direction': 'rtl' }],
+
+                    ['link', 'image', 'video', 'formula'],
+                    ['blockquote', 'code-block'],
+
+                    ['clean']
+                ];
+
                 var quill = new Quill('#quill-editor', {
                     theme: 'snow',
                     placeholder: 'Detailed service description...',
                     modules: {
-                        toolbar: [
-                            [{ 'header': [1, 2, 3, false] }],
-                            ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                            ['link', 'clean']
-                        ]
+                        toolbar: toolbarOptions,
+
+                        htmlEditButton: {
+                            debug: false,
+                            msg: "Edit the HTML below. Clicking 'Save' will update the editor.",
+                            okText: "Save",
+                            cancelText: "Cancel",
+                            buttonHTML: "&lt;&gt;",
+                            buttonTitle: "Show HTML source",
+                            syntax: false
+                        }
                     }
                 });
 

@@ -19,12 +19,6 @@
                         </ul>
                     </div>
                 </div> --}}
-                <a href="javascript:void(0);" class="btn btn-outline-light shadow buyerRecode" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Deleted Recodes" data-bs-original-title="See Buyer Users" data-buyer-value="0">
-                    See Buyer Users
-                </a>
-                <a href="javascript:void(0);" class="btn btn-outline-light shadow deletedRecode" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Deleted Recodes" data-bs-original-title="Deleted Recodes" data-value="1">
-                    Deleted Recodes
-                </a>
                 <input type="hidden" name="is_deleted" id="is_deleted" value="0">
                 <a href="javascript:void(0);" class="btn btn-icon btn-outline-light shadow" data-bs-toggle="tooltip"
                     data-bs-placement="top" aria-label="Refresh" data-bs-original-title="Refresh"><i
@@ -87,7 +81,7 @@
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-lg-12 mb-2">
-                                <label for="buyer_id">Buyers</label>
+                                <label for="buyer_id" class="form-label">Buyers <span class="text-danger">*</span> </label>
                                 <select name="buyer_id" id="buyer_id" class="form-control">
                                     <option value="">Select Buyer</option>
                                     @if (isset($buyers))
@@ -99,7 +93,7 @@
                             </div>
 
                             <div class="col-lg-12">
-                                <label for="amount">Amount</label>
+                                <label for="amount" class="form-label" >Amount <span class="text-danger">*</span></label>
                                 <input type="text" name="amount" class="form-control" id="amount" placeholder="$0.00">
                             </div>
                         </div>

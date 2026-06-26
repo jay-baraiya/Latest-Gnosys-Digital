@@ -297,7 +297,7 @@ class TaskController extends Controller
     public function show(string $id)
     {
         view()->share('action', 'View');
-        $ticket = Ticket::find(decrypt($id));
+        $task = Ticket::find(decrypt($id));
 
         $services = DigitalService::query()->select(['id','name'])->where('status', 1)->get();
 
@@ -321,7 +321,7 @@ class TaskController extends Controller
                 })
                 ->get();
 
-        return view('admin.task.show', compact('services', 'products', 'developers', 'users', 'ticket'));
+        return view('admin.task.show', compact('services', 'products', 'developers', 'users', 'task'));
     }
 
     /**
@@ -332,10 +332,7 @@ class TaskController extends Controller
         view()->share('action', 'Edit');
 
         $task = Ticket::find(decrypt($id));
-        // echo '<pre>';
-        // print_r($task->toArray());
-        // echo '</pre>';
-        // exit;
+
         $services = DigitalService::query()->select(['id','name'])->where('status', 1)->get();
 
         $products = DigitalProduct::query()->select(['id','name'])->where('status', 1)->get();

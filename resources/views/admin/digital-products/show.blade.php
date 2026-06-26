@@ -1,7 +1,6 @@
 <x-master-layout>
     <x-form-wrapper action="{{ isset($action) ? $action : (isset($digitalproduct) ? 'Edit Digital Product' : 'Create Digital Product') }}">
 
-
             <div class="row">
                 <div class="col-md-4">
                     <div class="mb-3">
@@ -183,7 +182,7 @@
 
                 <div class="col-md-12">
                     <div class="mb-3">
-                        <label class="form-label" for="short_description">Short Description</label>
+                        <label class="form-label" for="short_description">Short Description <span class="text-danger">*</span></label>
                         <textarea class="form-control" name="short_description" id="short_description" rows="2" placeholder="Brief summary">{{ old('short_description', $digitalproduct->short_description ?? '') }}</textarea>
                         @error('short_description')
                             <span class="text-danger small">{{ $message }}</span>
@@ -247,7 +246,7 @@
 
             <div class="fw-bold mb-3">Custom Fields</div>
 
-            @include('custom-field.fields', [
+            @include('admin.custom-field.fields', [
                 'recode_id' => !empty($digitalproduct->id) ? $digitalproduct->id : '' ,
                 'customfieldtyeps' => $customfieldtyeps,
                 'customfields' => isset($customfields) ? $customfields : collect([]),
@@ -286,9 +285,14 @@
                     }
                 });
 
+                $.validator.addMethod('filesize', function(value, element, param) {
+                    return this.optional(element) || (element.files[0].size <= param);
+                }, 'File size must be less than 1 MB.');
+
                 let validator = $('#digitalProductForm').validate({
                     rules: {
                         name: { required: true, maxlength: 255 },
+                        short_description: { required: true },
                         sku: { required: true, maxlength: 255 },
                         category_id: { required: true },
                         price: { required: true, number: true, min: 0 },
@@ -313,6 +317,7 @@
                     },
                     messages: {
                         name: { required: "Please enter the product name." },
+                        short_description: { required: "Please provide a detailed short description." },
                         sku: { required: "Please provide a unique SKU." },
                         category_id: { required: "Please select a category." },
                         image: {

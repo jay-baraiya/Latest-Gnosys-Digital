@@ -143,7 +143,8 @@ class RoleController extends Controller
         view()->share('action', 'View');
         $role = Role::findOrFail(decrypt($id));
         $permissions = Permission::active()->get()->groupBy('module');
-        return view('admin.role.show', compact('role', 'permissions'));
+        $rolePermissions = RolePermission::query()->where('role_id', $role->id)->pluck('permission_id')->toArray();
+        return view('admin.role.show', compact('role', 'permissions','rolePermissions'));
     }
 
     /**
@@ -157,7 +158,6 @@ class RoleController extends Controller
 
         $rolePermissions = RolePermission::query()->where('role_id', $role->id)->pluck('permission_id')->toArray();
 
-        return view('admin.role.show', compact('role', 'permissions'));
         return view('admin.role.form', compact('role', 'permissions', 'rolePermissions'));
     }
 

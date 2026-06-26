@@ -93,7 +93,6 @@
                         <label class="form-label" for="designation_id">Designation <span class="text-danger">*</span></label>
                         <select class="form-select select2" name="designation_id" id="designation_id">
                             <option value="">Select Designation</option>
-                            {{-- Ahiya isset() add karyu che --}}
                             @if (isset($designations) && count($designations) > 0)
                                 @foreach ($designations as $designation)
                                     <option value="{{ $designation->id }}"

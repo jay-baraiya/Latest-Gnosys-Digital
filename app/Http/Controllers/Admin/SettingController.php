@@ -16,6 +16,17 @@ use Illuminate\Validation\Rule;
 
 class SettingController extends Controller
 {
+    protected $moduleName = 'Settings';
+    protected $moduleUrl = 'admin.settings.index';
+
+    public function __construct()
+    {
+        view()->share([
+            'moduleName' => $this->moduleName,
+            'moduleUrl' => $this->moduleUrl,
+        ]);
+    }
+
     public function index(Request $request)
     {
         $tab = $request->query('tab', 'general-settings');

@@ -8,10 +8,10 @@
         <title>{{ config('app.name', 'Gnosys Digital - Expert-Built Digital Solutions') }}</title>
 
          <!-- Favicon -->
-        <link rel="shortcut icon" href="{{ asset('assets/img/cropped-Ginosys-Digital-32x32.png') }}">
+        <link rel="shortcut icon" href="{{ !empty($settings->favicon) ? asset($settings->favicon) : asset('assets/img/cropped-Ginosys-Digital-32x32.png') }}">
 
         <!-- Apple Icon -->
-        <link rel="apple-touch-icon" href="{{ asset('assets/img/cropped-Ginosys-Digital-32x32.png') }}">
+        <link rel="apple-touch-icon" href="{{ !empty($settings->favicon) ? asset($settings->favicon) : asset('assets/img/cropped-Ginosys-Digital-32x32.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
