@@ -272,16 +272,44 @@
                     paste: true
                 });
 
+                Quill.register("modules/htmlEditButton", htmlEditButton);
+
+                var toolbarOptions = [
+                    [{ 'font': [] }],
+                    [{ 'size': ['small', false, 'large', 'huge'] }],
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+
+                    [{ 'script': 'sub'}, { 'script': 'super' }],
+
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                    [{ 'align': [] }],
+                    [{ 'direction': 'rtl' }],
+
+                    ['link', 'image', 'video', 'formula'],
+                    ['blockquote', 'code-block'],
+
+                    ['clean']
+                ];
+
                 var quill = new Quill('#quill-editor', {
                     theme: 'snow',
                     placeholder: 'Detailed service description...',
                     modules: {
-                        toolbar: [
-                            [{ 'header': [1, 2, 3, false] }],
-                            ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                            ['link', 'clean']
-                        ]
+                        toolbar: toolbarOptions,
+
+                        htmlEditButton: {
+                            debug: false,
+                            msg: "Edit the HTML below. Clicking 'Save' will update the editor.",
+                            okText: "Save",
+                            cancelText: "Cancel",
+                            buttonHTML: "&lt;&gt;",
+                            buttonTitle: "Show HTML source",
+                            syntax: false
+                        }
                     }
                 });
 
