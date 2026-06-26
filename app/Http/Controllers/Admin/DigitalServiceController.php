@@ -233,7 +233,7 @@ class DigitalServiceController extends Controller
         $categories = Category::active()->get();
         $digitalservice = DigitalService::findOrFail(decrypt($id));
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
-        $customfields = CustomField::with(['fieldType'])->where('recode_id', decrypt($id))->get();
+        $customfields = CustomField::with(['fieldType'])->where('module_type', 'service')->where('recode_id', decrypt($id))->get();
 
         return view('admin.digital-services.show', compact('digitalservice','categories','customfieldtyeps','customfields'));
     }
@@ -249,7 +249,7 @@ class DigitalServiceController extends Controller
         $digitalservice = DigitalService::with(['variants','serviceFeatures:id,service_id,name'])->findOrFail(decrypt($id));
 
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
-        $customfields = CustomField::with(['fieldType'])->where('recode_id', decrypt($id))->get();
+        $customfields = CustomField::with(['fieldType'])->where('module_type', 'service')->where('recode_id', decrypt($id))->get();
 
         return view('admin.digital-services.form', compact('digitalservice','categories','customfieldtyeps','customfields'));
     }

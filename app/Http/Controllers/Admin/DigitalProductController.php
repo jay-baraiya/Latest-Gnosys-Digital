@@ -250,7 +250,7 @@ class DigitalProductController extends Controller
         $categories = Category::active()->get();
         $digitalproduct = DigitalProduct::findOrFail(decrypt($id));
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
-        $customfields = CustomField::with(['fieldType'])->where('recode_id', decrypt($id))->get();
+        $customfields = CustomField::with(['fieldType'])->where('module_type', 'product')->where('recode_id', decrypt($id))->get();
 
         return view('admin.digital-products.show', compact('categories','digitalproduct','customfieldtyeps','customfields'));
     }
@@ -265,7 +265,7 @@ class DigitalProductController extends Controller
         $categories = Category::active()->get();
         $digitalproduct = DigitalProduct::findOrFail(decrypt($id));
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
-        $customfields = CustomField::with(['fieldType'])->where('recode_id', decrypt($id))->get();
+        $customfields = CustomField::with(['fieldType'])->where('module_type', 'product')->where('recode_id', decrypt($id))->get();
 
         return view('admin.digital-products.form', compact('digitalproduct','categories','customfieldtyeps','customfields'));
     }
