@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Category;
+use App\Models\DigitalProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -199,6 +200,7 @@ class CategoryController extends Controller
     {
         try {
             $category = Category::withTrashed()->findOrFail(decrypt($request->id));
+
             $category->update([
                 'status' => $request->status,
             ]);
@@ -229,6 +231,15 @@ class CategoryController extends Controller
     {
         try {
             $category = Category::with(['products','services','blogs'])->findOrFail(decrypt($id));
+
+            $checkSubCat = Category::query()->where('sub_cat_id', $category->id)->exists();
+
+            if ($checkSubCat) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete this category because it is currently assigned to one or more sub categorys.'
+                ]);
+            }
 
             if ($category->products()->exists()) {
                 return response()->json([
