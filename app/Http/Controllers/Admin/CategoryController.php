@@ -100,7 +100,7 @@ class CategoryController extends Controller
     public function create()
     {
         view()->share('action', 'Create');
-        $categorys = Category::query()->where('status', 1)->get();
+        $categorys = Category::query()->whereNull('sub_cat_id')->where('status', 1)->get();
         return view('admin.categories.form', compact('categorys'));
     }
 
@@ -144,7 +144,7 @@ class CategoryController extends Controller
     {
         view()->share('action', 'View');
         $category = Category::findOrFail(decrypt($id));
-        $categorys = Category::query()->where('status', 1)->get();
+        $categorys = Category::query()->whereNull('sub_cat_id')->where('status', 1)->get();
         return view('admin.categories.show', compact('category','categorys'));
     }
 
@@ -155,7 +155,7 @@ class CategoryController extends Controller
     {
         view()->share('action', 'Edit');
         $category = Category::findOrFail(decrypt($id));
-        $categorys = Category::query()->where('status', 1)->get();
+        $categorys = Category::query()->whereNull('sub_cat_id')->where('status', 1)->get();
 
         return view('admin.categories.form', compact('category', 'categorys'));
     }
