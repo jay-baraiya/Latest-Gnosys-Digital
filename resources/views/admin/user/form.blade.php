@@ -168,7 +168,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="city-id">City <span class="text-danger">*</span></label>
-                        <input type="text" name="city_id" id="city-id" class="form-control" value={{ old('city_id', $user->city_id) }}>
+                        <input type="text" name="city_id" id="city-id" class="form-control" value={{ old('city_id', $user->city_id ?? '') }}>
                         @error('city_id')
                             <span class="text-danger small">{{ $message }}</span>
                         @enderror
