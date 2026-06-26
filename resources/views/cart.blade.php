@@ -343,7 +343,7 @@
                 </p>
 
                 <div class="flex flex-col gap-4">
-                    <a href="{{ url('/shop') }}" class="w-full inline-flex justify-center items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-full font-semibold text-lg hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg shadow-blue-600/30">
+                    <a href="{{ route('products.listing') }}" class="w-full inline-flex justify-center items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-full font-semibold text-lg hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg shadow-blue-600/30">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                             <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
@@ -352,7 +352,7 @@
                         Browse Products
                     </a>
 
-                    <a href="{{ url('/orders') }}" class="w-full inline-flex justify-center items-center gap-2 px-8 py-4 bg-white border border-gray-200 text-gray-700 rounded-full font-semibold text-base hover:bg-gray-50 transition-colors">
+                    <a href="{{ route('profile.edit') }}#orders" class="w-full inline-flex justify-center items-center gap-2 px-8 py-4 bg-white border border-gray-200 text-gray-700 rounded-full font-semibold text-base hover:bg-gray-50 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                             <path d="M12 8l0 4l2 2"></path>

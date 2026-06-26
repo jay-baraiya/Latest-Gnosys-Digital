@@ -37,8 +37,10 @@ Route::get('/mail-champ', function () {
 });
 
 Route::get('/account', [UserProfileController::class, 'edit'])->name('profile.edit');
+Route::post('/account/update-user-info', [UserProfileController::class, 'updateUserInfo'])->name('profile.update.info');
 Route::patch('/account', [UserProfileController::class, 'update'])->name('profile.update');
 Route::delete('/account', [UserProfileController::class, 'destroy'])->name('profile.destroy');
+Route::get('/account/get-states/{country_id}', [UserProfileController::class, 'getStates'])->name('profile.get.states');
 
 Route::get('/products', [ProductController::class, 'index'])->name('products.listing');
 Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
