@@ -57,6 +57,12 @@
                     return;
                 }
 
+                var orderId = @json($ticket->order_id ?? null);
+
+                if (orderId) {
+                    setQty(this, orderId, itemId, type);
+                }
+
                 if (type === 'product') {
                     var price = $(this).find('option:selected').data('price') || '';
                     $priceInput.val(price);
@@ -77,6 +83,41 @@
                 }
                 calculateTotals();
             });
+
+            function setQty(element, orderId, val, type) {
+                // Basic validation to make sure all 3 values exist before making the request
+                if (!orderId || !val || !type) {
+                    return;
+                }
+
+                $.ajax({
+                    url: '{{ route("admin.tickets.get-qty") }}',
+                    type: 'POST',
+                    data: {
+                        order_id: orderId,
+                        product_id: val,     // passing 'val' as product_id
+                        product_type: type,  // passing 'type' as product_type
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log('Data found:', response);
+
+                            $(element).closest('.order-item-row').find('.item-qty').val(response.qty);
+
+                            calculateTotals();
+                            // $('#price_input_id').val(response.price);
+
+                        } else {
+                            console.log(response.message);
+                            // Optional: show Toast or alert if item not found
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Something went wrong with the AJAX request.');
+                    }
+                });
+            }
 
             $(document).on('change', '.variant-select', function() {
                 var $row = $(this).closest('.order-item-row');

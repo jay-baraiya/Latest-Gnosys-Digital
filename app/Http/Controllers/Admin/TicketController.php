@@ -326,6 +326,9 @@ class TicketController extends Controller
 
         $ticket = Ticket::find(decrypt($id));
 
+        $orderItems_product = OrderItem::query()->where('order_id', $ticket->order_id)->where('product_type', 'product')->pluck('product_id')->toArray();
+        $orderItems_service = OrderItem::query()->where('order_id', $ticket->order_id)->where('product_type', 'service')->pluck('product_id')->toArray();
+
         $developers = User::query()
                 ->with(['roles','designation'])
                 ->where('status', 1)
@@ -350,9 +353,17 @@ class TicketController extends Controller
 
         $departments = Role::query()->where('slug', '!=', 'super-admin')->where('status', 1)->get();
 
-        $products = DigitalProduct::query()->where('status', 1)->get();
+        $products = DigitalProduct::query()->where('status', 1)
+        ->when((!empty($ticket->order_id) && !empty($orderItems_product)), function($q) use ($orderItems_product) {
+            $q->whereIn('id', $orderItems_product);
+        })
+        ->get();
 
-        $services = DigitalService::with('variants')->where('status', 1)->get();
+        $services = DigitalService::with('variants')->where('status', 1)
+        ->when((!empty($ticket->order_id) && !empty($orderItems_service)), function($q) use ($orderItems_service) {
+            $q->whereIn('id', $orderItems_service);
+        })
+        ->get();
 
         $tasks = Task::query()->select([
             'id',
@@ -756,5 +767,33 @@ class TicketController extends Controller
             'success' => false,
             'message' => 'Ticket not found'
         ], 404);
+    }
+
+    public function getItemQty(Request $request)
+    {
+        $request->validate([
+            'order_id'     => 'required|integer',
+            'product_id'   => 'required|integer',
+            'product_type' => 'required|string',
+        ]);
+
+        $orderItem = OrderItem::where('order_id', $request->order_id)
+                            ->where('product_id', $request->product_id)
+                            ->where('product_type', $request->product_type)
+                            ->first();
+
+        if ($orderItem) {
+            return response()->json([
+                'success' => true,
+                'data'    => $orderItem,
+                'qty'     => $orderItem->product_qty ?? 1,
+                'price'   => $orderItem->product_price ?? 0
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Item not found in this order.'
+        ]);
     }
 }

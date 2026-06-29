@@ -149,7 +149,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('tickets/assign-dev-user', [TicketController::class, 'assignDevUser'])->name('tickets.assign.dev.user');
     Route::post('tickets/get-service-variant', [TicketController::class, 'getServiceVariant'])->name('tickets.get.service.variant');
     Route::post('/tickets/update-status', [TicketController::class, 'updateTicketStatus'])->name('tickets.update.status');
-
+    Route::post('/tickets/get-item-qty', [TicketController::class, 'getItemQty'])->name('tickets.get-qty');
 });
 
 
