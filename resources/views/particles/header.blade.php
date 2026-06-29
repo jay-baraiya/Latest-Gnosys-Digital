@@ -189,7 +189,7 @@
                             <div class="dropdown-item notification-item py-3 text-wrap" id="notification-4">
                                 <div class="d-flex">
                                     <div class="me-2 position-relative flex-shrink-0">
-                                        <img src="assets/img/profiles/avatar-08.jpg" class="avatar-md rounded-circle"
+                                        <img src="{{ asset('assets/img/profiles/avatar-08.jpg') }}" class="avatar-md rounded-circle"
                                             alt="Img">
                                     </div>
                                     <div class="flex-grow-1">

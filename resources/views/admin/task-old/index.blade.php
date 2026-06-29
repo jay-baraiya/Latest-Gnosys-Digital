@@ -23,7 +23,7 @@
                     <ul class="nav nav-tabs nav-bordered nav-bordered-primary">
 
                         <li class="nav-item me-3">
-                            <a href="{{ route('admin.tasks.index') }}?status=pending" data-status="pending" class="nav-link p-2 {{ $status == 'pending' ? 'active' : '' }}">
+                            <a href="{{ route('admin.tickets.index') }}?status=pending" data-status="pending" class="nav-link p-2 {{ $status == 'pending' ? 'active' : '' }}">
                                 Pending
                             </a>
                         </li>
@@ -35,7 +35,7 @@
                         </li> --}}
 
                         <li class="nav-item me-3">
-                            <a href="{{ route('admin.tasks.index') }}?status=assigned" data-status="assigned" class="nav-link p-2 {{ $status == 'assigned' ? 'active' : '' }}">
+                            <a href="{{ route('admin.tickets.index') }}?status=assigned" data-status="assigned" class="nav-link p-2 {{ $status == 'assigned' ? 'active' : '' }}">
                                 Assigned
                             </a>
                         </li>
@@ -47,31 +47,31 @@
                         </li> --}}
 
                         <li class="nav-item me-3">
-                            <a href="{{ route('admin.tasks.index') }}?status=in_progress" data-status="in_progress" class="nav-link p-2 {{ $status == 'in_progress' ? 'active' : '' }}">
+                            <a href="{{ route('admin.tickets.index') }}?status=in_progress" data-status="in_progress" class="nav-link p-2 {{ $status == 'in_progress' ? 'active' : '' }}">
                                 In Progress
                             </a>
                         </li>
 
                         <li class="nav-item me-3">
-                            <a href="{{ route('admin.tasks.index') }}?status=completed" data-status="completed" class="nav-link p-2 {{ $status == 'completed' ? 'active' : '' }}">
+                            <a href="{{ route('admin.tickets.index') }}?status=completed" data-status="completed" class="nav-link p-2 {{ $status == 'completed' ? 'active' : '' }}">
                                 Completed
                             </a>
                         </li>
 
                         <li class="nav-item me-3">
-                            <a href="{{ route('admin.tasks.index') }}?status=cancel_requested" data-status="cancel_requested" class="nav-link p-2 {{ $status == 'cancel_requested' ? 'active' : '' }}">
+                            <a href="{{ route('admin.tickets.index') }}?status=cancel_requested" data-status="cancel_requested" class="nav-link p-2 {{ $status == 'cancel_requested' ? 'active' : '' }}">
                                 Cancel Requested
                             </a>
                         </li>
 
                         <li class="nav-item me-3">
-                            <a href="{{ route('admin.tasks.index') }}?status=cancelled" data-status="cancelled" class="nav-link p-2 {{ $status == 'cancelled' ? 'active' : '' }}">
+                            <a href="{{ route('admin.tickets.index') }}?status=cancelled" data-status="cancelled" class="nav-link p-2 {{ $status == 'cancelled' ? 'active' : '' }}">
                                 Cancelled
                             </a>
                         </li>
 
                         <li class="nav-item me-3">
-                            <a href="{{ route('admin.tasks.index') }}?status=refund" data-status="refund" class="nav-link p-2 {{ $status == 'refund' ? 'active' : '' }}">
+                            <a href="{{ route('admin.tickets.index') }}?status=refund" data-status="refund" class="nav-link p-2 {{ $status == 'refund' ? 'active' : '' }}">
                                 Refund
                             </a>
                         </li>
@@ -105,7 +105,7 @@
                         <i class="ti ti-refresh me-1"></i>Clear Filters
                     </button>
 
-                    <a href="{{ route('admin.tasks.create') }}" class="btn btn-primary ms-auto">
+                    <a href="{{ route('admin.tickets.create') }}" class="btn btn-primary ms-auto">
                         <i class="ti ti-square-rounded-plus-filled me-1"></i>Add {{ rtrim($moduleName, 's') }}
                     </a>
 
@@ -219,7 +219,7 @@
                     $select.focus();
 
                     $.ajax({
-                        url: '{{ route('admin.tasks.dev.user') }}',
+                        url: '{{ route('admin.tickets.dev.user') }}',
                         method: 'POST',
                         success: function(response) {
                             $select.empty().append('<option value="">Select Developer...</option>');
@@ -252,7 +252,7 @@
                         $select.prop('disabled', true);
 
                         $.ajax({
-                            url: '{{ route('admin.tasks.assign.dev.user') }}',
+                            url: '{{ route('admin.tickets.assign.dev.user') }}',
                             method: 'POST',
                             data: {
                                 ticket_id: ticketId,
@@ -297,7 +297,7 @@
                     $('#tickets-listing').html('<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Loading tickets...</p></div>');
 
                     $.ajax({
-                        url: "{{ route('admin.tasks.order.ticket.listing') }}",
+                        url: "{{ route('admin.tickets.order.ticket.listing') }}",
                         type: "POST",
                         data: {
                             order_id: encryptedID
@@ -327,7 +327,7 @@
                         "processing": true,
                         "serverSide": true,
                         "ajax": {
-                            "url": "{{ route('admin.tasks.getData') }}",
+                            "url": "{{ route('admin.tickets.getData') }}",
                             "type": "POST",
                             data: function(d) {
                                 d.is_deleted = $('#is_deleted').val();
@@ -389,7 +389,7 @@
                     let newStatus = $btn.data('status');
                     let statusLabel = $btn.text().trim();
 
-                    let url = '{{ route('admin.tasks.update.status') }}';
+                    let url = '{{ route('admin.tickets.update.status') }}';
 
                     if (!ticketId || !newStatus) return;
 

@@ -147,7 +147,7 @@
                     $select.prop('disabled', true);
 
                     $.ajax({
-                        url: '{{ route('admin.tasks.assign.dev.user') }}',
+                        url: '{{ route('admin.tickets.assign.dev.user') }}',
                         method: 'POST',
                         data: {
                             ticket_id: ticketId,

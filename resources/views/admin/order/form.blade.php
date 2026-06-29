@@ -107,23 +107,19 @@
                     </div>
                 </div>
 
-                {{-- ✅ FEATURE 1: Dynamic Country Dropdown (fetched from DB) --}}
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="billing_country">Billing Country <span class="text-danger">*</span></label>
-                        <select class="form-select @error('billing_country') is-invalid @enderror" name="billing_country" id="billing_country">
-                            <option value="">-- Select Country --</option>
-                            @if (isset($countries))
-                            @foreach ($countries as $country)
-                            <option value="{{ $country->name }}"
-                                {{ old('billing_country', $order->billing_country ?? '') == $country->name ? 'selected' : '' }}>
-                                {{ $country->name }}
-                            </option>
-                            @endforeach
+                        <select class="form-select select2" name="billing_country" id="billing_country">
+                            <option value="">Select Country</option>
+                            @if ($countries->isNotEmpty())
+                                @foreach ($countries as $country)
+                                    <option value="{{ $country->id }}" {{ !empty($order->billing_country) && $order->billing_country == $country->id ? 'selected' : '' }}>{{ $country->name }}</option>
+                                @endforeach
                             @endif
                         </select>
                         @error('billing_country')
-                        <span class="text-danger small">{{ $message }}</span>
+                            <span class="text-danger small">{{ $message }}</span>
                         @enderror
                     </div>
                 </div>
@@ -131,10 +127,16 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="billing_state">Billing State <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('billing_state') is-invalid @enderror" name="billing_state" id="billing_state" placeholder="State/Province"
-                            value="{{ old('billing_state', $order->billing_state ?? '') }}">
+                        <select class="form-select select2" name="billing_state" id="billing_state">
+                            <option value="">Select State</option>
+                            @if ($states->isNotEmpty())
+                                @foreach ($states as $state)
+                                    <option value="{{ $state->id }}" {{ !empty($order->billing_state) && $order->billing_state == $state->id ? 'selected' : '' }} >{{ $state->name }}</option>
+                                @endforeach
+                            @endif
+                        </select>
                         @error('billing_state')
-                        <span class="text-danger small">{{ $message }}</span>
+                            <span class="text-danger small">{{ $message }}</span>
                         @enderror
                     </div>
                 </div>
@@ -146,6 +148,16 @@
                             value="{{ old('billing_city', $order->billing_city ?? '') }}">
                         @error('billing_city')
                         <span class="text-danger small">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label class="form-label" for="billing_address">Billing Address <span class="text-danger">*</span></label>
+                        <textarea name="billing_address" id="billing_address" class="form-control @error('billing_address') is-invalid @enderror" cols="3" rows="3">{{ old('billing_address', $order->billing_address ?? '') }}</textarea>
+                            @error('billing_address')
+                            <span class="text-danger small">{{ $message }}</span>
                         @enderror
                     </div>
                 </div>
@@ -386,6 +398,21 @@
     @push('scripts')
     <script>
         $(document).ready(function() {
+
+            $('#user_id').select2({
+                placeholder: 'Select a designation',
+                allowClear: true,
+            });
+
+            $('#billing_country').select2({
+                placeholder: 'Select a country',
+                allowClear: true,
+            });
+
+            $('#billing_state').select2({
+                placeholder: 'Select a state',
+                allowClear: true,
+            });
 
             var productsData = @json($products ?? []);
             var servicesData = @json($services ?? []);
@@ -633,7 +660,10 @@
                     },
                     billing_city: {
                         required: true
-                    }
+                    },
+                    billing_address: {
+                        required: true
+                    },
                 },
                 messages: {
                     order_number: {
@@ -668,15 +698,80 @@
                     $(element).removeClass('is-invalid');
                 },
                 errorPlacement: function(error, element) {
-                    if (element.parent('.input-group').length) {
-                        error.insertAfter(element.parent());
+                    if (element.hasClass('select2-hidden-accessible')) {
+                        error.insertAfter(element.next('.select2-container'));
+                    } else if (element.attr('id') === 'description') {
+                        error.insertAfter('#quill-editor');
+                    } else if (element.closest('.input-group').length) {
+                        error.insertAfter(element.closest('.input-group'));
                     } else {
                         error.insertAfter(element);
                     }
                 }
             });
 
-        }); // end document.ready
+            $(document).on('change', '#user_id', function() {
+                var userId = $(this).val();
+
+                if (userId) {
+                    $.ajax({
+                        url: "{{ route('admin.orders.user.billing.details') }}",
+                        type: "POST",
+                        data: {
+                            user_id: userId
+                        },
+                        dataType: "json",
+                        success: function(response) {
+                            if (response.status) {
+                                var userData = response.data;
+
+                                // $('#billing_first_name').val(userData.billing_first_name);
+                                $('#billing_phone').val(userData.billing_phone);
+                                $('#billing_city').val(userData.billing_city);
+                                $('#billing_address').val(userData.billing_address);
+
+                                if (userData.billing_country) {
+                                    var countryId = userData.billing_country;
+                                    var countryText = userData.billing_country_name || userData.billing_country;
+
+                                    var countryOption = new Option(countryText, countryId, true, true);
+                                    $('#billing_country').empty().append(countryOption).trigger('change');
+                                } else {
+                                    $('#billing_country').val(null).trigger('change');
+                                }
+
+                                if (userData.billing_state) {
+                                    var stateId = userData.billing_state;
+                                    var stateText = userData.billing_state_name || userData.billing_state;
+
+                                    var stateOption = new Option(stateText, stateId, true, true);
+                                    $('#billing_state').empty().append(stateOption).trigger('change');
+                                } else {
+                                    $('#billing_state').val(null).trigger('change');
+                                }
+
+                                $('#billing_first_name, #billing_phone, #billing_country, #billing_state, #billing_city, #billing_address').removeClass('is-invalid');
+
+                            } else {
+                                // console.log(response.message);
+                            }
+                        },
+                        error: function(xhr) {
+                            console.log("Error in fetching user details.");
+                        }
+                    });
+                } else {
+                    // $('#billing_first_name').val('');
+                    $('#billing_phone').val('');
+                    $('#billing_city').val('');
+                    $('#billing_address').val('');
+
+                    $('#billing_country').empty().val(null).trigger('change');
+                    $('#billing_state').empty().val(null).trigger('change');
+                }
+            });
+
+        });
     </script>
     @endpush
 

@@ -63,14 +63,14 @@
                             Wallet & Billing
                         </button>
 
-                        <button
+                        {{-- <button
                             @click="switchTab('ticket')"
                             :class="{ 'bg-blue-50 text-blue-700 font-semibold ring-1 ring-blue-100': tab === 'ticket', 'text-slate-600 hover:bg-slate-100 font-medium': tab !== 'ticket' }"
                             class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all whitespace-nowrap text-left"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-ticket"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M15 5l0 2" /><path d="M15 11l0 2" /><path d="M15 17l0 2" /><path d="M5 5h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-3a2 2 0 0 0 0 -4v-3a2 2 0 0 1 2 -2" /></svg>
                             Tickets
-                        </button>
+                        </button> --}}
 
                         <button
                             @click="switchTab('password')"
@@ -106,9 +106,9 @@
                         @include('profile.partials.user-wallet-form')
                     </div>
 
-                    <div x-show="tab === 'ticket'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
+                    {{-- <div x-show="tab === 'ticket'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
                         @include('profile.partials.ticket')
-                    </div>
+                    </div> --}}
 
                     <div x-show="tab === 'password'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
                         @include('profile.partials.update-password-form')

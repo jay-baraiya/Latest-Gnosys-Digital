@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Role;
 use App\Models\ServiceVariant;
+use App\Models\State;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Models\UserRole;
@@ -72,11 +73,11 @@ class OrderController extends Controller
 
             $query = Order::query()
                 ->with([
-                    'tickets:id,ticket_number,datetime,order_id,user_id,developer_id,order_item_id,status,cancelled_by,cancel_reason',
+                    'tickets:id,ticket_number,datetime,order_id,user_id,assign_id,status',
                     'user:id,name',
-                    'tickets.orderItems:id,order_id,product_id,product_name,product_type,variant_id,variant_name,product_price'
                 ])
-                ->select(['id', 'user_id', 'order_number', 'date_time', 'total_amount']);
+                ->select(['id', 'user_id', 'order_number', 'date_time', 'total_amount'])
+                ->orderBy('id', 'DESC');
 
             return DataTables::eloquent($query)
                 ->with('total_tasks', $query->count())
@@ -124,13 +125,15 @@ class OrderController extends Controller
     {
         view()->share('action', 'Create');
         $users       = User::query()->where('status', 1)->whereNotIn('id', [User::IS_ADMIN])->get(['id', 'name', 'email']);
-        $countries   = Country::query()->orderBy('name')->get(['id', 'name']);
+        $countries   = Country::query()->orderBy('name')->get();
         $products    = DigitalProduct::query()->whereNull('deleted_at')->get(['id', 'name', 'price']);
         $services    = DigitalService::with('variants')->where('status', 1)->get();
 
+        $states = State::get();
+
         $order_number = 'ORD-' . strtoupper(substr(uniqid(), -6));
 
-        return view('admin.order.form', compact('users', 'countries', 'products', 'services', 'order_number'));
+        return view('admin.order.form', compact('users', 'countries', 'states', 'products', 'services', 'order_number'));
     }
 
     /**
@@ -144,11 +147,12 @@ class OrderController extends Controller
             'user_id' => 'nullable|exists:users,id',
             'subtotal' => 'required|numeric|min:0',
             'total_amount' => 'required|numeric|min:0',
-            'billing_first_name' => 'nullable|string|max:255',
+            'billing_first_name' => 'required|string|max:255',
             'billing_phone' => 'nullable|string|max:255',
-            'billing_country' => 'nullable|string|max:255',
-            'billing_state' => 'nullable|string|max:255',
-            'billing_city' => 'nullable|string|max:255',
+            'billing_country' => 'required|string|max:255',
+            'billing_state' => 'required|string|max:255',
+            'billing_city' => 'required|string|max:255',
+            'billing_address' => 'required|string|max:255',
             'status' => 'required|string|in:pending,processing,shipped,delivered,cancelled',
             'payment_method' => 'nullable|string|in:stripe,paypal,cod',
             'payment_status' => 'required|string|in:pending,paid,failed,refunded,success',
@@ -179,6 +183,7 @@ class OrderController extends Controller
                 'billing_country' => $request->billing_country,
                 'billing_state' => $request->billing_state,
                 'billing_city' => $request->billing_city,
+                'billing_address' => $request->billing_address,
                 'status' => $request->status,
                 'payment_method' => $request->payment_method,
                 'payment_status' => $request->payment_status,
@@ -257,7 +262,9 @@ class OrderController extends Controller
         $products  = DigitalProduct::query()->whereNull('deleted_at')->get(['id', 'name', 'price']);
         $services  = DigitalService::with('variants')->where('status', 1)->get();
 
-        return view('admin.order.show', compact('order', 'users', 'countries', 'products', 'services'));
+        $states = State::get();
+
+        return view('admin.order.show', compact('order', 'users', 'countries', 'states', 'products', 'services'));
     }
 
     /**
@@ -273,7 +280,9 @@ class OrderController extends Controller
         $products  = DigitalProduct::query()->whereNull('deleted_at')->get(['id', 'name', 'price']);
         $services  = DigitalService::with('variants')->where('status', 1)->get();
 
-        return view('admin.order.form', compact('order', 'users', 'countries', 'products', 'services'));
+        $states = State::get();
+
+        return view('admin.order.form', compact('order', 'users', 'countries', 'states', 'products', 'services'));
     }
 
     /**
@@ -295,6 +304,7 @@ class OrderController extends Controller
             'billing_country' => 'nullable|string|max:255',
             'billing_state' => 'nullable|string|max:255',
             'billing_city' => 'nullable|string|max:255',
+            'billing_address' => 'required',
             'status' => 'required|string|in:pending,processing,shipped,delivered,cancelled',
             'payment_method' => 'nullable|string|in:stripe,paypal,cod',
             'payment_status' => 'required|string|in:pending,paid,failed,refunded,success',
@@ -325,6 +335,7 @@ class OrderController extends Controller
                 'billing_country' => $request->billing_country,
                 'billing_state' => $request->billing_state,
                 'billing_city' => $request->billing_city,
+                'billing_address' => $request->billing_address,
                 'status' => $request->status,
                 'payment_method' => $request->payment_method,
                 'payment_status' => $request->payment_status,
@@ -550,12 +561,12 @@ class OrderController extends Controller
     public function assignDevUser(Request $request)
     {
         $ticket_id = $request->ticket_id;
-        $developer_id = $request->developer_id;
+        $assign_id = $request->assign_id;
 
         $ticket = Ticket::find($ticket_id);
 
         if ($ticket) {
-            $ticket->developer_id = $developer_id;
+            $ticket->assign_id = $assign_id;
 
             $ticket->update();
 
@@ -571,4 +582,37 @@ class OrderController extends Controller
             'message' => 'Ticket not found'
         ], 404);
     }
+
+   public function getUserBillingDetails(Request $request)
+{
+    $userId = $request->user_id;
+
+    if (!empty($userId)) {
+        // User ને તેની country અને state ની રિલેશનશિપ સાથે ગેટ કરો
+        $user = User::with(['country', 'state'])->find($userId);
+
+        if ($user) {
+            return response()->json([
+                'status' => true,
+                'data' => [
+                    'billing_first_name' => $user->name,
+                    'billing_phone'      => $user->phone,
+                    'billing_city'       => $user->city_id,
+                    'billing_address'    => $user->address,
+
+                    // Country ની ID અને Name અલગથી મોકલો
+                    'billing_country'      => $user->country_id,
+                    'billing_country_name' => $user->country ? $user->country->name : '',
+
+                    // State ની ID અને Name અલગથી મોકલો
+                    'billing_state'      => $user->state_id,
+                    'billing_state_name' => $user->state ? $user->state->name : '',
+                ]
+            ]);
+        }
+    }
+
+    return response()->json(['status' => false, 'message' => 'User not found']);
+}
+
 }

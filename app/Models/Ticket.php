@@ -33,4 +33,13 @@ class Ticket extends Model
         return $this->hasOne(OrderItem::class, 'id');
     }
 
+    public function department() {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function assign()
+    {
+        return $this->belongsTo(User::class);
+    }
+
 }

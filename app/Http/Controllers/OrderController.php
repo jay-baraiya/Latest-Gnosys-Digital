@@ -72,7 +72,7 @@ class OrderController extends Controller
                 ...$commonAddressData
             ]);
 
-            if ($request->has('order_product_id') && is_array($request->order_product_id)) {
+            if ($request->has('order_product_id') && is_array($request->order_product_id) && $order->id) {
                 $orderItems = [];
 
                 foreach ($request->order_product_id as $index => $productId) {
@@ -88,22 +88,21 @@ class OrderController extends Controller
                         'variant_name'  => !empty($request->order_product_variant_name[$index]) ? $request->order_product_variant_name[$index] : null,
                         'product_type'  => !empty($request->order_product_type[$index]) ? $request->order_product_type[$index] : null,
                     ]);
+                }
+
+                if ($order->id) {
 
                     Ticket::create([
                         'ticket_number' => 'TCK-' . strtoupper(Str::random(6)),
                         'datetime'      => now(),
                         'order_id'      => $order->id,
-                        'order_item_id' => $orderItem->id,
                         'user_id'       => $order->user_id,
+                        'email'         => auth()->user()->email,
+                        'name'          => auth()->user()->name,
                         'status'        => 'pending',
-                        'product_name'  => !empty($request->order_product_title[$index]) ? $request->order_product_title[$index] : null,
-                        'product_type'  => !empty($request->order_product_type[$index]) ? $request->order_product_type[$index] : null,
-                        'variant_id'    => !empty($request->order_product_variant_id[$index]) ? decrypt($request->order_product_variant_id[$index]) : null,
-                        'variant_name'  => !empty($request->order_product_variant_name[$index]) ? $request->order_product_variant_name[$index] : null,
+                        'priority'      => 'Low'
                     ]);
-                }
 
-                if ($order->id) {
                     $user_wallet = Auth::user()?->balance;
                     $balance = $user_wallet?->balance ?? 0;
                     $order_total = $order->total_amount ?? 0;

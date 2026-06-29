@@ -26,9 +26,9 @@
         // 'assign_not_accepted' => ['label' => 'Assign Not Accepted', 'icon' => 'ti ti-user-x text-danger'],
         'in_progress' => ['label' => 'In Progress', 'icon' => 'ti ti-loader text-info'],
         'completed' => ['label' => 'Completed', 'icon' => 'ti ti-circle-check text-success'],
-        'cancel_requested' => ['label' => 'Cancel Requested', 'icon' => 'ti ti-alert-circle text-warning'],
-        'cancelled' => ['label' => 'Cancelled', 'icon' => 'ti ti-circle-x text-danger'],
-        'refund' => ['label' => 'Refund', 'icon' => 'ti ti-receipt-refund text-secondary'],
+        // 'cancel_requested' => ['label' => 'Cancel Requested', 'icon' => 'ti ti-alert-circle text-warning'],
+        'closed' => ['label' => 'Closed', 'icon' => 'ti ti-circle-x text-danger'],
+        // 'refund' => ['label' => 'Refund', 'icon' => 'ti ti-receipt-refund text-secondary'],
     ];
 
     $allowedStatuses = [];

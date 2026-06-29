@@ -17,26 +17,35 @@ return new class extends Migration
             $table->dateTime('datetime')->nullable();
             $table->foreignId('order_id')->nullable()->constrained('orders')->onDelete('set null');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('developer_id')->nullable()->constrained('users')->onDelete('set null');
 
-            $table->string('order_item_id')->nullable();
+            $table->string('email')->nullable();
+            $table->string('name')->nullable();
+            $table->string('subject')->nullable();
+
+            $table->string('cc_recipients')->nullable();
+
+            $table->foreignId('department_id')->nullable()->constrained('roles')->onDelete('set null');
+
+            $table->foreignId('assign_id')->nullable()->constrained('users')->onDelete('set null');
+
+            $table->string('priority')->nullable();
 
             $table->enum('status', [
                 'pending',
-                'assign_requested',
-                'assigned',
-                'assign_not_accepted',
                 'in_progress',
+                'assigned',
                 'completed',
-                'cancel_requested',
-                'cancelled',
-                'refund'
+                'closed'
             ])->default('pending');
 
-            $table->foreignId('cancelled_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('closed_by')->nullable()->constrained('users')->onDelete('set null');
 
-            $table->text('assign_not_accepted_reason')->nullable();
-            $table->text('cancel_reason')->nullable();
+            $table->longText('description')->nullable();
+            $table->longText('attachments')->nullable();
+            $table->longText('file')->nullable();
+            $table->longText('note')->nullable();
+
+            $table->text('close_reason')->nullable();
             $table->timestamps();
         });
     }

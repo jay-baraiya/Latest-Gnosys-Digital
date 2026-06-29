@@ -14,7 +14,7 @@ use App\Http\Controllers\Admin\DigitalServiceController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SettingController;
-use App\Http\Controllers\Admin\TaskController;
+use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\ProfileController as UserProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WalletController;
@@ -137,17 +137,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('orders/update-status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::post('orders/order-ticket-listing', [AdminOrderController::class, 'getOrderTickets'])->name('orders.ticket.listing');
     Route::post('orders/dev-user', [AdminOrderController::class, 'getDevUser'])->name('orders.dev.user');
+    Route::post('orders/user-billing-details', [AdminOrderController::class, 'getUserBillingDetails'])->name('orders.user.billing.details');
 
-    /* Task */
-    Route::resource('tasks', TaskController::class)->names('tasks');
-    Route::post('tasks/get-data', [TaskController::class, 'getData'])->name('tasks.getData');
-    Route::post('tasks/restore/{id}', [TaskController::class, 'restore'])->name('tasks.restore');
-    Route::post('tasks/update-status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
-    Route::post('tasks/order-ticket-listing', [TaskController::class, 'getOrderTickets'])->name('tasks.order.ticket.listing');
-    Route::post('tasks/dev-user', [TaskController::class, 'getDevUser'])->name('tasks.dev.user');
-    Route::post('tasks/assign-dev-user', [TaskController::class, 'assignDevUser'])->name('tasks.assign.dev.user');
-    Route::post('tasks/get-service-variant', [TaskController::class, 'getServiceVariant'])->name('tasks.get.service.variant');
-    Route::post('/tasks/update-status', [TaskController::class, 'updateTicketStatus'])->name('tasks.update.status');
+    /* Tickets */
+    Route::resource('tickets', TicketController::class)->names('tickets');
+    Route::post('tickets/get-data', [TicketController::class, 'getData'])->name('tickets.getData');
+    Route::post('tickets/restore/{id}', [TicketController::class, 'restore'])->name('tickets.restore');
+    Route::post('tickets/update-status', [TicketController::class, 'updateStatus'])->name('tickets.updateStatus');
+    Route::post('tickets/order-ticket-listing', [TicketController::class, 'getOrderTickets'])->name('tickets.order.ticket.listing');
+    Route::post('tickets/dev-user', [TicketController::class, 'getDevUser'])->name('tickets.dev.user');
+    Route::post('tickets/assign-dev-user', [TicketController::class, 'assignDevUser'])->name('tickets.assign.dev.user');
+    Route::post('tickets/get-service-variant', [TicketController::class, 'getServiceVariant'])->name('tickets.get.service.variant');
+    Route::post('/tickets/update-status', [TicketController::class, 'updateTicketStatus'])->name('tickets.update.status');
 
 });
 

@@ -41,6 +41,9 @@
 <!-- Choices Js -->
 <script src="{{ asset('assets/plugins/choices.js/public/assets/scripts/choices.min.js') }}"></script>
 
+<!-- Dropzone Js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
+
 <!-- Main JS -->
 <script src="{{ asset('assets/js/script.js') }}"></script>
 <script src="{{ asset('assets/js/actions.js') }}"></script>

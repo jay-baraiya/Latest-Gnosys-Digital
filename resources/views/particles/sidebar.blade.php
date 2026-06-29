@@ -156,14 +156,14 @@
                     </li>
                 @endcan
 
-                @can('view.tasks')
+                @can('view.tickets')
                     <li class="menu-title"><span>Task Management</span></li>
                     <li>
                         <ul>
-                            <li class="{{ request()->routeIs('admin.tasks.*') ? 'active' : '' }}">
-                                <a href="{{ route('admin.tasks.index') }}">
+                            <li class="{{ request()->routeIs('admin.tickets.*') ? 'active' : '' }}">
+                                <a href="{{ route('admin.tickets.index') }}">
                                     <i class="ti ti-category"></i>
-                                    <span>Tasks</span>
+                                    <span>Tickets</span>
                                 </a>
                             </li>
                         </ul>

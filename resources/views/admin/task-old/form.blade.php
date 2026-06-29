@@ -1,7 +1,7 @@
 <x-master-layout>
     <x-form-wrapper action="{{ isset($action) ? $action : (isset($task) ? 'Edit' : 'Create') }}">
         <form id="taskForm"
-            action="{{ isset($task) ? route('admin.tasks.update', encrypt($task->id)) : route('admin.tasks.store') }}" method="post"
+            action="{{ isset($task) ? route('admin.tickets.update', encrypt($task->id)) : route('admin.tickets.store') }}" method="post"
             enctype="multipart/form-data">
             @csrf
             @if (isset($task))
@@ -161,6 +161,8 @@
                 </div>
             </div>
 
+            <hr>
+
             <div class="text-end mt-3">
                 <a href="{{ route($moduleUrl ?? 'admin.tasks.index') }}" class="btn btn-soft-light">Cancel</a>
                 <button type="submit" class="btn btn-primary">Submit</button>
@@ -274,7 +276,7 @@
 
                         $.ajax({
                             // Ensure this script is inside a blade file for the route() helper to work
-                            url: "{{ route('admin.tasks.get.service.variant') }}",
+                            url: "{{ route('admin.tickets.get.service.variant') }}",
                             type: "POST",
                             data: {
                                 service_id: serviceId,

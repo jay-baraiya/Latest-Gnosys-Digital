@@ -30,6 +30,9 @@
 <!-- Choices CSS -->
 <link rel="stylesheet" href="{{ asset('assets/plugins/choices.js/public/assets/styles/choices.min.css') }}">
 
+<!-- Dropzone -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css" />
+
 <!-- Main CSS -->
 <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="app-style">
 

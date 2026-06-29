@@ -84,9 +84,11 @@
                                 <!-- State Input -->
                                 <div class="space-y-2">
                                     <label class="text-sm font-medium text-gray-600">State / Province <span class="text-red-500">*</span></label>
-                                    <input name="billing_state" id="state" class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all outline-none" placeholder="State / Province" type="text" value="{{ $address?->billing_state }}" />
+                                    <select name="billing_state" id="state" data-selected="{{ $address?->billing_state }}" class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all outline-none appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.2em_1.2em] bg-[right_0.75rem_center] bg-no-repeat">
+                                        <option value="">Select State</option>
+                                        </select>
                                     @error('billing_state')
-                                        <span class="text-red-500" >{{ $message }}</span>
+                                        <span class="text-red-500">{{ $message }}</span>
                                     @enderror
                                 </div>
 
@@ -222,6 +224,57 @@
     </section>
 
     @section('script')
+        <script>
+            $(document).ready(function() {
+
+                // Function to fetch and load states
+                function loadStates(countryId, selectedStateId = null) {
+                    let stateSelect = $('#state');
+                    stateSelect.html('<option value="">Loading...</option>'); // Show loading text
+
+                    if (countryId) {
+                        // Use a placeholder in the route and replace it in JS
+                        let url = '{{ route("profile.get.states", ":country_id") }}';
+                        url = url.replace(':country_id', countryId);
+
+                        $.ajax({
+                            url: url,
+                            type: 'GET',
+                            success: function(response) {
+                                stateSelect.html('<option value="">Select State</option>');
+
+                                // Loop through the returned states and append to select box
+                                $.each(response, function(index, state) {
+                                    // Check if this state should be pre-selected (for Edit page)
+                                    let isSelected = (state.id == selectedStateId) ? 'selected' : '';
+                                    stateSelect.append('<option value="'+ state.id +'" '+ isSelected +'>'+ state.name +'</option>');
+                                });
+                            },
+                            error: function(xhr) {
+                                stateSelect.html('<option value="">Error loading states</option>');
+                                console.error('Failed to fetch states');
+                            }
+                        });
+                    } else {
+                        stateSelect.html('<option value="">Select State</option>');
+                    }
+                }
+
+                // 1. Listen for country changes
+                $('#country').on('change', function() {
+                    let countryId = $(this).val();
+                    loadStates(countryId);
+                });
+
+                // 2. Trigger on page load (For Edit Mode / Validation Fails)
+                let initialCountryId = $('#country').val();
+                let initialStateId = $('#state').data('selected'); // Gets the $address->billing_state value
+
+                if (initialCountryId) {
+                    loadStates(initialCountryId, initialStateId);
+                }
+            });
+        </script>
         <script>
             $(document).ready(function() {
                 // Form Validation Initialize
