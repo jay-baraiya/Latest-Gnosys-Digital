@@ -173,6 +173,9 @@
                                 </select>
                             </td>
                             <td>
+                                <input type="date" class="form-control due-date" name="due_date[]" required>
+                            </td>
+                            <td>
                                 <input type="number" class="form-control item-qty" name="quantity[]"
                                     min="1" value="1" placeholder="1" required>
                             </td>
@@ -225,6 +228,9 @@
                 required: true
             });
             $.validator.addClassRules('variant-select-required', {
+                required: true
+            });
+            $.validator.addClassRules('due-date', {
                 required: true
             });
             $.validator.addClassRules('item-qty', {

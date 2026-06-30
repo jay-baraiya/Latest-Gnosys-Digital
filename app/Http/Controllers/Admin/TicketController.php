@@ -217,6 +217,10 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
+        // echo '<pre>';
+        // print_r($request->all());
+        // echo '</pre>';
+        // exit;
         $validatedData = $request->validate([
             'user_id'       => 'required|integer|exists:users,id',
             'name'          => 'nullable|string|max:255',
@@ -241,6 +245,7 @@ class TicketController extends Controller
             'variant_id'    => 'nullable|array',
             'quantity'      => 'nullable|array',
             'price'         => 'nullable|array',
+            'due_date'      => 'nullable|array',
         ]);
 
         try {
@@ -285,6 +290,7 @@ class TicketController extends Controller
             $variantIds   = $request->input('variant_id', []);
             $quantities   = $request->input('quantity', []);
             $prices       = $request->input('price', []);
+            $duedate      = $request->input('due_date', []);
 
             if (!empty($productTypes) && is_array($productTypes)) {
 
@@ -295,6 +301,7 @@ class TicketController extends Controller
                             'ticket_id'    => $ticket->id,
                             'product_type' => $type,
                             'product_id'   => $productIds[$i],
+                            'due_date'     => $duedate[$i],
                             'variant_id'   => !empty($variantIds[$i]) ? $variantIds[$i] : null,
                             'quantity'     => $quantities[$i] ?? 1,
                             'price'        => $prices[$i] ?? 0.00,
@@ -373,6 +380,7 @@ class TicketController extends Controller
             'product_name',
             'variant_id',
             'variant_name',
+            'due_date',
             'quantity',
             'price',
             'status'
@@ -439,6 +447,7 @@ class TicketController extends Controller
             'product_name',
             'variant_id',
             'variant_name',
+            'due_date',
             'quantity',
             'price',
             'status'
@@ -452,6 +461,7 @@ class TicketController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
         $validatedData = $request->validate([
             'user_id'              => 'required|integer|exists:users,id',
             'name'                 => 'nullable|string|max:255',
@@ -541,6 +551,7 @@ class TicketController extends Controller
             $variantIds   = $request->input('variant_id', []);
             $quantities   = $request->input('quantity', []);
             $prices       = $request->input('price', []);
+            $duedate       = $request->input('due_date', []);
 
             $processedTaskIds = [];
 
@@ -555,6 +566,7 @@ class TicketController extends Controller
                             'product_type' => $type,
                             'product_id'   => $productIds[$i],
                             'variant_id'   => !empty($variantIds[$i]) ? $variantIds[$i] : null,
+                            'due_date'     => $duedate[$i] ?? null,
                             'quantity'     => $quantities[$i] ?? 1,
                             'price'        => $prices[$i] ?? 0.00,
                         ];
