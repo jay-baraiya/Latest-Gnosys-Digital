@@ -9,7 +9,8 @@
     'is_approved' => 0,
     'approve' => null,
     'reject' => null,
-    'reapprove' => null
+    'reapprove' => null,
+    'is_permission' => false,
 ])
 
 @php
@@ -18,6 +19,8 @@
     $parts = explode('.', $routeName);
 
     $module = implode('.', array_slice($parts, 1, -1));
+
+    $role = auth()->user()?->role?->id ?? null;
 @endphp
 
 <div class="dropdown table-action">
@@ -52,6 +55,17 @@
                 @if ($reapprove)
                     <a class="dropdown-item wallet-action-btn" href="{{ $reapprove }}" data-action="reapprove" >
                         <i class="ti ti-circle-dashed-check text-info"></i> Reapprove
+                    </a>
+                @endif
+            {{-- @endcan --}}
+        @endif
+
+        @if ($role == auth()->user()::IS_ADMIN)
+            {{-- @can('edit.' . $module) --}}
+                {{-- Edit --}}
+                @if ($is_permission)
+                    <a class="dropdown-item" href="{{ $is_permission }}">
+                        <i class="ti ti-shield-cog text-danger"></i> Permissions
                     </a>
                 @endif
             {{-- @endcan --}}

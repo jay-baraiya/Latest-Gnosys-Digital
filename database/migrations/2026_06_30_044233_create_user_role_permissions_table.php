@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('role_id')->nullable()->constrained('roles')->onDelete('set null');
             $table->foreignId('permission_id')->nullable()->constrained('permissions')->onDelete('set null');
+            $table->tinyInteger('is_permission')->default(0);
             $table->timestamps();
         });
     }

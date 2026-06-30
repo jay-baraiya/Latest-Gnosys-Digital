@@ -16,7 +16,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'email', 'password', 'phone', 'designation_id', 'address', 'country_id', 'state_id', 'city_id', 'zip', 'status', 'role_id', 'user_id','image'])]
+#[Fillable(['name', 'email', 'password', 'phone', 'designation_id', 'address', 'country_id', 'state_id', 'city_id', 'zip', 'status', 'role_id', 'user_id','image','is_user_permission'])]
 #[Hidden(['password', 'remember_token'])]
 #[ScopedBy([DescScope::class])]
 

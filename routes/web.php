@@ -79,6 +79,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('users/update-status', [UserController::class, 'updateStatus'])->name('users.updateStatus');
     Route::post('users/check-email', [UserController::class, 'checkEmail'])->name('users.check.email');
     Route::post('users/check-phone', [UserController::class, 'checkPhone'])->name('users.check.phone');
+    Route::get('users/permission/{id}', [UserController::class, 'createPermission'])->name('users.permission.create');
+    Route::post('users/permission/update/{id}', [UserController::class, 'updatePermission'])->name('users.permission.update');
 
     Route::post('ajax/common/get-countries', [CommonController::class, 'getCountries'])->name('common.getCountries');
     Route::post('ajax/common/get-states', [CommonController::class, 'getStates'])->name('common.getStates');

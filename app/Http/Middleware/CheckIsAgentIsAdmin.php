@@ -21,6 +21,10 @@ class CheckIsAgentIsAdmin
             return redirect()->route('home');
         }
 
+        if (!Auth::user()->status) {
+            abort(403, 'Unauthorized action.');
+        }
+
         return $next($request);
     }
 }

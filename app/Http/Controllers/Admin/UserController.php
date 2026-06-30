@@ -8,8 +8,11 @@ use App\Models\Country;
 use App\Models\State;
 use App\Models\City;
 use App\Models\Designation;
+use App\Models\Permission;
 use App\Models\Role;
+use App\Models\RolePermission;
 use App\Models\UserRole;
+use App\Models\UserRolePermission;
 use App\Notifications\RealTimeNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -50,6 +53,69 @@ class UserController extends Controller
     public function index(Request $request)
     {
         return view('admin.user.index');
+    }
+
+    public function createPermission(Request $request, $id)
+    {
+        view()->share('action', 'Add USer Permission');
+
+        $user = User::find(decrypt($id));
+
+        $roleId = $user?->role?->id;
+
+        $rolePermission = RolePermission::query()->where('role_id', $roleId)->pluck('permission_id')->toArray();
+
+        $permissions = Permission::active()->whereIn('id', $rolePermission)->get()->groupBy('module');
+
+        $user_permission = UserRolePermission::query()
+                            ->where('user_id', decrypt($id))
+                            ->where('role_id', $roleId)
+                            ->pluck('permission_id')
+                            ->toArray();
+
+        return view('admin.user.permission', compact('permissions','user', 'user_permission'));
+    }
+
+    public function updatePermission(Request $request, $id)
+    {
+        view()->share('action', 'Add USer Permission');
+
+        $validatedData = $request->validate([
+            'permissions' => 'nullable|array',
+            'role_id' => 'required|exists:roles,id',
+        ]);
+
+        $id = decrypt($id);
+
+
+
+        $permissions = Permission::active()->get()->groupBy('module');
+
+        $roleId = $request->input('role_id');
+        $permissionId = $request->input('permissions');
+
+        UserRolePermission::query()->where('user_id', $id)->where('role_id', $roleId)->delete();
+
+        $pArray = [];
+        if ($id && $roleId && $permissionId) {
+            foreach ($permissionId as $key => $permission) {
+                $pArray[] = [
+                    'user_id' => $id,
+                    'role_id' => $roleId,
+                    'permission_id' => $permission,
+                ];
+            }
+        }
+
+        $userQuery = User::find($id);
+        if (!empty($pArray)) {
+            $userQuery->update(['is_user_permission' => 1]);
+            UserRolePermission::insert($pArray);
+        } else {
+            $userQuery->update(['is_user_permission' => 0]);
+        }
+
+        return redirect()->route($this->moduleUrl)->with('success', 'User permission updated successfully.');
     }
 
     public function getData(Request $request)
@@ -116,6 +182,7 @@ class UserController extends Controller
                         'restore' => route('admin.users.restore', encrypt($row->id)),
                         'id' => encrypt($row->id),
                         'is_deleted' => $request->is_deleted,
+                        'is_permission' => route('admin.users.permission.create', ['id' => encrypt($row->id)]),
                     ])->render();
                 })
                 ->rawColumns(['status', 'role', 'actions','name'])
