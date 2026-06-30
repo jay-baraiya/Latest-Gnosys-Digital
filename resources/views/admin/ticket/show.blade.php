@@ -206,7 +206,7 @@
             <hr>
 
             <div class="d-flex align-items-center justify-content-between mb-3">
-                <h5 class="text-primary mb-0">Order Items</h5>
+                <h5 class="text-primary mb-0">Task List</h5>
                 <button type="button" class="btn btn-sm btn-outline-primary" id="addItemBtn">
                     <i class="ti ti-plus me-1"></i> Add More
                 </button>
@@ -217,8 +217,9 @@
                 <table class="table table-bordered align-middle" id="orderItemsTable">
                     <thead class="table-light">
                         <tr>
-                            <th style="min-width:280px;">Item Type & Product/Service <span class="text-danger">*</span></th>
+                            <th style="min-width:280px;">Product/Service <span class="text-danger">*</span></th>
                             <th style="min-width:200px;">Variant</th>
+                            <th style="min-width:200px;">Due Date</th>
                             <th style="min-width:110px;">Qty <span class="text-danger">*</span></th>
                             <th style="min-width:130px;">Price <span class="text-danger">*</span></th>
                             <th style="min-width:130px;">Total Amount</th>
@@ -283,6 +284,13 @@
                                 </select>
                             </td>
                             <td>
+                                <input type="date"
+                                class="form-control due-date"
+                                name="due_date[]"
+                                value="{{ !empty($item->due_date) ? \Carbon\Carbon::parse($item->due_date)->format('Y-m-d') : now()->format('Y-m-d') }}"
+                                required>
+                            </td>
+                            <td>
                                 <input type="number" class="form-control item-qty" name="quantity[]"
                                     min="1" value="{{ $item->quantity ?? 1 }}" placeholder="1" required>
                             </td>
@@ -327,6 +335,9 @@
                                 <select class="form-select variant-select" name="variant_id[]" readonly>
                                     <option value="">-- No Variant --</option>
                                 </select>
+                            </td>
+                            <td>
+                                <input type="date" class="form-control due-date" name="due_date[]" required>
                             </td>
                             <td>
                                 <input type="number" class="form-control item-qty" name="quantity[]"

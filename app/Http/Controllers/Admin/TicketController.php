@@ -217,10 +217,7 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
-        // echo '<pre>';
-        // print_r($request->all());
-        // echo '</pre>';
-        // exit;
+
         $validatedData = $request->validate([
             'user_id'       => 'required|integer|exists:users,id',
             'name'          => 'nullable|string|max:255',
@@ -436,8 +433,6 @@ class TicketController extends Controller
             $q->whereIn('id', $orderItems_service);
         })
         ->get();
-
-
 
         $tasks = Task::query()->select([
             'id',
