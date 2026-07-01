@@ -152,6 +152,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('tickets/get-service-variant', [TicketController::class, 'getServiceVariant'])->name('tickets.get.service.variant');
     Route::post('/tickets/update-status', [TicketController::class, 'updateTicketStatus'])->name('tickets.update.status');
     Route::post('/tickets/get-item-qty', [TicketController::class, 'getItemQty'])->name('tickets.get-qty');
+    /* Store Tasks */
+    Route::post('/tickets/store/task', [TicketController::class, 'storeTask'])->name('tickets.store.task');
 });
 
 

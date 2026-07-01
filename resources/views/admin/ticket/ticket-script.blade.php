@@ -1,248 +1,201 @@
-@push('scripts')
-    <script>
-        $(document).ready(function () {
-            var productsData = @json($products ?? []);
-            var servicesData = @json($services ?? []);
-
-            function populateProducts($select, selectedValue = '') {
-                $select.empty().append('<option value="">-- Select Product --</option>');
-                $.each(productsData, function(i, product) {
-                    var selected = selectedValue == product.id ? 'selected' : '';
-                    $select.append(`<option value="${product.id}" data-price="${product.price || ''}" ${selected}>${product.name}</option>`);
-                });
-            }
-
-            function populateServices($select, selectedValue = '') {
-                $select.empty().append('<option value="">-- Select Service --</option>');
-                $.each(servicesData, function(i, service) {
-                    var selected = selectedValue == service.id ? 'selected' : '';
-                    $select.append(`<option value="${service.id}" data-price="${service.price || ''}" ${selected}>${service.name}</option>`);
-                });
-            }
-
-            $(document).on('click', '.item-type-badge', function() {
-                var $row = $(this).closest('.order-item-row');
-                var $hidden = $row.find('.item-type-hidden');
-                var currentType = $hidden.val();
-                var $select = $row.find('.product-select');
-                var $variantSelect = $row.find('.variant-select');
-                var $priceInput = $row.find('.item-price');
-
-                if (currentType === 'product') {
-                    $hidden.val('service');
-                    $(this).text('Service').removeClass('bg-primary').addClass('bg-success');
-                    populateServices($select);
-                } else {
-                    $hidden.val('product');
-                    $(this).text('Product').removeClass('bg-success').addClass('bg-primary');
-                    populateProducts($select);
-                }
-
-                $variantSelect.empty().append('<option value="">-- No Variant --</option>').prop('readonly', true).removeClass('variant-select-required');
-                $priceInput.val('');
-                calculateTotals();
-            });
-
-            $(document).on('change', '.product-select', function() {
-                var $row = $(this).closest('.order-item-row');
-                var $variantSelect = $row.find('.variant-select');
-                var $priceInput = $row.find('.item-price');
-                var type = $row.find('.item-type-hidden').val();
-                var itemId = $(this).val();
-
-                if (!itemId) {
-                    $variantSelect.empty().append('<option value="">-- No Variant --</option>').prop('readonly', true).removeClass('variant-select-required');
-                    $priceInput.val('');
-                    calculateTotals();
-                    return;
-                }
-
-                var orderId = @json($ticket->order_id ?? null);
-
-                if (orderId) {
-                    setQty(this, orderId, itemId, type);
-                }
-
-                if (type === 'product') {
-                    var price = $(this).find('option:selected').data('price') || '';
-                    $priceInput.val(price);
-                    $variantSelect.empty().append('<option value="">-- No Variant --</option>').prop('readonly', true).removeClass('variant-select-required');
-                } else {
-                    var service = servicesData.find(s => String(s.id) === String(itemId));
-                    if (service && service.variants && service.variants.length > 0) {
-                        $variantSelect.empty().append('<option value="">-- Select Variant --</option>').prop('readonly', false).addClass('variant-select-required');
-                        $.each(service.variants, function(i, variant) {
-                            $variantSelect.append(`<option value="${variant.id}" data-price="${variant.price || ''}">${variant.name}</option>`);
-                        });
-                        $priceInput.val('');
-                    } else {
-                        var price = $(this).find('option:selected').data('price') || '';
-                        $priceInput.val(price);
-                        $variantSelect.empty().append('<option value="">-- No Variant --</option>').prop('readonly', true).removeClass('variant-select-required');
-                    }
-                }
-                calculateTotals();
-            });
-
-            function setQty(element, orderId, val, type) {
-                // Basic validation to make sure all 3 values exist before making the request
-                if (!orderId || !val || !type) {
-                    return;
-                }
-
-                $.ajax({
-                    url: '{{ route("admin.tickets.get-qty") }}',
-                    type: 'POST',
-                    data: {
-                        order_id: orderId,
-                        product_id: val,     // passing 'val' as product_id
-                        product_type: type,  // passing 'type' as product_type
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            console.log('Data found:', response);
-
-                            $(element).closest('.order-item-row').find('.item-qty').val(response.qty);
-
-                            calculateTotals();
-                            // $('#price_input_id').val(response.price);
-
-                        } else {
-                            console.log(response.message);
-                            // Optional: show Toast or alert if item not found
-                        }
-                    },
-                    error: function(xhr) {
-                        console.error('Something went wrong with the AJAX request.');
-                    }
-                });
-            }
-
-            $(document).on('change', '.variant-select', function() {
-                var $row = $(this).closest('.order-item-row');
-                var $priceInput = $row.find('.item-price');
-                var price = $(this).find('option:selected').data('price') || '';
-                $priceInput.val(price);
-                calculateTotals();
-            });
-
-            $(document).on('input change', '.item-qty, .item-price', function() {
-                calculateTotals();
-            });
-
-            function calculateRowTotal($row) {
-                var qty = parseFloat($row.find('.item-qty').val()) || 0;
-                var price = parseFloat($row.find('.item-price').val()) || 0;
-                var total = qty * price;
-                $row.find('.item-total').val(total.toFixed(2));
-            }
-
-            function calculateTotals() {
-                var grandTotal = 0;
-                $('.order-item-row').each(function() {
-                    calculateRowTotal($(this));
-                    var rowTotal = parseFloat($(this).find('.item-total').val()) || 0;
-                    grandTotal += rowTotal;
-                });
-                $('#subtotal').val(grandTotal.toFixed(2));
-                $('#total_amount').val(grandTotal.toFixed(2));
-                $('#grandTotalDisplay').text('$' + grandTotal.toFixed(2));
-            }
-
-            calculateTotals();
-
-            $('#addItemBtn').on('click', function() {
-                var newRow = `
-                        <tr class="order-item-row">
-                            <td>
-                                <input type="hidden" name="task_id[]" value="">
-                                <input type="hidden" name="product_type[]" class="item-type-hidden" value="product">
-                                <div class="d-flex align-items-center mb-2">
-                                    <span class="badge bg-primary me-2 item-type-badge pointer" style="cursor:pointer;" title="Click to toggle type">Product</span>
-                                    <small class="text-muted text-uppercase fw-bold" style="font-size:10px;">Click to switch</small>
-                                </div>
-                                <select class="form-select product-select" name="product_id[]" required>
-                                    <option value="">-- Select Product --</option>
-                                    ${productsData.map(p => `<option value="${p.id}" data-price="${p.price || ''}">${p.name}</option>`).join('')}
-                                </select>
-                            </td>
-                            <td>
-                                <select class="form-select variant-select" name="variant_id[]" readonly>
-                                    <option value="">-- No Variant --</option>
-                                </select>
-                            </td>
-                            <td>
-                                <input type="date" class="form-control due-date" name="due_date[]" required>
-                            </td>
-                            <td>
-                                <input type="number" class="form-control item-qty" name="quantity[]"
-                                    min="1" value="1" placeholder="1" required>
-                            </td>
-                            <td>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" step="0.01" class="form-control item-price" name="price[]"
-                                        min="0" value="" placeholder="0.00" required>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" step="0.01" class="form-control item-total" readonly value="" placeholder="0.00">
-                                </div>
-                            </td>
-                            <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn" title="Remove row">
-                                    <i class="ti ti-trash"></i>
-                                </button>
-                            </td>
-                        </tr>`;
-                $('#orderItemsBody').append(newRow);
-                updateRemoveButtons();
-            });
-
-            $(document).on('click', '.remove-item-btn', function() {
-                var rows = $('#orderItemsBody .order-item-row');
-                if (rows.length > 1) {
-                    $(this).closest('tr').remove();
-                    updateRemoveButtons();
-                    calculateTotals();
-                } else {
-                    alert('At least one order item is required.');
-                }
-            });
-
-            function updateRemoveButtons() {
-                var rows = $('#orderItemsBody .order-item-row');
-                if (rows.length === 1) {
-                    rows.find('.remove-item-btn').prop('disabled', true);
-                } else {
-                    rows.find('.remove-item-btn').prop('disabled', false);
-                }
-            }
-
-            updateRemoveButtons();
-
-            $.validator.addClassRules('product-select', {
-                required: true
-            });
-            $.validator.addClassRules('variant-select-required', {
-                required: true
-            });
-            $.validator.addClassRules('due-date', {
-                required: true
-            });
-            $.validator.addClassRules('item-qty', {
-                required: true,
-                min: 1,
-                // digits: true
-            });
-            $.validator.addClassRules('item-price', {
-                required: true,
-                min: 0,
-                number: true
-            });
+<script>
+    $(document).ready(function () {
+        $('#user_id').select2({
+            placeholder: 'Select a user',
+            allowClear: true,
         });
-    </script>
-@endpush
+
+        $('#priority').select2({
+            placeholder: 'Select a priority',
+            allowClear: true,
+        });
+
+        $('#department_id').select2({
+            placeholder: 'Select a priority',
+            allowClear: true,
+        });
+
+        $('#assign_id').select2({
+            placeholder: 'Select a user',
+            allowClear: true,
+        });
+
+        $(document).on('change', '#user_id', function() {
+            var text = $(this).find('option:selected').text();
+            var email = $(this).find('option:selected').data('email');
+
+            if (text && email) {
+                $('#name').val(text.trim());
+                $('#email').val(email.trim());
+            }
+        });
+
+        var myDropzone = new Dropzone("#ticketDropzone", {
+            url: "#",
+            autoProcessQueue: false,
+            uploadMultiple: true,
+            maxFiles: 10,
+            maxFilesize: 10,
+            acceptedFiles: "image/jpeg,image/png,image/jpg,.pdf,.doc,.docx",
+            addRemoveLinks: true,
+            init: function() {
+                var dz = this;
+
+                var existingFilesData = {!! isset($ticket) && !empty($ticket->attachments) ? $ticket->attachments : '[]' !!};
+
+                if (typeof existingFilesData === 'string') {
+                    existingFilesData = JSON.parse(existingFilesData);
+                }
+
+                existingFilesData.forEach(function(filePath) {
+                    var fileName = filePath.split('/').pop();
+
+                    var mockFile = {
+                        name: fileName,
+                        size: 1024,
+                        status: Dropzone.ADDED,
+                        accepted: true,
+                        serverPath: filePath
+                    };
+
+                    dz.emit("addedfile", mockFile);
+
+                    if (filePath.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
+                        dz.emit("thumbnail", mockFile, filePath);
+                    }
+
+                    dz.emit("complete", mockFile);
+                    dz.files.push(mockFile);
+                });
+
+                function syncFilesToInput() {
+                    var dataTransfer = new DataTransfer();
+                    dz.files.forEach(function(file) {
+                        if (!file.serverPath && file.status !== Dropzone.CANCELED && file.status !== Dropzone.ERROR) {
+                            dataTransfer.items.add(file);
+                        }
+                    });
+                    document.getElementById('hiddenFileInput').files = dataTransfer.files;
+                }
+
+                this.on("addedfile", function(file) {
+                    if(!file.serverPath) {
+                        syncFilesToInput();
+                    }
+                });
+
+                this.on("removedfile", function(file) {
+                    if (file.serverPath) {
+                        $('input[name="existing_attachments[]"][value="' + file.serverPath + '"]').remove();
+                    } else {
+                        syncFilesToInput();
+                    }
+                });
+            }
+        });
+
+        var validator = $('#ticketForm').validate({
+            ignore: ":hidden:not(.select2-hidden-accessible, #description)",
+            rules: {
+                user_id: { required: true },
+                email: { required: true, email: true },
+                subject: { required: true, maxlength: 255 },
+                department_id: { required: true },
+                assign_id: { required: true },
+                priority: { required: true },
+                description: { required: true }
+            },
+            messages: {
+                user_id: { required: "Please select a client." },
+                email: {
+                    required: "Please enter an email address.",
+                    email: "Please enter a valid email address."
+                },
+                subject: { required: "Please enter a subject." },
+                department_id: { required: "Please select a department." },
+                assign_id: { required: "Please select a assign." },
+                priority: { required: "Please select a priority." },
+                description: { required: "Please enter the ticket description." }
+            },
+            errorClass: 'text-danger small mt-1',
+            errorElement: 'span',
+            highlight: function(element) {
+                $(element).addClass('is-invalid');
+                if ($(element).hasClass("select2-hidden-accessible")) {
+                    $(element).next('.select2-container').find('.select2-selection').addClass('border-danger');
+                }
+            },
+            unhighlight: function(element) {
+                $(element).removeClass('is-invalid');
+                if ($(element).hasClass("select2-hidden-accessible")) {
+                    $(element).next('.select2-container').find('.select2-selection').removeClass('border-danger');
+                }
+            },
+            errorPlacement: function(error, element) {
+                if (element.hasClass('select2-hidden-accessible')) {
+                    error.insertAfter(element.next('.select2-container'));
+                } else if (element.attr('id') === 'description') {
+                    error.insertAfter('#quill-editor');
+                } else if (element.closest('.input-group').length) {
+                    error.insertAfter(element.closest('.input-group'));
+                } else {
+                    error.insertAfter(element);
+                }
+            },
+            submitHandler: function(form) {
+                var quillHtml = document.querySelector('#quill-editor .ql-editor').innerHTML;
+                if (quill.getText().trim().length === 0) {
+                    quillHtml = '';
+                }
+                $('#description').val(quillHtml);
+
+                form.submit();
+            }
+        });
+
+        Quill.register("modules/htmlEditButton", htmlEditButton);
+
+        var toolbarOptions = [
+            [{ 'font': [] }],
+            [{ 'size': ['small', false, 'large', 'huge'] }],
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'script': 'sub' }, { 'script': 'super' }],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+            [{ 'indent': '-1' }, { 'indent': '+1' }],
+            [{ 'align': [] }],
+            [{ 'direction': 'rtl' }],
+            ['link', 'image', 'video', 'formula'],
+            ['blockquote', 'code-block'],
+            ['clean']
+        ];
+
+        var quill = new Quill('#quill-editor', {
+            theme: 'snow',
+            placeholder: 'Detailed service description...',
+            modules: {
+                toolbar: toolbarOptions,
+                htmlEditButton: {
+                    debug: false,
+                    msg: "Edit the HTML below. Clicking 'Save' will update the editor.",
+                    okText: "Save",
+                    cancelText: "Cancel",
+                    buttonHTML: "&lt;&gt;",
+                    buttonTitle: "Show HTML source",
+                    syntax: false
+                }
+            }
+        });
+
+        quill.on('text-change', function() {
+            var html = quill.root.innerHTML;
+            if (quill.getText().trim().length === 0) {
+                html = '';
+            }
+            $('#description').val(html);
+
+            validator.element('#description');
+        });
+    });
+</script>

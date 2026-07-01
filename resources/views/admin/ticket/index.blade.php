@@ -91,10 +91,11 @@
                         <i class="ti ti-refresh me-1"></i>Clear Filters
                     </button>
 
-                    <a href="{{ route('admin.tickets.create') }}" class="btn btn-primary ms-auto">
-                        <i class="ti ti-square-rounded-plus-filled me-1"></i>Add {{ rtrim($moduleName, 's') }}
-                    </a>
-
+                    {{-- @can('create.'.$moduleName) --}}
+                        <a href="{{ route('admin.tickets.create') }}" class="btn btn-primary ms-auto">
+                            <i class="ti ti-square-rounded-plus-filled me-1"></i>Add {{ rtrim($moduleName, 's') }}
+                        </a>
+                    {{-- @endcan --}}
                 </div>
             </x-slot:header>
 

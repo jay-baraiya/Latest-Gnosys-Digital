@@ -41,9 +41,12 @@
                     <span class="input-icon-addon text-dark"><i class="ti ti-search"></i></span>
                     <input type="text" class="form-control" placeholder="Search" id="dataTable-search">
                 </div>
-                <a href="{{ route('admin.users.create') }}" class="btn btn-primary"><i
-                        class="ti ti-square-rounded-plus-filled me-1"></i>Add
-                    {{ rtrim($moduleName, 's') }}</a>
+                @can('create.users')
+                    <a href="{{ route('admin.users.create') }}" class="btn btn-primary"><i
+                            class="ti ti-square-rounded-plus-filled me-1"></i>Add
+                        {{ rtrim($moduleName, 's') }}
+                    </a>
+                @endcan
             </x-slot:header>
 
             <div class="table-responsive custom-table">

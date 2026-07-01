@@ -35,10 +35,12 @@
                     <span class="input-icon-addon text-dark"><i class="ti ti-search"></i></span>
                     <input type="text" class="form-control" placeholder="Search" id="dataTable-search">
                 </div>
-                <a href="#" class="btn btn-primary addBalanceInWallet">
-                    <i class="ti ti-square-rounded-plus-filled me-1"></i>
-                    Add Balance
-                </a>
+                @can('create.'.$moduleName)
+                    <a href="#" class="btn btn-primary addBalanceInWallet">
+                        <i class="ti ti-square-rounded-plus-filled me-1"></i>
+                        Add Balance
+                    </a>
+                @endcan
             </x-slot:header>
 
             <div class="table-responsive custom-table">

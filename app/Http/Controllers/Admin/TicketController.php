@@ -174,7 +174,7 @@ class TicketController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         view()->share('action', 'Create');
 
@@ -209,7 +209,11 @@ class TicketController extends Controller
 
         $services  = DigitalService::with('variants')->where('status', 1)->get();
 
-        return view('admin.ticket.form', compact('services', 'products', 'developers', 'users', 'departments', 'cc_recipients'));
+        $tab = $request->input('tab', 'ticket-form');
+
+        $priority = '';
+
+        return view('admin.ticket.form', compact('tab', 'priority', 'services', 'products', 'developers', 'users', 'departments', 'cc_recipients'));
     }
 
     /**
@@ -217,7 +221,10 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
-
+        echo '<pre>';
+        print_r($request->all());
+        echo '</pre>';
+        exit;
         $validatedData = $request->validate([
             'user_id'       => 'required|integer|exists:users,id',
             'name'          => 'nullable|string|max:255',
@@ -324,7 +331,7 @@ class TicketController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
         view()->share('action', 'View');
 
@@ -383,7 +390,11 @@ class TicketController extends Controller
             'status'
         ])->where('ticket_id', decrypt($id))->get();
 
-        return view('admin.ticket.show', compact('tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments'));
+        $tab = $request->input('tab', 'ticket-form');
+
+        $priority = '';
+
+        return view('admin.ticket.show', compact('tab', 'priority', 'tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments'));
     }
 
     /**
@@ -617,7 +628,7 @@ class TicketController extends Controller
                 'message' => $user->status == 1 ? 'User activated successfully.' : 'User deactivated successfully.'
             ]);
         } catch (\Exception $e) {
-            Log::error('User Status Update Error', [
+            Log::error('Ticket Status Update Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -802,5 +813,65 @@ class TicketController extends Controller
             'success' => false,
             'message' => 'Item not found in this order.'
         ]);
+    }
+
+    public function storeTask(Request $request)
+    {
+        echo '<pre>';
+        print_r($request->all());
+        echo '</pre>';
+        exit;
+
+        $taskIds      = $request->input('task_id', []);
+            $productTypes = $request->input('product_type', []);
+            $productIds   = $request->input('product_id', []);
+            $variantIds   = $request->input('variant_id', []);
+            $quantities   = $request->input('quantity', []);
+            $prices       = $request->input('price', []);
+            $duedate       = $request->input('due_date', []);
+
+            $processedTaskIds = [];
+
+            if (!empty($productTypes) && is_array($productTypes)) {
+                foreach ($productTypes as $i => $type) {
+                    if (!empty($productIds[$i])) {
+
+                        $taskId = !empty($taskIds[$i]) ? $taskIds[$i] : null;
+
+                        $taskData = [
+                            'ticket_id'    => $ticket->id,
+                            'product_type' => $type,
+                            'product_id'   => $productIds[$i],
+                            'variant_id'   => !empty($variantIds[$i]) ? $variantIds[$i] : null,
+                            'due_date'     => $duedate[$i] ?? null,
+                            'quantity'     => $quantities[$i] ?? 1,
+                            'price'        => $prices[$i] ?? 0.00,
+                        ];
+
+                        if ($taskId) {
+                            Task::query()
+                                ->where('id', $taskId)
+                                ->where('ticket_id', $ticket->id)
+                                ->update($taskData);
+
+                            $processedTaskIds[] = $taskId;
+                        } else {
+                            $newTask = Task::create($taskData);
+                            $processedTaskIds[] = $newTask->id;
+                        }
+                    }
+                }
+            }
+
+            if (!empty($processedTaskIds)) {
+                Task::query()
+                    ->where('ticket_id', $ticket->id)
+                    ->whereNotIn('id', $processedTaskIds)
+                    ->delete();
+            } else {
+                Task::query()->where('ticket_id', $ticket->id)->delete();
+            }
+
+            return redirect()->route($this->moduleUrl ?? 'admin.tickets.index')->with('success', 'Ticket updated successfully.');
     }
 }
