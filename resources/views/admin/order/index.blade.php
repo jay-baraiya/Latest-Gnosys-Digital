@@ -23,9 +23,11 @@
                     <span class="input-icon-addon text-dark"><i class="ti ti-search"></i></span>
                     <input type="text" class="form-control" placeholder="Search" id="dataTable-search">
                 </div>
+                @can('create.' . strtolower($moduleName))
                 <a href="{{ route('admin.orders.create') }}" class="btn btn-primary"><i
                         class="ti ti-square-rounded-plus-filled me-1"></i>Add
                     {{ rtrim($moduleName, 's') }}</a>
+                @endcan
             </x-slot:header>
 
             <div class="table-responsive custom-table">
@@ -114,7 +116,8 @@
                 $select.focus();
 
                 $.ajax({
-                    url: '{{ route('admin.orders.dev.user') }}',
+                    url: '{{ route('
+                    admin.orders.dev.user ') }}',
                     method: 'POST',
                     success: function(response) {
                         $select.empty().append('<option value="">Select Developer...</option>');
@@ -147,7 +150,8 @@
                     $select.prop('disabled', true);
 
                     $.ajax({
-                        url: '{{ route('admin.tickets.assign.dev.user') }}',
+                        url: '{{ route('
+                        admin.tickets.assign.dev.user ') }}',
                         method: 'POST',
                         data: {
                             ticket_id: ticketId,

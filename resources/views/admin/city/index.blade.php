@@ -32,8 +32,10 @@
                     <span class="input-icon-addon text-dark"><i class="ti ti-search"></i></span>
                     <input type="text" class="form-control" placeholder="Search" id="custom-table-search">
                 </div>
+                @can('create.'.strtolower($moduleName))
                 <a href="javascript:void(0);" class="btn btn-primary" data-bs-toggle="offcanvas"
                     data-bs-target="#offcanvas_add"><i class="ti ti-square-rounded-plus-filled me-1"></i>Add {{ rtrim($moduleName, 's') }}</a>
+                @endcan
             </x-slot:header>
 
             <div class="table-responsive custom-table">
@@ -56,8 +58,12 @@
                 </table>
             </div>
             <div class="row align-items-center">
-                <div class="col-md-6"><div class="datatable-length"></div></div>
-                <div class="col-md-6"><div class="datatable-paginate"></div></div>
+                <div class="col-md-6">
+                    <div class="datatable-length"></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="datatable-paginate"></div>
+                </div>
             </div>
 
         </x-card>
@@ -65,50 +71,69 @@
     </div>
 
     @push('scripts')
-        <script>
-            $(document).ready(function() {
-                if ($('#manage-module-list').length > 0) {
-                    var table = $('#manage-module-list').DataTable({
-                        "bFilter": true,
-                        "sDom": 'fBtlpi',
-                        "ordering": true,
-                        "autoWidth": false,
-                        "responsive": true,
-                        "processing": true,
-                        "serverSide": true,
-                        "ajax": {
-                            "url": "{{ route($moduleUrl) }}",
-                            "type": "GET"
+    <script>
+        $(document).ready(function() {
+            if ($('#manage-module-list').length > 0) {
+                var table = $('#manage-module-list').DataTable({
+                    "bFilter": true,
+                    "sDom": 'fBtlpi',
+                    "ordering": true,
+                    "autoWidth": false,
+                    "responsive": true,
+                    "processing": true,
+                    "serverSide": true,
+                    "ajax": {
+                        "url": "{{ route($moduleUrl) }}",
+                        "type": "GET"
+                    },
+                    "language": {
+                        search: ' ',
+                        sLengthMenu: '_MENU_',
+                        searchPlaceholder: "Search",
+                        info: "_START_ - _END_ of _TOTAL_ items",
+                        "lengthMenu": "Show _MENU_ entries",
+                        paginate: {
+                            next: '<i class="ti ti-chevron-right"></i> ',
+                            previous: '<i class="ti ti-chevron-left"></i> '
                         },
-                        "language": {
-                            search: ' ',
-                            sLengthMenu: '_MENU_',
-                            searchPlaceholder: "Search",
-                            info: "_START_ - _END_ of _TOTAL_ items",
-                            "lengthMenu": "Show _MENU_ entries",
-                            paginate: {
-                                next: '<i class="ti ti-chevron-right"></i> ',
-                                previous: '<i class="ti ti-chevron-left"></i> '
-                            },
+                    },
+                    initComplete: (settings, json) => {
+                        $('.dataTables_paginate').appendTo('.datatable-paginate');
+                        $('.dataTables_length').appendTo('.datatable-length');
+                        $('.dataTables_filter').hide();
+                    },
+                    "columns": [{
+                            "data": "checkbox",
+                            "name": "checkbox",
+                            "orderable": false,
+                            "searchable": false
                         },
-                        initComplete: (settings, json) => {
-                            $('.dataTables_paginate').appendTo('.datatable-paginate');
-                            $('.dataTables_length').appendTo('.datatable-length');
-                            $('.dataTables_filter').hide();
+                        {
+                            "data": "id",
+                            "name": "id"
                         },
-                        "columns": [{
-                                "data": "checkbox", "name": "checkbox", "orderable": false, "searchable": false
-                            },
-                            { "data": "id", "name": "id" },
-                            { "data": "name", "name": "name" },
-                            { "data": "created_at", "name": "created_at" },
-                            { "data": "action", "name": "action", "orderable": false, "searchable": false }
-                        ]
-                    });
+                        {
+                            "data": "name",
+                            "name": "name"
+                        },
+                        {
+                            "data": "created_at",
+                            "name": "created_at"
+                        },
+                        {
+                            "data": "action",
+                            "name": "action",
+                            "orderable": false,
+                            "searchable": false
+                        }
+                    ]
+                });
 
-                    $('#custom-table-search').on('keyup', function() { table.search(this.value).draw(); });
-                }
-            });
-        </script>
+                $('#custom-table-search').on('keyup', function() {
+                    table.search(this.value).draw();
+                });
+            }
+        });
+    </script>
     @endpush
 </x-master-layout>
