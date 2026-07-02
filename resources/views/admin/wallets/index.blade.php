@@ -35,11 +35,11 @@
                     <span class="input-icon-addon text-dark"><i class="ti ti-search"></i></span>
                     <input type="text" class="form-control" placeholder="Search" id="dataTable-search">
                 </div>
-                @can('create.'.$moduleName)
-                    <a href="#" class="btn btn-primary addBalanceInWallet">
-                        <i class="ti ti-square-rounded-plus-filled me-1"></i>
-                        Add Balance
-                    </a>
+                @can('create.'.strtolower($moduleName))
+                <a href="#" class="btn btn-primary addBalanceInWallet">
+                    <i class="ti ti-square-rounded-plus-filled me-1"></i>
+                    Add Balance
+                </a>    
                 @endcan
             </x-slot:header>
 
@@ -87,15 +87,15 @@
                                 <select name="buyer_id" id="buyer_id" class="form-control">
                                     <option value="">Select Buyer</option>
                                     @if (isset($buyers))
-                                        @foreach ($buyers as $key => $buyer)
-                                            <option value="{{ $key }}">{{ $buyer }}</option>
-                                        @endforeach
+                                    @foreach ($buyers as $key => $buyer)
+                                    <option value="{{ $key }}">{{ $buyer }}</option>
+                                    @endforeach
                                     @endif
                                 </select>
                             </div>
 
                             <div class="col-lg-12">
-                                <label for="amount" class="form-label" >Amount <span class="text-danger">*</span></label>
+                                <label for="amount" class="form-label">Amount <span class="text-danger">*</span></label>
                                 <input type="text" name="amount" class="form-control" id="amount" placeholder="$0.00">
                             </div>
                         </div>
@@ -124,210 +124,212 @@
     </div>
 
     @push('scripts')
-        <script>
-            $(document).ready(function() {
+    <script>
+        $(document).ready(function() {
 
-                $(document).on('click', '.addBalanceInWallet', function() {
-                    let form = $('#walletAddBalanceForm');
-                    form[0].reset();
-                    form.validate().resetForm();
-                    form.find('.is-invalid').removeClass('is-invalid');
+            $(document).on('click', '.addBalanceInWallet', function() {
+                let form = $('#walletAddBalanceForm');
+                form[0].reset();
+                form.validate().resetForm();
+                form.find('.is-invalid').removeClass('is-invalid');
 
-                    $('#addBalanceModal').modal('show');
-                });
+                $('#addBalanceModal').modal('show');
+            });
 
-                $(document).on('click', '.showWalletHistory', function(e) {
-                    e.preventDefault();
-                    $('#walletModal').modal('show');
+            $(document).on('click', '.showWalletHistory', function(e) {
+                e.preventDefault();
+                $('#walletModal').modal('show');
 
-                    var url = $(this).attr('href');
-                    var modal = $('#walletModal');
+                var url = $(this).attr('href');
+                var modal = $('#walletModal');
 
-                    if (url) {
+                if (url) {
 
-                        $.ajax({
-                            url: url,
-                            type: 'POST',
-                            data: {
-                                _token: '{{ csrf_token() }}'
-                            },
-
-                            beforeSend: function () {
-                                $('.historyData').html('Loading...');
-                            },
-
-                            success: function (response) {
-
-                                $('.historyData').html('');
-                                $('.historyData').html(response.html);
-
-                                modal.modal('show');
-                            },
-
-                            error: function (xhr) {
-                                $('.historyData').html('<center><p>History not found!</p></center>');
-                                console.log(xhr.responseText);
-                            }
-                        });
-                    }
-                });
-
-                if ($('#manage-module-list').length > 0) {
-                    var table = $('#manage-module-list').DataTable({
-                        "bFilter": true,
-                        "sDom": 'Btlpi',
-                        "ordering": true,
-                        "autoWidth": false,
-                        "responsive": true,
-                        "processing": true,
-                        "serverSide": true,
-                        "ajax": {
-                            "url": "{{ route('admin.wallets.getData') }}",
-                            "type": "POST",
-                            data: function(d) {
-                                d.is_deleted = $('#is_deleted').val();
-                                d.is_buyer = $('.buyerRecode').attr('data-buyer-value');
-                            }
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
                         },
-                        "language": {
-                            search: ' ',
-                            sLengthMenu: '_MENU_',
-                            searchPlaceholder: "Search",
-                            info: "_START_ - _END_ of _TOTAL_ items",
-                            "lengthMenu": "Show _MENU_ entries",
-                            paginate: {
-                                next: '<i class="ti ti-chevron-right"></i> ',
-                                previous: '<i class="ti ti-chevron-left"></i> '
-                            },
-                        },
-                        initComplete: (settings, json) => {
-                            $('.dataTables_paginate').appendTo('.datatable-paginate');
-                            $('.dataTables_length').appendTo('.datatable-length');
-                        },
-                        drawCallback: function(settings) {
-                            var api = this.api();
-                            $('.record-count').text(api.ajax.json().total_users ?? 0);
-                        },
-                        "columns": [{
-                                "data": "DT_RowIndex",
-                                "name": "DT_RowIndex",
-                                "orderable": false,
-                                "searchable": false
-                            },
-                            {
-                                "data": "date",
-                                "name": "date"
-                            },
-                            {
-                                "data": "name",
-                                "name": "name"
-                            },
-                            {
-                                "data": "balance",
-                                "name": "balance"
-                            },
-                            {
-                                "data": "is_approved",
-                                "name": "is_approved"
-                            },
-                            {
-                                "data": "actions",
-                                "name": "actions",
-                                "orderable": false,
-                                "searchable": false
-                            }
-                        ]
-                    });
 
-                    let timeout;
+                        beforeSend: function() {
+                            $('.historyData').html('Loading...');
+                        },
 
-                    $('#dataTable-search').on('keyup', function() {
-                        clearTimeout(timeout);
-                        let value = this.value;
+                        success: function(response) {
 
-                        timeout = setTimeout(function() {
-                            table.search(value).draw();
-                        }, 500);
+                            $('.historyData').html('');
+                            $('.historyData').html(response.html);
+
+                            modal.modal('show');
+                        },
+
+                        error: function(xhr) {
+                            $('.historyData').html('<center><p>History not found!</p></center>');
+                            console.log(xhr.responseText);
+                        }
                     });
                 }
-
-                $('#walletAddBalanceForm').validate({
-                    rules: {
-                        buyer_id: { required: true },
-                        amount: {
-                            required: true,
-                            number: true,
-                            min: 1,
-                            max: 50000
-                        }
-                    },
-                    messages: {
-                        buyer_id: "Please select a buyer.",
-                        amount: {
-                            required: "Please enter wallet amount.",
-                            number: "Amount must be a valid number.",
-                            min: "Minimum amount is $1.",
-                            max: "Maximum amount is $50,000."
-                        }
-                    },
-                    errorElement: 'span',
-                    errorPlacement: function (error, element) {
-                        error.addClass('invalid-feedback text-danger');
-                        element.closest('.col-lg-12').append(error);
-                    },
-                    highlight: function (element) {
-                        $(element).addClass('is-invalid');
-                    },
-                    unhighlight: function (element) {
-                        $(element).removeClass('is-invalid');
-                    },
-                    submitHandler: function(form, event) {
-                        event.preventDefault(); // Stop default form submit
-
-                        let formData = $(form).serialize();
-                        let submitBtn = $(form).find('button[type="submit"]');
-
-                        $.ajax({
-                            url: "{{ route('admin.wallets.store') }}", // Ensure this route is correct
-                            type: "POST",
-                            data: formData,
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Laravel CSRF token
-                            },
-                            beforeSend: function() {
-                                submitBtn.prop('disabled', true).text('Processing...');
-                            },
-                            success: function(response) {
-                                submitBtn.prop('disabled', false).text('Save changes');
-
-                                if(response.success) {
-                                    $('#addBalanceModal').modal('hide');
-                                    showToast(response.message, 'success');
-                                    reloadDataTabale();
-                                }
-                            },
-                            error: function(xhr) {
-                                submitBtn.prop('disabled', false).text('Save changes');
-
-                                if(xhr.status === 422) {
-                                    let errors = xhr.responseJSON.errors;
-                                    let errorMessage = '';
-                                    $.each(errors, function(key, value) {
-                                        errorMessage += value[0] + '\n';
-                                        showToast(errorMessage, 'error');
-                                    });
-                                    reloadDataTabale();
-                                    // alert('Validation Error:\n' + errorMessage);
-                                } else {
-                                    // Handle 500 Server Errors
-                                    showToast('Something went wrong! Please check server logs.', 'error');
-                                    // alert('Something went wrong! Please check server logs.');
-                                }
-                            }
-                        });
-                    }
-                });
             });
-        </script>
+
+            if ($('#manage-module-list').length > 0) {
+                var table = $('#manage-module-list').DataTable({
+                    "bFilter": true,
+                    "sDom": 'Btlpi',
+                    "ordering": true,
+                    "autoWidth": false,
+                    "responsive": true,
+                    "processing": true,
+                    "serverSide": true,
+                    "ajax": {
+                        "url": "{{ route('admin.wallets.getData') }}",
+                        "type": "POST",
+                        data: function(d) {
+                            d.is_deleted = $('#is_deleted').val();
+                            d.is_buyer = $('.buyerRecode').attr('data-buyer-value');
+                        }
+                    },
+                    "language": {
+                        search: ' ',
+                        sLengthMenu: '_MENU_',
+                        searchPlaceholder: "Search",
+                        info: "_START_ - _END_ of _TOTAL_ items",
+                        "lengthMenu": "Show _MENU_ entries",
+                        paginate: {
+                            next: '<i class="ti ti-chevron-right"></i> ',
+                            previous: '<i class="ti ti-chevron-left"></i> '
+                        },
+                    },
+                    initComplete: (settings, json) => {
+                        $('.dataTables_paginate').appendTo('.datatable-paginate');
+                        $('.dataTables_length').appendTo('.datatable-length');
+                    },
+                    drawCallback: function(settings) {
+                        var api = this.api();
+                        $('.record-count').text(api.ajax.json().total_users ?? 0);
+                    },
+                    "columns": [{
+                            "data": "DT_RowIndex",
+                            "name": "DT_RowIndex",
+                            "orderable": false,
+                            "searchable": false
+                        },
+                        {
+                            "data": "date",
+                            "name": "date"
+                        },
+                        {
+                            "data": "name",
+                            "name": "name"
+                        },
+                        {
+                            "data": "balance",
+                            "name": "balance"
+                        },
+                        {
+                            "data": "is_approved",
+                            "name": "is_approved"
+                        },
+                        {
+                            "data": "actions",
+                            "name": "actions",
+                            "orderable": false,
+                            "searchable": false
+                        }
+                    ]
+                });
+
+                let timeout;
+
+                $('#dataTable-search').on('keyup', function() {
+                    clearTimeout(timeout);
+                    let value = this.value;
+
+                    timeout = setTimeout(function() {
+                        table.search(value).draw();
+                    }, 500);
+                });
+            }
+
+            $('#walletAddBalanceForm').validate({
+                rules: {
+                    buyer_id: {
+                        required: true
+                    },
+                    amount: {
+                        required: true,
+                        number: true,
+                        min: 1,
+                        max: 50000
+                    }
+                },
+                messages: {
+                    buyer_id: "Please select a buyer.",
+                    amount: {
+                        required: "Please enter wallet amount.",
+                        number: "Amount must be a valid number.",
+                        min: "Minimum amount is $1.",
+                        max: "Maximum amount is $50,000."
+                    }
+                },
+                errorElement: 'span',
+                errorPlacement: function(error, element) {
+                    error.addClass('invalid-feedback text-danger');
+                    element.closest('.col-lg-12').append(error);
+                },
+                highlight: function(element) {
+                    $(element).addClass('is-invalid');
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass('is-invalid');
+                },
+                submitHandler: function(form, event) {
+                    event.preventDefault(); // Stop default form submit
+
+                    let formData = $(form).serialize();
+                    let submitBtn = $(form).find('button[type="submit"]');
+
+                    $.ajax({
+                        url: "{{ route('admin.wallets.store') }}", // Ensure this route is correct
+                        type: "POST",
+                        data: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Laravel CSRF token
+                        },
+                        beforeSend: function() {
+                            submitBtn.prop('disabled', true).text('Processing...');
+                        },
+                        success: function(response) {
+                            submitBtn.prop('disabled', false).text('Save changes');
+
+                            if (response.success) {
+                                $('#addBalanceModal').modal('hide');
+                                showToast(response.message, 'success');
+                                reloadDataTabale();
+                            }
+                        },
+                        error: function(xhr) {
+                            submitBtn.prop('disabled', false).text('Save changes');
+
+                            if (xhr.status === 422) {
+                                let errors = xhr.responseJSON.errors;
+                                let errorMessage = '';
+                                $.each(errors, function(key, value) {
+                                    errorMessage += value[0] + '\n';
+                                    showToast(errorMessage, 'error');
+                                });
+                                reloadDataTabale();
+                                // alert('Validation Error:\n' + errorMessage);
+                            } else {
+                                // Handle 500 Server Errors
+                                showToast('Something went wrong! Please check server logs.', 'error');
+                                // alert('Something went wrong! Please check server logs.');
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
     @endpush
 </x-master-layout>

@@ -53,9 +53,11 @@
                     <span class="input-icon-addon text-dark"><i class="ti ti-search"></i></span>
                     <input type="text" class="form-control" placeholder="Search" id="dataTable-search">
                 </div>
+                @can('create.'.strtolower($moduleName))
                 <a href="{{ route('admin.digital.services.create') }}" class="btn btn-primary"><i
                         class="ti ti-square-rounded-plus-filled me-1"></i>Add
                     {{ rtrim($moduleName, 's') }}</a>
+                @endcan
             </x-slot:header>
 
             <div class="table-responsive custom-table">
@@ -89,93 +91,93 @@
     </div>
 
     @push('scripts')
-        <script>
-            $(document).ready(function() {
-                if ($('#manage-module-list').length > 0) {
-                    var table = $('#manage-module-list').DataTable({
-                        "bFilter": true,
-                        "sDom": 'Btlpi',
-                        "ordering": true,
-                        "autoWidth": false,
-                        "responsive": true,
-                        "processing": true,
-                        "serverSide": true,
-                        "ajax": {
-                            "url": "{{ route('admin.digital.services.getData') }}",
-                            "type": "POST",
-                            data: function(d) {
-                                d.is_deleted = $('#is_deleted').val();
-                                d.category_id = $('#category_id').val();
-                            }
+    <script>
+        $(document).ready(function() {
+            if ($('#manage-module-list').length > 0) {
+                var table = $('#manage-module-list').DataTable({
+                    "bFilter": true,
+                    "sDom": 'Btlpi',
+                    "ordering": true,
+                    "autoWidth": false,
+                    "responsive": true,
+                    "processing": true,
+                    "serverSide": true,
+                    "ajax": {
+                        "url": "{{ route('admin.digital.services.getData') }}",
+                        "type": "POST",
+                        data: function(d) {
+                            d.is_deleted = $('#is_deleted').val();
+                            d.category_id = $('#category_id').val();
+                        }
+                    },
+                    "language": {
+                        search: ' ',
+                        sLengthMenu: '_MENU_',
+                        searchPlaceholder: "Search",
+                        info: "_START_ - _END_ of _TOTAL_ items",
+                        "lengthMenu": "Show _MENU_ entries",
+                        paginate: {
+                            next: '<i class="ti ti-chevron-right"></i> ',
+                            previous: '<i class="ti ti-chevron-left"></i> '
                         },
-                        "language": {
-                            search: ' ',
-                            sLengthMenu: '_MENU_',
-                            searchPlaceholder: "Search",
-                            info: "_START_ - _END_ of _TOTAL_ items",
-                            "lengthMenu": "Show _MENU_ entries",
-                            paginate: {
-                                next: '<i class="ti ti-chevron-right"></i> ',
-                                previous: '<i class="ti ti-chevron-left"></i> '
-                            },
+                    },
+                    initComplete: (settings, json) => {
+                        $('.dataTables_paginate').appendTo('.datatable-paginate');
+                        $('.dataTables_length').appendTo('.datatable-length');
+                    },
+                    drawCallback: function(settings) {
+                        var api = this.api();
+                        $('.record-count').text(api.ajax.json().total_digital_services ?? 0);
+                    },
+                    "columns": [{
+                            "data": "DT_RowIndex",
+                            "name": "DT_RowIndex",
+                            "orderable": false,
+                            "searchable": false
                         },
-                        initComplete: (settings, json) => {
-                            $('.dataTables_paginate').appendTo('.datatable-paginate');
-                            $('.dataTables_length').appendTo('.datatable-length');
+                        {
+                            "data": "name",
+                            "name": "name"
                         },
-                        drawCallback: function(settings) {
-                            var api = this.api();
-                            $('.record-count').text(api.ajax.json().total_digital_services ?? 0);
+                        {
+                            "data": "sku",
+                            "name": "sku"
                         },
-                        "columns": [{
-                                "data": "DT_RowIndex",
-                                "name": "DT_RowIndex",
-                                "orderable": false,
-                                "searchable": false
-                            },
-                            {
-                                "data": "name",
-                                "name": "name"
-                            },
-                            {
-                                "data": "sku",
-                                "name": "sku"
-                            },
-                            {
-                                "data": "category_id",
-                                "name": "category_id"
-                            },
-                            {
-                                "data": "price",
-                                "name": "price"
-                            },
-                            {
-                                "data": "status",
-                                "name": "status",
-                                "orderable": false,
-                                "searchable": false
-                            },
-                            {
-                                "data": "actions",
-                                "name": "actions",
-                                "orderable": false,
-                                "searchable": false
-                            }
-                        ]
-                    });
+                        {
+                            "data": "category_id",
+                            "name": "category_id"
+                        },
+                        {
+                            "data": "price",
+                            "name": "price"
+                        },
+                        {
+                            "data": "status",
+                            "name": "status",
+                            "orderable": false,
+                            "searchable": false
+                        },
+                        {
+                            "data": "actions",
+                            "name": "actions",
+                            "orderable": false,
+                            "searchable": false
+                        }
+                    ]
+                });
 
-                    let timeout;
+                let timeout;
 
-                    $('#dataTable-search').on('keyup', function() {
-                        clearTimeout(timeout);
-                        let value = this.value;
+                $('#dataTable-search').on('keyup', function() {
+                    clearTimeout(timeout);
+                    let value = this.value;
 
-                        timeout = setTimeout(function() {
-                            table.search(value).draw();
-                        }, 500);
-                    });
-                }
-            });
-        </script>
+                    timeout = setTimeout(function() {
+                        table.search(value).draw();
+                    }, 500);
+                });
+            }
+        });
+    </script>
     @endpush
 </x-master-layout>
