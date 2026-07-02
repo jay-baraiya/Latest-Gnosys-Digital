@@ -152,8 +152,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('tickets/get-service-variant', [TicketController::class, 'getServiceVariant'])->name('tickets.get.service.variant');
     Route::post('/tickets/update-status', [TicketController::class, 'updateTicketStatus'])->name('tickets.update.status');
     Route::post('/tickets/get-item-qty', [TicketController::class, 'getItemQty'])->name('tickets.get-qty');
-    /* Store Tasks */
+
     Route::post('/tickets/store/task', [TicketController::class, 'storeTask'])->name('tickets.store.task');
+    Route::post('/tickets/store/chat', [TicketController::class, 'storeChat'])->name('tickets.store.chat');
+    Route::post('/tickets/get-chats', [TicketController::class, 'getChats'])->name('tickets.get.chats');
+    Route::post('/tickets/delete-chat', [TicketController::class, 'deleteChat'])->name('tickets.delete.chat');
+    Route::post('/tickets/update-chat-message', [TicketController::class, 'updateChatMessage'])->name('tickets.update.chat.message');
 });
 
 

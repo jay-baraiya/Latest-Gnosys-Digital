@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Chat;
 use App\Models\Designation;
 use App\Models\DigitalProduct;
 use App\Models\DigitalService;
@@ -17,8 +18,10 @@ use App\Models\User;
 use App\Models\UserRole;
 use App\Notifications\RealTimeNotification;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -221,10 +224,7 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
-        echo '<pre>';
-        print_r($request->all());
-        echo '</pre>';
-        exit;
+
         $validatedData = $request->validate([
             'user_id'       => 'required|integer|exists:users,id',
             'name'          => 'nullable|string|max:255',
@@ -289,33 +289,34 @@ class TicketController extends Controller
             }
 
             if ($ticket->id) {
-            $productTypes = $request->input('product_type', []);
-            $productIds   = $request->input('product_id', []);
-            $variantIds   = $request->input('variant_id', []);
-            $quantities   = $request->input('quantity', []);
-            $prices       = $request->input('price', []);
-            $duedate      = $request->input('due_date', []);
+                $productTypes = $request->input('product_type', []);
+                $productIds   = $request->input('product_id', []);
+                $variantIds   = $request->input('variant_id', []);
+                $quantities   = $request->input('quantity', []);
+                $prices       = $request->input('price', []);
+                $duedate      = $request->input('due_date', []);
 
-            if (!empty($productTypes) && is_array($productTypes)) {
+                if (!empty($productTypes) && is_array($productTypes)) {
 
-                foreach ($productTypes as $i => $type) {
+                    foreach ($productTypes as $i => $type) {
 
-                    if (!empty($productIds[$i])) {
-                        Task::create([
-                            'ticket_id'    => $ticket->id,
-                            'product_type' => $type,
-                            'product_id'   => $productIds[$i],
-                            'due_date'     => $duedate[$i],
-                            'variant_id'   => !empty($variantIds[$i]) ? $variantIds[$i] : null,
-                            'quantity'     => $quantities[$i] ?? 1,
-                            'price'        => $prices[$i] ?? 0.00,
-                        ]);
+                        if (!empty($productIds[$i])) {
+                            Task::create([
+                                'ticket_id'    => $ticket->id,
+                                'product_type' => $type,
+                                'product_id'   => $productIds[$i],
+                                'due_date'     => $duedate[$i],
+                                'variant_id'   => !empty($variantIds[$i]) ? $variantIds[$i] : null,
+                                'quantity'     => $quantities[$i] ?? 1,
+                                'price'        => $prices[$i] ?? 0.00,
+                            ]);
+                        }
                     }
                 }
             }
-        }
 
-            return redirect()->route($this->moduleUrl)->with('success', 'Ticket created successfully.');
+            return redirect()->route('admin.tickets.edit', [ 'ticket' => encrypt($ticket->id) ])->with('success', 'Ticket created successfully.');
+            // return redirect()->route($this->moduleUrl)->with('success', 'Ticket created successfully.');
         } catch (\Exception $e) {
             Log::error('Ticket Store Error', [
                 'message' => $e->getMessage(),
@@ -400,9 +401,11 @@ class TicketController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, string $id)
     {
         view()->share('action', 'Edit');
+
+        $tab = $request->input('tab', 'ticket-form');
 
         $ticket = Ticket::find(decrypt($id));
 
@@ -448,6 +451,8 @@ class TicketController extends Controller
         $tasks = Task::query()->select([
             'id',
             'ticket_id',
+            'department_id',
+            'assign_id',
             'product_type',
             'product_id',
             'product_name',
@@ -459,7 +464,9 @@ class TicketController extends Controller
             'status'
         ])->where('ticket_id', decrypt($id))->get();
 
-        return view('admin.ticket.form', compact('tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments'));
+        $chats = Chat::query()->where('ticket_id', decrypt($id))->get();
+
+        return view('admin.ticket.form', compact('tab', 'tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments'));
     }
 
     /**
@@ -817,61 +824,210 @@ class TicketController extends Controller
 
     public function storeTask(Request $request)
     {
-        echo '<pre>';
-        print_r($request->all());
-        echo '</pre>';
-        exit;
 
-        $taskIds      = $request->input('task_id', []);
-            $productTypes = $request->input('product_type', []);
-            $productIds   = $request->input('product_id', []);
-            $variantIds   = $request->input('variant_id', []);
-            $quantities   = $request->input('quantity', []);
-            $prices       = $request->input('price', []);
-            $duedate       = $request->input('due_date', []);
+        $tab = $request->input('tab', 'ticket-form');
+        $ticket_id = $request->input('ticket_id', '');
+        try {
+            DB::beginTransaction();
 
-            $processedTaskIds = [];
+            if (!$ticket_id) {
+                $ticket = Ticket::create([
+                    'ticket_number' => 'TCK-' . strtoupper(Str::random(6)),
+                    'datetime'      => now(),
+                    'user_id'       => null,
+                    'name'          => null,
+                    'email'         => null,
+                    'cc_recipients' => null,
+                    'subject'       => 'Create Tasks.',
+                    'department_id' => null,
+                    'assign_id'     => null,
+                    'priority'      => 'Low',
+                    'description'   => null,
+                    'note'          => null,
+                    'status'        => 'pending',
+                ]);
+                $ticket_id = $ticket->id;
+            }
 
-            if (!empty($productTypes) && is_array($productTypes)) {
-                foreach ($productTypes as $i => $type) {
-                    if (!empty($productIds[$i])) {
+            if ($ticket_id) {
+                $taskIds      = $request->input('task_id', []);
+                $productTypes = $request->input('product_type', []);
+                $productIds   = $request->input('product_id', []);
+                $variantIds   = $request->input('variant_id', []);
+                $quantities   = $request->input('quantity', []);
+                $prices       = $request->input('price', []);
+                $duedate      = $request->input('due_date', []);
+                $departmentId = $request->input('department_id', []);
+                $assignId     = $request->input('assign_id', []);
 
-                        $taskId = !empty($taskIds[$i]) ? $taskIds[$i] : null;
+                $processedTaskIds = [];
 
-                        $taskData = [
-                            'ticket_id'    => $ticket->id,
-                            'product_type' => $type,
-                            'product_id'   => $productIds[$i],
-                            'variant_id'   => !empty($variantIds[$i]) ? $variantIds[$i] : null,
-                            'due_date'     => $duedate[$i] ?? null,
-                            'quantity'     => $quantities[$i] ?? 1,
-                            'price'        => $prices[$i] ?? 0.00,
-                        ];
+                if (!empty($productTypes) && is_array($productTypes)) {
+                    foreach ($productTypes as $i => $type) {
+                        if (!empty($productIds[$i])) {
 
-                        if ($taskId) {
-                            Task::query()
-                                ->where('id', $taskId)
-                                ->where('ticket_id', $ticket->id)
-                                ->update($taskData);
+                            $taskId = !empty($taskIds[$i]) ? $taskIds[$i] : null;
 
-                            $processedTaskIds[] = $taskId;
-                        } else {
-                            $newTask = Task::create($taskData);
-                            $processedTaskIds[] = $newTask->id;
+                            $taskData = [
+                                'ticket_id'     => $ticket_id,
+                                'product_type'  => $type,
+                                'product_id'    => $productIds[$i],
+                                'variant_id'    => !empty($variantIds[$i]) ? $variantIds[$i] : null,
+                                'due_date'      => $duedate[$i] ?? null,
+                                'quantity'      => $quantities[$i] ?? 1,
+                                'price'         => $prices[$i] ?? 0.00,
+                                'department_id' => $departmentId[$i] ?? null,
+                                'assign_id'     => $assignId[$i] ?? null,
+                            ];
+
+                            if ($taskId) {
+                                Task::query()
+                                    ->where('id', $taskId)
+                                    ->where('ticket_id', $ticket_id)
+                                    ->update($taskData);
+
+                                $processedTaskIds[] = $taskId;
+                            } else {
+                                $newTask = Task::create($taskData);
+                                $processedTaskIds[] = $newTask->id;
+                            }
                         }
                     }
                 }
+
+                if (!empty($processedTaskIds)) {
+                    Task::query()
+                        ->where('ticket_id', $ticket_id)
+                        ->whereNotIn('id', $processedTaskIds)
+                        ->delete();
+                } else {
+                    Task::query()->where('ticket_id', $ticket_id)->delete();
+                }
             }
 
-            if (!empty($processedTaskIds)) {
-                Task::query()
-                    ->where('ticket_id', $ticket->id)
-                    ->whereNotIn('id', $processedTaskIds)
-                    ->delete();
-            } else {
-                Task::query()->where('ticket_id', $ticket->id)->delete();
-            }
+            DB::commit();
 
-            return redirect()->route($this->moduleUrl ?? 'admin.tickets.index')->with('success', 'Ticket updated successfully.');
+            return redirect()->route('admin.tickets.edit', [
+                'ticket' => encrypt($ticket_id),
+                'tab' => $tab,
+            ])->with('success', 'Ticket and tasks created successfully.');
+
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error creating Task Ticket: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                            ->withInput()
+                            ->with('error', 'An error occurred while saving the tasks. Please try again.');
+        }
+    }
+
+    public function storeChat(Request $request)
+    {
+
+        $request->validate([
+            'ticket_id' => 'required|exists:tickets,id',
+            'text' => 'required_without:attachment|nullable|string',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,zip|max:5120'
+        ]);
+
+        $chat = new Chat();
+        $chat->ticket_id = $request->ticket_id;
+        $chat->user_id = Auth::id();
+        $chat->task_id = $request->task_id;
+        $chat->text = $request->text;
+        $chat->sent_at = now();
+        $chat->is_edited = false;
+
+        if ($request->hasFile('attachment')) {
+            $path = $request->file('attachment')->store('chat_attachments', 'public');
+            $chat->attachment = $path;
+        }
+
+        $chat->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Message sent successfully!',
+            'data' => $chat
+        ]);
+    }
+
+    public function getChats(Request $request)
+    {
+        $request->validate([
+            'ticket_id' => 'required|exists:tickets,id'
+        ]);
+
+        $chats = Chat::with('user')
+                    ->where('ticket_id', $request->ticket_id)
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+
+        $html = view('admin.ticket.parts.list-chat', compact('chats'))->render();
+
+        return response()->json([
+            'status' => 'success',
+            'html' => $html
+        ]);
+    }
+
+    public function deleteChat(Request $request)
+    {
+        $request->validate([
+            'chat_id' => 'required|exists:chats,id'
+        ]);
+
+        $chat = Chat::find($request->chat_id);
+
+        if ($chat->user_id == auth()->id()) {
+            $chat->delete();
+            return response()->json(['status' => 'success', 'message' => 'Message deleted successfully!']);
+        }
+
+        return response()->json(['status' => 'error', 'message' => 'Unauthorized action.'], 403);
+    }
+
+    public function updateChatMessage(Request $request)
+    {
+        $request->validate([
+            'chat_id' => 'required|exists:chats,id',
+            'text' => 'required|string',
+        ]);
+
+        $chat = Chat::find($request->chat_id);
+
+        // Auth check jethi koi biju user aa message edit na kari shake
+        if ($chat->user_id == auth()->id()) {
+
+            // Juna message ni history preserve karo
+            $history = $chat->edit_history ?? [];
+            $history[] = [
+                'old_text' => $chat->text,
+                'edited_at' => now()->toDateTimeString(),
+            ];
+
+            // Quill editor text ne <p> tag ma wrap kare chhe, aathi ahi pan <p> lagavvu joiye jethi UI match thay
+            $newFormattedText = '<p>' . $request->text . '</p>';
+
+            $chat->update([
+                'text' => $newFormattedText,
+                'is_edited' => true,
+                'edit_history' => $history
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Message updated successfully!'
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Unauthorized action.'
+        ], 403);
     }
 }

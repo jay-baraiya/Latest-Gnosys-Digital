@@ -144,8 +144,11 @@
 
         calculateTotals();
 
+        var rowIdxCounter = $('.order-item-row').length;
+
         $('#addItemBtn').on('click', function() {
-            var rowIdx = Date.now();
+
+            var rowIdx = rowIdxCounter++;
 
             var newRow = `
                 <tr class="order-item-row">
