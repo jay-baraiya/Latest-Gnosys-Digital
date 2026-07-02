@@ -1,5 +1,7 @@
 <x-master-layout>
     <x-form-wrapper action="{{ isset($action) ? $action : 'Create' }}">
+        
+            
 
             <div class="row">
                 <h5 class="mb-3 text-primary">Order Details</h5>
@@ -7,7 +9,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="order_number">Order Number <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('order_number') is-invalid @enderror" name="order_number" id="order_number" placeholder="ORD-12345"
+                        <input disabled type="text" class="form-control @error('order_number') is-invalid @enderror" name="order_number" id="order_number" placeholder="ORD-12345"
                             value="{{ old('order_number', $order->order_number ?? $order_number ?? '') }}">
                         @error('order_number')
                         <span class="text-danger small">{{ $message }}</span>
@@ -18,7 +20,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="date_time">Order Date <span class="text-danger">*</span></label>
-                        <input type="datetime-local" class="form-control @error('date_time') is-invalid @enderror" name="date_time" id="date_time"
+                        <input disabled type="datetime-local" class="form-control @error('date_time') is-invalid @enderror" name="date_time" id="date_time"
                             value="{{ old('date_time', $order->date_time ?? '') }}">
                         @error('date_time')
                         <span class="text-danger small">{{ $message }}</span>
@@ -29,7 +31,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="user_id">User / Customer</label>
-                        <select class="form-select select2 @error('user_id') is-invalid @enderror" name="user_id" id="user_id">
+                        <select disabled class="form-select select2 @error('user_id') is-invalid @enderror" name="user_id" id="user_id">
                             <option value="">Select User (Leave blank for guest)</option>
                             @if (isset($users))
                             @foreach ($users as $userOption)
@@ -51,7 +53,7 @@
                         <label class="form-label" for="subtotal">Sub Total <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" step="0.01" class="form-control @error('subtotal') is-invalid @enderror" name="subtotal" id="subtotal" placeholder="0.00"
+                            <input disabled type="number" step="0.01" class="form-control @error('subtotal') is-invalid @enderror" name="subtotal" id="subtotal" placeholder="0.00"
                                 value="{{ old('subtotal', $order->subtotal ?? '') }}">
                         </div>
                         @error('subtotal')
@@ -65,7 +67,7 @@
                         <label class="form-label" for="total_amount">Order Total <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" step="0.01" class="form-control @error('total_amount') is-invalid @enderror" name="total_amount" id="total_amount" placeholder="0.00"
+                            <input disabled type="number" step="0.01" class="form-control @error('total_amount') is-invalid @enderror" name="total_amount" id="total_amount" placeholder="0.00"
                                 value="{{ old('total_amount', $order->total_amount ?? '') }}">
                         </div>
                         @error('total_amount')
@@ -81,7 +83,7 @@
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label" for="billing_first_name">Billing First Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('billing_first_name') is-invalid @enderror" name="billing_first_name" id="billing_first_name" placeholder="John Doe"
+                        <input disabled type="text" class="form-control @error('billing_first_name') is-invalid @enderror" name="billing_first_name" id="billing_first_name" placeholder="John Doe"
                             value="{{ old('billing_first_name', $order->billing_first_name ?? '') }}">
                         @error('billing_first_name')
                         <span class="text-danger small">{{ $message }}</span>
@@ -92,7 +94,7 @@
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label" for="billing_phone">Billing Phone</label>
-                        <input type="text" class="form-control @error('billing_phone') is-invalid @enderror" name="billing_phone" id="billing_phone" placeholder="+1 234 567 8900"
+                        <input disabled type="text" class="form-control @error('billing_phone') is-invalid @enderror" name="billing_phone" id="billing_phone" placeholder="+1 234 567 8900"
                             value="{{ old('billing_phone', $order->billing_phone ?? '') }}">
                         @error('billing_phone')
                         <span class="text-danger small">{{ $message }}</span>
@@ -103,7 +105,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="billing_country">Billing Country <span class="text-danger">*</span></label>
-                        <select class="form-select select2" name="billing_country" id="billing_country">
+                        <select disabled class="form-select select2" name="billing_country" id="billing_country">
                             <option value="">Select Country</option>
                             @if ($countries->isNotEmpty())
                                 @foreach ($countries as $country)
@@ -120,7 +122,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="billing_state">Billing State <span class="text-danger">*</span></label>
-                        <select class="form-select select2" name="billing_state" id="billing_state">
+                        <select disabled class="form-select select2" name="billing_state" id="billing_state">
                             <option value="">Select State</option>
                             @if ($states->isNotEmpty())
                                 @foreach ($states as $state)
@@ -137,7 +139,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="billing_city">Billing City <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('billing_city') is-invalid @enderror" name="billing_city" id="billing_city" placeholder="City"
+                        <input disabled type="text" class="form-control @error('billing_city') is-invalid @enderror" name="billing_city" id="billing_city" placeholder="City"
                             value="{{ old('billing_city', $order->billing_city ?? '') }}">
                         @error('billing_city')
                         <span class="text-danger small">{{ $message }}</span>
@@ -148,7 +150,7 @@
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label class="form-label" for="billing_address">Billing Address <span class="text-danger">*</span></label>
-                        <textarea name="billing_address" id="billing_address" class="form-control @error('billing_address') is-invalid @enderror" cols="3" rows="3">{{ old('billing_address', $order->billing_address ?? '') }}</textarea>
+                        <textarea disabled name="billing_address" id="billing_address" class="form-control @error('billing_address') is-invalid @enderror" cols="3" rows="3">{{ old('billing_address', $order->billing_address ?? '') }}</textarea>
                             @error('billing_address')
                             <span class="text-danger small">{{ $message }}</span>
                         @enderror
@@ -162,7 +164,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="status">Order Status <span class="text-danger">*</span></label>
-                        <select class="form-select @error('status') is-invalid @enderror" name="status" id="status">
+                        <select disabled class="form-select @error('status') is-invalid @enderror" name="status" id="status">
                             <option value="pending" {{ old('status', $order->status ?? '') == 'pending' ? 'selected' : '' }}>Pending</option>
                             <option value="processing" {{ old('status', $order->status ?? '') == 'processing' ? 'selected' : '' }}>Processing</option>
                             <option value="shipped" {{ old('status', $order->status ?? '') == 'shipped' ? 'selected' : '' }}>Shipped</option>
@@ -178,7 +180,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="payment_method">Payment Method</label>
-                        <select class="form-select @error('payment_method') is-invalid @enderror" name="payment_method" id="payment_method">
+                        <select disabled class="form-select @error('payment_method') is-invalid @enderror" name="payment_method" id="payment_method">
                             <option value="">Select Method</option>
                             <option value="stripe" {{ old('payment_method', $order->payment_method ?? '') == 'stripe' ? 'selected' : '' }}>Stripe</option>
                             <option value="paypal" {{ old('payment_method', $order->payment_method ?? '') == 'paypal' ? 'selected' : '' }}>PayPal</option>
@@ -193,7 +195,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="payment_status">Payment Status <span class="text-danger">*</span></label>
-                        <select class="form-select @error('payment_status') is-invalid @enderror" name="payment_status" id="payment_status">
+                        <select disabled class="form-select @error('payment_status') is-invalid @enderror" name="payment_status" id="payment_status">
                             <option value="pending" {{ old('payment_status', $order->payment_status ?? '') == 'pending' ? 'selected' : '' }}>Pending</option>
                             <option value="paid" {{ old('payment_status', $order->payment_status ?? '') == 'paid' ? 'selected' : '' }}>Paid</option>
                             <option value="failed" {{ old('payment_status', $order->payment_status ?? '') == 'failed' ? 'selected' : '' }}>Failed</option>
@@ -209,7 +211,7 @@
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label class="form-label" for="order_notes">Order Note</label>
-                        <textarea class="form-control @error('order_notes') is-invalid @enderror" name="order_notes" id="order_notes" rows="3" placeholder="Special instructions or notes...">{{ old('order_notes', $order->order_notes ?? '') }}</textarea>
+                        <textarea disabled class="form-control @error('order_notes') is-invalid @enderror" name="order_notes" id="order_notes" rows="3" placeholder="Special instructions or notes...">{{ old('order_notes', $order->order_notes ?? '') }}</textarea>
                         @error('order_notes')
                         <span class="text-danger small">{{ $message }}</span>
                         @enderror
@@ -251,15 +253,15 @@
                         @endphp
                         <tr class="order-item-row">
                             <td>
-                                <input type="hidden" name="order_item_id[]" value="{{ $item->id }}">
-                                <input type="hidden" name="product_type[]" class="item-type-hidden" value="{{ $isProduct ? 'product' : 'service' }}">
+                                <input disabled type="hidden" name="order_item_id[]" value="{{ $item->id }}">
+                                <input disabled type="hidden" name="product_type[]" class="item-type-hidden" value="{{ $isProduct ? 'product' : 'service' }}">
                                 <div class="d-flex align-items-center mb-2">
                                     <span class="badge {{ $isProduct ? 'bg-primary' : 'bg-success' }} me-2 item-type-badge pointer" style="cursor:pointer;" title="Click to toggle type">
                                         {{ $isProduct ? 'Product' : 'Service' }}
                                     </span>
                                     <small class="text-muted text-uppercase fw-bold" style="font-size:10px;">Click to switch</small>
                                 </div>
-                                <select class="form-select product-select" name="product_id[]" required>
+                                <select disabled class="form-select product-select" name="product_id[]" required>
                                     <option value="">-- Select {{ $isProduct ? 'Product' : 'Service' }} --</option>
                                     @if ($isProduct)
                                     @foreach ($products ?? [] as $product)
@@ -288,7 +290,7 @@
                                 }
                                 }
                                 @endphp
-                                <select class="form-select variant-select {{ $hasVariants ? 'variant-select-required' : '' }}" name="variant_id[]" {{ $hasVariants ? '' : 'disabled' }}>
+                                <select disabled class="form-select variant-select {{ $hasVariants ? 'variant-select-required' : '' }}" name="variant_id[]" {{ $hasVariants ? '' : 'disabled' }}>
                                     <option value="">{{ $hasVariants ? '-- Select Variant --' : '-- No Variant --' }}</option>
                                     @foreach ($variants as $variant)
                                     <option value="{{ $variant->id }}" {{ $item->variant_id == $variant->id ? 'selected' : '' }} data-price="{{ $variant->price }}">
@@ -298,20 +300,20 @@
                                 </select>
                             </td>
                             <td>
-                                <input type="number" class="form-control item-qty" name="quantity[]"
+                                <input disabled type="number" class="form-control item-qty" name="quantity[]"
                                     min="1" value="{{ $item->product_qty ?? 1 }}" placeholder="1" required>
                             </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" step="0.01" class="form-control item-price" name="price[]"
+                                    <input disabled type="number" step="0.01" class="form-control item-price" name="price[]"
                                         min="0" value="{{ $item->product_price ?? '' }}" placeholder="0.00" required>
                                 </div>
                             </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" step="0.01" class="form-control item-total" readonly value="{{ number_format($rowTotal, 2, '.', '') }}" placeholder="0.00">
+                                    <input disabled type="number" step="0.01" class="form-control item-total" readonly value="{{ number_format($rowTotal, 2, '.', '') }}" placeholder="0.00">
                                 </div>
                             </td>
                             <td class="text-center">
@@ -325,13 +327,13 @@
                         {{-- Default empty row for create mode --}}
                         <tr class="order-item-row">
                             <td>
-                                <input type="hidden" name="order_item_id[]" value="">
-                                <input type="hidden" name="product_type[]" class="item-type-hidden" value="product">
+                                <input disabled type="hidden" name="order_item_id[]" value="">
+                                <input disabled type="hidden" name="product_type[]" class="item-type-hidden" value="product">
                                 <div class="d-flex align-items-center mb-2">
                                     <span class="badge bg-primary me-2 item-type-badge pointer" style="cursor:pointer;" title="Click to toggle type">Product</span>
                                     <small class="text-muted text-uppercase fw-bold" style="font-size:10px;">Click to switch</small>
                                 </div>
-                                <select class="form-select product-select" name="product_id[]" required>
+                                <select disabled class="form-select product-select" name="product_id[]" required>
                                     <option value="">-- Select Product --</option>
                                     @foreach ($products ?? [] as $product)
                                     <option value="{{ $product->id }}" data-price="{{ $product->price }}">{{ $product->name }}</option>
@@ -339,25 +341,25 @@
                                 </select>
                             </td>
                             <td>
-                                <select class="form-select variant-select" name="variant_id[]" disabled>
+                                <select disabled class="form-select variant-select" name="variant_id[]" disabled>
                                     <option value="">-- No Variant --</option>
                                 </select>
                             </td>
                             <td>
-                                <input type="number" class="form-control item-qty" name="quantity[]"
+                                <input disabled type="number" class="form-control item-qty" name="quantity[]"
                                     min="1" value="1" placeholder="1" required>
                             </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" step="0.01" class="form-control item-price" name="price[]"
+                                    <input disabled type="number" step="0.01" class="form-control item-price" name="price[]"
                                         min="0" value="" placeholder="0.00" required>
                                 </div>
                             </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" step="0.01" class="form-control item-total" readonly value="" placeholder="0.00">
+                                    <input disabled type="number" step="0.01" class="form-control item-total" readonly value="" placeholder="0.00">
                                 </div>
                             </td>
                             <td class="text-center">
@@ -383,7 +385,9 @@
 
             <div class="text-end mt-3">
                 <a href="{{ route($moduleUrl ?? 'admin.orders.index') }}" class="btn btn-soft-light">Cancel</a>
+                
             </div>
+        
     </x-form-wrapper>
 
     @push('scripts')
@@ -531,37 +535,37 @@
                 var newRow = `
                         <tr class="order-item-row">
                             <td>
-                                <input type="hidden" name="order_item_id[]" value="">
-                                <input type="hidden" name="product_type[]" class="item-type-hidden" value="product">
+                                <input disabled type="hidden" name="order_item_id[]" value="">
+                                <input disabled type="hidden" name="product_type[]" class="item-type-hidden" value="product">
                                 <div class="d-flex align-items-center mb-2">
                                     <span class="badge bg-primary me-2 item-type-badge pointer" style="cursor:pointer;" title="Click to toggle type">Product</span>
                                     <small class="text-muted text-uppercase fw-bold" style="font-size:10px;">Click to switch</small>
                                 </div>
-                                <select class="form-select product-select" name="product_id[]" required>
+                                <select disabled class="form-select product-select" name="product_id[]" required>
                                     <option value="">-- Select Product --</option>
                                     ${productsData.map(p => `<option value="${p.id}" data-price="${p.price || ''}">${p.name}</option>`).join('')}
                                 </select>
                             </td>
                             <td>
-                                <select class="form-select variant-select" name="variant_id[]" disabled>
+                                <select disabled class="form-select variant-select" name="variant_id[]" disabled>
                                     <option value="">-- No Variant --</option>
                                 </select>
                             </td>
                             <td>
-                                <input type="number" class="form-control item-qty" name="quantity[]"
+                                <input disabled type="number" class="form-control item-qty" name="quantity[]"
                                     min="1" value="1" placeholder="1" required>
                             </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" step="0.01" class="form-control item-price" name="price[]"
+                                    <input disabled type="number" step="0.01" class="form-control item-price" name="price[]"
                                         min="0" value="" placeholder="0.00" required>
                                 </div>
                             </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" step="0.01" class="form-control item-total" readonly value="" placeholder="0.00">
+                                    <input disabled type="number" step="0.01" class="form-control item-total" readonly value="" placeholder="0.00">
                                 </div>
                             </td>
                             <td class="text-center">

@@ -1,5 +1,7 @@
 <x-master-layout>
     <x-form-wrapper action="{{ isset($action) ? $action : (isset($task) ? 'Edit' : 'Create') }}">
+        
+            
 
             @php
                 if (empty($task_number)) {
@@ -14,14 +16,14 @@
                 }
             @endphp
 
-            <input type="hidden" name="product_type" value="{{ $product_type }}">
+            <input disabled type="hidden" name="product_type" value="{{ $product_type }}">
 
             <div class="row">
                 <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label" for="ticket_number">Ticket Number <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
-                            <input type="text" class="form-control" name="ticket_number" id="ticket_number" placeholder="Ticket Number"
+                            <input disabled type="text" class="form-control" name="ticket_number" id="ticket_number" placeholder="Ticket Number"
                                 value="{{ !empty($task_number) ? $task_number : ''  }}" readonly>
                         </div>
                         @error('ticket_number')
@@ -39,7 +41,7 @@
 
                         <div id="product_section">
                             <div class="input-group mb-1">
-                                <select class="form-select" name="product_id" id="product_id">
+                                <select disabled class="form-select" name="product_id" id="product_id">
                                     <option value="">Select Product...</option>
                                     @if (!empty($products))
                                         @foreach ($products as $product)
@@ -55,7 +57,7 @@
 
                         <div id="service_section" style="display: none;">
                             <div class="input-group mb-1">
-                                <select class="form-select" name="service_id" id="service_id">
+                                <select disabled class="form-select" name="service_id" id="service_id">
                                     <option value="">Select Service...</option>
                                     @if (!empty($services))
                                         @foreach ($services as $service)
@@ -70,9 +72,9 @@
                         </div>
 
                         <div id="service_variant_section" style="display: none; margin-top: 10px;">
-                            <input type="hidden" name="is_variant" value="0">
+                            <input disabled type="hidden" name="is_variant" value="0">
                             <div class="input-group mb-1">
-                                <select class="form-select" name="service_variant_id" id="service_variant_id">
+                                <select disabled class="form-select" name="service_variant_id" id="service_variant_id">
                                     <option value="">Select Variant...</option>
                                 </select>
                             </div>
@@ -84,7 +86,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="user_id">User <span class="text-danger">*</span></label>
-                        <select class="form-select select2" name="user_id" id="user_id">
+                        <select disabled class="form-select select2" name="user_id" id="user_id">
                             <option value="">Select User</option>
                             @if (isset($users) && count($users) > 0)
                                 @foreach ($users as $userItem)
@@ -104,7 +106,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="developer_id">Developer <span class="text-danger">*</span></label>
-                        <select class="form-select select2" name="developer_id" id="developer_id">
+                        <select disabled class="form-select select2" name="developer_id" id="developer_id">
                             <option value="">Select Developer</option>
                             @if (isset($developers) && count($developers) > 0)
                                 @foreach ($developers as $developer)
@@ -125,7 +127,7 @@
                     <div class="mb-3">
                         <label class="form-label" for="status">Status <span class="text-danger">*</span></label>
                         @php $currentStatus = old('status', $task->status ?? ''); @endphp
-                        <select class="form-select select2" name="status" id="status">
+                        <select disabled class="form-select select2" name="status" id="status">
                             <option value="">Select Status</option>
                             <option value="pending" {{ $currentStatus == 'pending' ? 'selected' : '' }}>Pending</option>
                             {{-- <option value="assign_requested" {{ $currentStatus == 'assign_requested' ? 'selected' : '' }}>Assign Requested</option> --}}
@@ -146,7 +148,7 @@
                 <div class="col-md-12" id="cancel_reason_section" style="display: none;">
                     <div class="mb-3">
                         <label class="form-label" for="cancel_reason">Cancel Reason <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="cancel_reason" id="cancel_reason" rows="3" placeholder="Cancel Reason">{{ old('cancel_reason', $task->cancel_reason ?? '') }}</textarea>
+                        <textarea disabled class="form-control" name="cancel_reason" id="cancel_reason" rows="3" placeholder="Cancel Reason">{{ old('cancel_reason', $task->cancel_reason ?? '') }}</textarea>
                         @error('cancel_reason')
                             <span class="text-danger small">{{ $message }}</span>
                         @enderror
@@ -154,9 +156,13 @@
                 </div>
             </div>
 
+            <hr>
+
             <div class="text-end mt-3">
                 <a href="{{ route($moduleUrl ?? 'admin.tasks.index') }}" class="btn btn-soft-light">Cancel</a>
+                
             </div>
+        
     </x-form-wrapper>
 
     @push('scripts')
@@ -265,7 +271,7 @@
 
                         $.ajax({
                             // Ensure this script is inside a blade file for the route() helper to work
-                            url: "{{ route('admin.tasks.get.service.variant') }}",
+                            url: "{{ route('admin.tickets.get.service.variant') }}",
                             type: "POST",
                             data: {
                                 service_id: serviceId,

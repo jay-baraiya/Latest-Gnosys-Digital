@@ -276,8 +276,9 @@ class UserController extends Controller
     {
         view()->share('action', 'View');
         $user = User::with(['country', 'state', 'city'])->findOrFail(decrypt($id));
+        $roles = Role::query()->where('status', 1)->where('id', '!=', 1)->get();
         $designations = Designation::query()->where('status', 1)->get();
-        return view('admin.user.show', compact('user','designations'));
+        return view('admin.user.show', compact('user','roles','designations'));
     }
 
     /**

@@ -1,13 +1,14 @@
 <x-master-layout>
     <x-form-wrapper action="{{ isset($action) ? $action : 'Create' }}">
-
-            <input type="hidden" name="id" id="id" value="{{ isset($role->id) ? encrypt($role->id) : '' }}">
+        
+            
+            <input disabled type="hidden" name="id" id="id" value="{{ isset($role->id) ? encrypt($role->id) : '' }}">
             <div class="row">
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label class="form-label" for="name">Name <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
-                            <input type="text" class="form-control" name="name" id="name" placeholder="Name"
+                            <input disabled type="text" class="form-control" name="name" id="name" placeholder="Name"
                                 value="{{ old('name', $role->name ?? '') }}">
                         </div>
                         @error('name')
@@ -19,7 +20,7 @@
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" name="description" id="description" rows="3" placeholder="Description">{{ old('description', $role->description ?? '') }}</textarea>
+                        <textarea disabled class="form-control" name="description" id="description" rows="3" placeholder="Description">{{ old('description', $role->description ?? '') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -27,12 +28,12 @@
             <div class="row">
                 <div class="col-md-12 d-flex gap-3 mb-1">
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="status" id="status-active" value="1"
+                        <input disabled class="form-check-input" type="radio" name="status" id="status-active" value="1"
                             @if (old('status', isset($role) ? $role->status : 1) == 1) checked @endif>
                         <label class="form-check-label" for="status-active">Active</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="status" id="status-inactive"
+                        <input disabled class="form-check-input" type="radio" name="status" id="status-inactive"
                             value="0" @if (old('status', isset($role) ? $role->status : 1) == 0) checked @endif>
                         <label class="form-check-label" for="status-inactive">Inactive</label>
                     </div>
@@ -61,7 +62,7 @@
                             <div class="card border shadow-none mb-3 permission-card">
                                 <div class="card-header bg-light border-bottom py-2">
                                     <div class="form-check mb-0">
-                                        <input class="form-check-input module-checkbox" type="checkbox"
+                                        <input disabled class="form-check-input module-checkbox" type="checkbox"
                                             id="{{ strtolower($module) }}-all"
                                             {{ $pTotal == $rpTotal ? 'checked' : '' }}>
                                         <label class="form-check-label fw-bold mt-1 text-uppercase"
@@ -77,7 +78,7 @@
                                         @if (!empty($permission))
                                             @foreach ($permission as $perm)
                                                 <div class="form-check">
-                                                    <input
+                                                    <input disabled
                                                         class="form-check-input permission-checkbox {{ strtolower($module) }}"
                                                         type="checkbox" name="permissions[]"
                                                         value="{{ $perm->id }}"
@@ -99,7 +100,9 @@
 
             <div class="text-end mt-3">
                 <a href="{{ route($moduleUrl) }}" class="btn btn-soft-light">Cancel</a>
+                
             </div>
+        
     </x-form-wrapper>
 
     @push('scripts')
