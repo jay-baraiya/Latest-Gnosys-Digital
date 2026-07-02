@@ -1,11 +1,13 @@
 <x-master-layout>
     <x-form-wrapper action="{{ isset($action) ? $action : 'Create' }}">
+        
+            
             <div class="row">
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="name">Name <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
-                            <input type="text" class="form-control" name="name" id="name" placeholder="Name"
+                            <input disabled type="text" class="form-control" name="name" id="name" placeholder="Name"
                                 value="{{ old('name', $user->name ?? '') }}">
                         </div>
                         @error('name')
@@ -18,7 +20,7 @@
                     <div class="mb-3">
                         <label class="form-label" for="email">Email <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
-                            <input type="email" class="form-control" name="email" id="email" placeholder="Email"
+                            <input disabled type="email" class="form-control" name="email" id="email" placeholder="Email"
                                 value="{{ old('email', $user->email ?? '') }}">
                         </div>
                         @error('email')
@@ -31,7 +33,7 @@
                     <div class="mb-3">
                         <label class="form-label" for="phone">Phone <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
-                            <input type="text" class="form-control" name="phone" id="phone" placeholder="Phone"
+                            <input disabled type="text" class="form-control" name="phone" id="phone" placeholder="Phone"
                                 value="{{ old('phone', $user->phone ?? '') }}">
                         </div>
                         @error('phone')
@@ -40,10 +42,51 @@
                     </div>
                 </div>
 
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Password @if (!isset($user))
+                                <span class="text-danger">*</span>
+                            @endif
+                        </label>
+                        <div class="input-group input-group-flat pass-group mb-1">
+                            <input disabled type="password"
+                                class="form-control pass-input @error('password') is-invalid @enderror" name="password"
+                                id="password" placeholder="Password" autocomplete="new-password">
+                            <span class="input-group-text toggle-password">
+                                <i class="ti ti-eye-off"></i>
+                            </span>
+                        </div>
+                        @if (isset($user))
+                            <small class="text-muted">Leave blank to keep current password.</small>
+                        @endif
+                        @error('password')
+                            <span class="text-danger small">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label" for="password_confirmation">Confirm Password @if (!isset($user))
+                                <span class="text-danger">*</span>
+                            @endif
+                        </label>
+                        <div class="input-group input-group-flat pass-group mb-1">
+                            <input disabled type="password"
+                                class="form-control pass-input @error('password_confirmation') is-invalid @enderror"
+                                name="password_confirmation" id="password_confirmation" placeholder="Confirm Password"
+                                autocomplete="new-password">
+                            <span class="input-group-text toggle-password">
+                                <i class="ti ti-eye-off"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="designation_id">Designation <span class="text-danger">*</span></label>
-                        <select class="form-select select2" name="designation_id" id="designation_id">
+                        <select disabled class="form-select select2" name="designation_id" id="designation_id">
                             <option value="">Select Designation</option>
                             @if (isset($designations) && count($designations) > 0)
                                 @foreach ($designations as $designation)
@@ -63,7 +106,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="role_id">Role <span class="text-danger">*</span></label>
-                        <select class="form-select select2" name="role_id" id="role_id">
+                        <select disabled class="form-select select2" name="role_id" id="role_id">
                             <option value="">Select Role</option>
                             @if (isset($roles))
                                 @foreach ($roles as $role)
@@ -84,7 +127,7 @@
                     <div class="mb-3">
                         <label class="form-label" for="zip">Zip</label>
                         <div class="input-group mb-1">
-                            <input type="text" class="form-control" name="zip" id="zip" placeholder="Zip"
+                            <input disabled type="text" class="form-control" name="zip" id="zip" placeholder="Zip"
                                 value="{{ old('zip', $user->zip ?? '') }}">
                         </div>
                         @error('zip')
@@ -96,7 +139,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="country_id">Country <span class="text-danger">*</span></label>
-                        <select class="form-select select2" name="country_id" id="country_id">
+                        <select disabled class="form-select select2" name="country_id" id="country_id">
                             <option value="">Select Country</option>
                         </select>
                         @error('country_id')
@@ -108,7 +151,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="state_id">State <span class="text-danger">*</span></label>
-                        <select class="form-select select2" name="state_id" id="state_id">
+                        <select disabled class="form-select select2" name="state_id" id="state_id">
                             <option value="">Select State</option>
                         </select>
                         @error('state_id')
@@ -119,10 +162,8 @@
 
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <label class="form-label" for="city_id">City <span class="text-danger">*</span></label>
-                        <select class="form-select select2" name="city_id" id="city_id">
-                            <option value="">Select City</option>
-                        </select>
+                        <label class="form-label" for="city-id">City <span class="text-danger">*</span></label>
+                        <input disabled type="text" name="city_id" id="city-id" class="form-control" value={{ old('city_id', $user->city_id ?? '') }}>
                         @error('city_id')
                             <span class="text-danger small">{{ $message }}</span>
                         @enderror
@@ -132,7 +173,7 @@
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label class="form-label" for="address">Address</label>
-                        <textarea class="form-control" name="address" id="address" rows="3" placeholder="Address">{{ old('address', $user->address ?? '') }}</textarea>
+                        <textarea disabled class="form-control" name="address" id="address" rows="3" placeholder="Address">{{ old('address', $user->address ?? '') }}</textarea>
                         @error('address')
                             <span class="text-danger small">{{ $message }}</span>
                         @enderror
@@ -146,14 +187,14 @@
                             <label class="form-label mb-0" for="image">User Image </label>
                         </div>
 
-                        <input type="hidden" name="remove_existing_image" id="remove_existing_image" value="0">
+                        <input disabled type="hidden" name="remove_existing_image" id="remove_existing_image" value="0">
 
                         <div id="fileInputContainer">
-                            <input type="file" class="form-control" name="image" id="image" accept="image/*">
+                            <input disabled type="file" class="form-control" name="image" id="image" accept="image/*">
                         </div>
 
                         <div id="urlInputContainer" class="d-none">
-                            <input type="url" class="form-control" name="image_url" id="image_url" placeholder="https://example.com/image.jpg" value="{{ old('image_url') }}">
+                            <input disabled type="url" class="form-control" name="image_url" id="image_url" placeholder="https://example.com/image.jpg" value="{{ old('image_url') }}">
                         </div>
 
                         @error('image')
@@ -186,12 +227,12 @@
             <div class="row">
                 <div class="col-md-12 d-flex gap-3 mb-1">
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="status" id="status-active"
+                        <input disabled class="form-check-input" type="radio" name="status" id="status-active"
                             value="1" @if (old('status', isset($user) ? $user->status : 1) == 1) checked @endif>
                         <label class="form-check-label" for="status-active">Active</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="status" id="status-inactive"
+                        <input disabled class="form-check-input" type="radio" name="status" id="status-inactive"
                             value="0" @if (old('status', isset($user) ? $user->status : 1) == 0) checked @endif>
                         <label class="form-check-label" for="status-inactive">Inactive</label>
                     </div>
@@ -203,7 +244,9 @@
 
             <div class="text-end mt-3">
                 <a href="{{ route($moduleUrl) }}" class="btn btn-soft-light">Cancel</a>
+                
             </div>
+        
     </x-form-wrapper>
 
     @push('scripts')

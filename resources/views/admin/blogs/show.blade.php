@@ -1,12 +1,14 @@
 <x-master-layout>
     <x-form-wrapper action="{{ isset($action) ? $action : (isset($blog) ? 'Edit Blog' : 'Create Blog') }}">
+        
+            
 
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label" for="name">Blog Name <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
-                            <input type="text" class="form-control" name="name" id="name" placeholder="Enter blog name"
+                            <input disabled type="text" class="form-control" name="name" id="name" placeholder="Enter blog name"
                                 value="{{ old('name', $blog->name ?? '') }}">
                         </div>
                         @error('name')
@@ -18,7 +20,7 @@
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label" for="category_id">Category <span class="text-danger">*</span></label>
-                        <select class="form-select select2" name="category_id" id="category_id">
+                        <select disabled class="form-select select2" name="category_id" id="category_id">
                             <option value="">Select Category</option>
                             @if (isset($categories))
                                 @foreach ($categories as $category)
@@ -44,14 +46,14 @@
                             </button>
                         </div>
 
-                        <input type="hidden" name="remove_existing_image" id="remove_existing_image" value="0">
+                        <input disabled type="hidden" name="remove_existing_image" id="remove_existing_image" value="0">
 
                         <div id="fileInputContainer">
-                            <input type="file" class="form-control" name="image" id="image" accept="image/*">
+                            <input disabled type="file" class="form-control" name="image" id="image" accept="image/*">
                         </div>
 
                         <div id="urlInputContainer" class="d-none">
-                            <input type="url" class="form-control" name="image_url" id="image_url" placeholder="https://example.com/image.jpg" value="{{ old('image_url') }}">
+                            <input disabled type="url" class="form-control" name="image_url" id="image_url" placeholder="https://example.com/image.jpg" value="{{ old('image_url') }}">
                         </div>
 
                         @error('image')
@@ -83,18 +85,18 @@
 
                 <div class="col-lg-4">
                     <label class="form-check-label" for="tags">Tags</label>
-                    <input type="text" name="tags" id="tags" class="form-control", value="{{ !empty($blog->tags) ? $blog->tags : '' }}" placeholder="Enter tags..." data-choices>
+                    <input disabled type="text" name="tags" id="tags" class="form-control", value="{{ !empty($blog->tags) ? $blog->tags : '' }}" placeholder="Enter tags..." data-choices>
                 </div>
 
                 <div class="col-lg-4">
                     <label class="form-check-label" for="read_time">Read Time</label>
-                    <input type="text" name="read_time" id="read_time" class="form-control", value="{{ !empty($blog->read_time) ? $blog->read_time : '' }}" placeholder="Ex. 12 min read">
+                    <input disabled type="text" name="read_time" id="read_time" class="form-control", value="{{ !empty($blog->read_time) ? $blog->read_time : '' }}" placeholder="Ex. 12 min read">
                 </div>
 
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label class="form-label" for="short_description">Short Description<span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="short_description" id="short_description" rows="2" placeholder="Brief summary">{{ old('short_description', $blog->short_description ?? '') }}</textarea>
+                        <textarea disabled class="form-control" name="short_description" id="short_description" rows="2" placeholder="Brief summary">{{ old('short_description', $blog->short_description ?? '') }}</textarea>
                         @error('short_description')
                             <span class="text-danger small">{{ $message }}</span>
                         @enderror
@@ -105,7 +107,7 @@
                     <div class="mb-3">
                         <label class="form-label" for="description">Full Description <span class="text-danger">*</span></label>
 
-                        <input type="hidden" name="description" id="description" value="{{ old('description', $blog->description ?? '') }}">
+                        <input disabled type="hidden" name="description" id="description" value="{{ old('description', $blog->description ?? '') }}">
 
                         <div id="quill-editor" style="height: 200px;">{!! old('description', $blog->description ?? '') !!}</div>
 
@@ -122,12 +124,12 @@
                     <label class="form-label">Status <span class="text-danger">*</span></label>
                     <div class="d-flex gap-3 mb-1">
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="status" id="status-active"
+                            <input disabled class="form-check-input" type="radio" name="status" id="status-active"
                                 value="1" @if (old('status', $blog->status ?? 1) == 1) checked @endif>
                             <label class="form-check-label" for="status-active">Active</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="status" id="status-inactive"
+                            <input disabled class="form-check-input" type="radio" name="status" id="status-inactive"
                                 value="0" @if (old('status', $blog->status ?? 1) == 0) checked @endif>
                             <label class="form-check-label" for="status-inactive">Inactive</label>
                         </div>
@@ -140,7 +142,9 @@
 
             <div class="text-end mt-3">
                 <a href="{{ isset($moduleUrl) ? route($moduleUrl) : url()->previous() }}" class="btn btn-soft-light">Cancel</a>
+                
             </div>
+        
     </x-form-wrapper>
 
     @push('scripts')
