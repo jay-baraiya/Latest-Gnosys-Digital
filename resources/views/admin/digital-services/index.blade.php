@@ -53,7 +53,7 @@
                     <span class="input-icon-addon text-dark"><i class="ti ti-search"></i></span>
                     <input type="text" class="form-control" placeholder="Search" id="dataTable-search">
                 </div>
-                @can('create.'.strtolower($moduleName))
+                @can('create.digital.services')
                 <a href="{{ route('admin.digital.services.create') }}" class="btn btn-primary"><i
                         class="ti ti-square-rounded-plus-filled me-1"></i>Add
                     {{ rtrim($moduleName, 's') }}</a>

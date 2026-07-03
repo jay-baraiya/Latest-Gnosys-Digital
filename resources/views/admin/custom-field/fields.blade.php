@@ -1,19 +1,22 @@
 <input type="hidden" name="custom_field[recode_id]" value="{{ $recode_id }}">
+@php
+    $disabled = !empty($is_disabled) ? 'disabled' : '';
+@endphp
 <div class="dynamic-fields-wrapper">
     @if ($customfields->isNotEmpty())
-        <input type="hidden" name="custom_field[all_field_ids]" value="{{ $customfields->pluck('id') }}">
+        <input {{ $disabled }} type="hidden" name="custom_field[all_field_ids]" value="{{ $customfields->pluck('id') }}">
         @foreach ($customfields as $key => $field)
             <div class="field-row border p-3 mb-4 rounded" data-row-index="{{ $key }}">
-                <input type="hidden" name="custom_field[field_id][{{ $key }}]" value="{{ $field->id }}">
+                <input {{ $disabled }} type="hidden" name="custom_field[field_id][{{ $key }}]" value="{{ $field->id }}">
                 <div class="row mb-5">
                     <div class="col-md-5">
                         <label class="form-label">Field Name</label>
-                        <input type="text" class="form-control" name="custom_field[fields][{{ $key }}][name]" placeholder="Field name" value="{{ $field->name }}">
+                        <input {{ $disabled }} type="text" class="form-control" name="custom_field[fields][{{ $key }}][name]" placeholder="Field name" value="{{ $field->name }}">
                     </div>
 
                     <div class="col-md-5">
                         <label class="form-label">Field Type</label>
-                        <select name="custom_field[fields][{{ $key }}][custom_field_type_id]" class="form-control custom-field-type">
+                        <select {{ $disabled }} name="custom_field[fields][{{ $key }}][custom_field_type_id]" class="form-control custom-field-type">
                             <option value="">Select Field Type</option>
                             @if ($customfieldtyeps->isNotEmpty())
                                 @foreach ($customfieldtyeps as $type)
@@ -24,10 +27,10 @@
                     </div>
 
                     <div class="col-md-2 d-flex align-items-end gap-2">
-                        <button type="button" class="btn btn-success add-field-btn">
+                        <button {{ $disabled }} type="button" class="btn btn-success add-field-btn">
                             <i class="ti ti-plus"></i>
                         </button>
-                        <button type="button" class="btn btn-danger remove-field-btn">
+                        <button {{ $disabled }} type="button" class="btn btn-danger remove-field-btn">
                             <i class="ti ti-minus"></i>
                         </button>
                     </div>
@@ -41,12 +44,12 @@
             <div class="row mb-5">
                 <div class="col-md-5">
                     <label class="form-label">Field Name</label>
-                    <input type="text" class="form-control" name="custom_field[fields][0][name]" placeholder="Field name" value="">
+                    <input {{ $disabled }} type="text" class="form-control" name="custom_field[fields][0][name]" placeholder="Field name" value="">
                 </div>
 
                 <div class="col-md-5">
                     <label class="form-label">Field Type</label>
-                    <select name="custom_field[fields][0][custom_field_type_id]" class="form-control custom-field-type">
+                    <select {{ $disabled }} name="custom_field[fields][0][custom_field_type_id]" class="form-control custom-field-type">
                         <option value="">Select Field Type</option>
                         @if ($customfieldtyeps->isNotEmpty())
                             @foreach ($customfieldtyeps as $type)
@@ -57,10 +60,10 @@
                 </div>
 
                 <div class="col-md-2 d-flex align-items-end gap-2">
-                    <button type="button" class="btn btn-success add-field-btn">
+                    <button {{ $disabled }} type="button" class="btn btn-success add-field-btn">
                         <i class="ti ti-plus"></i>
                     </button>
-                    <button type="button" class="btn btn-danger remove-field-btn">
+                    <button {{ $disabled }} type="button" class="btn btn-danger remove-field-btn">
                         <i class="ti ti-minus"></i>
                     </button>
                 </div>
@@ -96,7 +99,8 @@
                         data: {
                             type_id: typeId,
                             index: index,
-                            field_id: fieldId
+                            field_id: fieldId,
+                            is_disabled: '{{ $disabled }}'
                         },
                         beforeSend: function() {
                             settingsContainer.html('<div class="mt-3 text-muted">Loading settings...</div>');

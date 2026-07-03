@@ -20,7 +20,7 @@
                             <i class="ti ti-list me-2"></i>Tasks
                         </a>
                     </li>
-                    @if (!empty($ticket->id))
+                    @if (!empty($ticket->id) && !empty($ticket->user_id))
                         <li class="nav-item me-3">
                             <a href="{{ $url }}?tab=chats-form" data-tab="chats-form"
                                 class="nav-link p-2 {{ $tab == 'chats-form' ? 'active' : '' }}">

@@ -1,7 +1,11 @@
 <form action="{{ route('admin.tickets.store.task') }}" method="POST" id="taskForm">
+    @php
+        $disabled = request()->route()->getName() == 'admin.tickets.show' ? 'disabled' : '';
+    @endphp
+
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h5 class="text-primary mb-0">Task List</h5>
-        <button type="button" class="btn btn-sm btn-outline-primary" id="addItemBtn">
+        <button {{ $disabled }} type="button" class="btn btn-sm btn-outline-primary" id="addItemBtn">
             <i class="ti ti-plus me-1"></i> Add More
         </button>
     </div>
@@ -41,14 +45,14 @@
                                     value="{{ $isProduct ? 'product' : 'service' }}">
                                 <div class="d-flex align-items-center mb-2">
                                     <span
-                                        class="badge {{ $isProduct ? 'bg-primary' : 'bg-success' }} me-2 item-type-badge pointer"
+                                        class="badge {{ $isProduct ? 'bg-primary' : 'bg-success' }} me-2 {{ !$disabled ? 'item-type-badge' : '' }} pointer"
                                         style="cursor:pointer;" title="Click to toggle type">
                                         {{ $isProduct ? 'Product' : 'Service' }}
                                     </span>
                                     <small class="text-muted text-uppercase fw-bold" style="font-size:10px;">Click
                                         to switch</small>
                                 </div>
-                                <select class="form-select product-select" name="product_id[{{ $index }}]"
+                                <select {{ $disabled }} class="form-select product-select" name="product_id[{{ $index }}]"
                                     required>
                                     <option value="">-- Select
                                         {{ $isProduct ? 'Product' : 'Service' }} --</option>
@@ -83,7 +87,7 @@
                                         }
                                     }
                                 @endphp
-                                <select
+                                <select {{ $disabled }}
                                     class="form-select variant-select {{ $hasVariants ? 'variant-select-required' : '' }}"
                                     name="variant_id[{{ $index }}]" {{ $hasVariants ? '' : 'readonly' }}>
                                     <option value="">
@@ -99,13 +103,13 @@
                                 </select>
                             </td>
                             <td>
-                                <input type="date" class="form-control due-date"
+                                <input {{ $disabled }} type="date" class="form-control due-date"
                                     name="due_date[{{ $index }}]"
                                     value="{{ !empty($item->due_date) ? \Carbon\Carbon::parse($item->due_date)->format('Y-m-d') : now()->format('Y-m-d') }}"
                                     required>
                             </td>
                             <td>
-                                <select name="department_id[{{ $index }}]" class="department-id form-control">
+                                <select {{ $disabled }} name="department_id[{{ $index }}]" class="department-id form-control">
                                     <option value="">Select Department</option>
                                     @if ($departments->isNotEmpty())
                                         @foreach ($departments as $department)
@@ -117,7 +121,7 @@
                                 </select>
                             </td>
                             <td>
-                                <select name="assign_id[{{ $index }}]" class="assign-id form-control">
+                                <select {{ $disabled }} name="assign_id[{{ $index }}]" class="assign-id form-control">
                                     <option value="">Select Developer</option>
                                     @if ($developers->isNotEmpty())
                                         @foreach ($developers as $developer)
@@ -129,7 +133,7 @@
                                 </select>
                             </td>
                             <td>
-                                <input type="number" class="form-control item-qty"
+                                <input {{ $disabled }} type="number" class="form-control item-qty"
                                     name="quantity[{{ $index }}]" min="1"
                                     value="{{ $item->quantity ?? 1 }}" placeholder="1" required>
                             </td>
@@ -142,14 +146,14 @@
                                 </div>
                             </td>
                             <td>
-                                <div class="input-group">
+                                <div {{ $disabled }} class="input-group">
                                     <span class="input-group-text">$</span>
                                     <input type="number" step="0.01" class="form-control item-total" readonly
                                         value="{{ number_format($rowTotal, 2, '.', '') }}" placeholder="0.00">
                                 </div>
                             </td>
                             <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn"
+                                <button {{ $disabled }} type="button" class="btn btn-sm btn-outline-danger remove-item-btn"
                                     title="Remove row">
                                     <i class="ti ti-trash"></i>
                                 </button>
@@ -160,15 +164,15 @@
                     {{-- Default empty row for create mode --}}
                     <tr class="order-item-row">
                         <td>
-                            <input type="hidden" name="task_id[0]" value="">
-                            <input type="hidden" name="product_type[0]" class="item-type-hidden" value="product">
+                            <input {{ $disabled }} type="hidden" name="task_id[0]" value="">
+                            <input {{ $disabled }} type="hidden" name="product_type[0]" class="item-type-hidden" value="product">
                             <div class="d-flex align-items-center mb-2">
                                 <span class="badge bg-primary me-2 item-type-badge pointer" style="cursor:pointer;"
                                     title="Click to toggle type">Product</span>
                                 <small class="text-muted text-uppercase fw-bold" style="font-size:10px;">Click
                                     to switch</small>
                             </div>
-                            <select class="form-select product-select" name="product_id[0]" required>
+                            <select {{ $disabled }} class="form-select product-select" name="product_id[0]" required>
                                 <option value="">-- Select Product --</option>
                                 @foreach ($products ?? [] as $product)
                                     <option value="{{ $product->id }}" data-price="{{ $product->price }}">
@@ -177,15 +181,15 @@
                             </select>
                         </td>
                         <td>
-                            <select class="form-select variant-select" name="variant_id[0]" readonly>
+                            <select {{ $disabled }} class="form-select variant-select" name="variant_id[0]" readonly>
                                 <option value="">-- No Variant --</option>
                             </select>
                         </td>
                         <td>
-                            <input type="date" class="form-control due-date" name="due_date[0]" required>
+                            <input {{ $disabled }} type="date" class="form-control due-date" name="due_date[0]" required>
                         </td>
                         <td>
-                            <select name="department_id[0]" class="department-id form-select">
+                            <select {{ $disabled }} name="department_id[0]" class="department-id form-select">
                                 <option value="">Select Department</option>
                                 @if ($departments->isNotEmpty())
                                     @foreach ($departments as $department)
@@ -196,7 +200,7 @@
                             </select>
                         </td>
                         <td>
-                            <select name="assign_id[0]" class="assign-id form-select">
+                            <select {{ $disabled }} name="assign_id[0]" class="assign-id form-select">
                                 <option value="">Select Developer</option>
                                 @if ($developers->isNotEmpty())
                                     @foreach ($developers as $developer)
@@ -207,20 +211,20 @@
                             </select>
                         </td>
                         <td>
-                            <input type="number" class="form-control item-qty" name="quantity[0]" min="1"
+                            <input {{ $disabled }} type="number" class="form-control item-qty" name="quantity[0]" min="1"
                                 value="1" placeholder="1" required>
                         </td>
                         <td>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" step="0.01" class="form-control item-price" name="price[0]"
+                                <input {{ $disabled }} type="number" step="0.01" class="form-control item-price" name="price[0]"
                                     min="0" value="" placeholder="0.00" required>
                             </div>
                         </td>
                         <td>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" step="0.01" class="form-control item-total" readonly
+                                <input {{ $disabled }} type="number" step="0.01" class="form-control item-total" readonly
                                     value="" placeholder="0.00">
                             </div>
                         </td>
@@ -235,7 +239,7 @@
             </tbody>
             <tfoot class="table-light">
                 <tr>
-                    <td colspan="4" class="text-end fw-bold">Grand Total:</td>
+                    <td colspan="7" class="text-end fw-bold">Grand Total:</td>
                     <td colspan="2" class="fw-bold text-primary" style="font-size: 16px;">
                         <span id="grandTotalDisplay">$0.00</span>
                     </td>
@@ -245,6 +249,8 @@
     </div>
     <div class="text-end mt-3">
         <a href="{{ route($moduleUrl ?? 'admin.tasks.index') }}" class="btn btn-soft-light">Cancel</a>
-        <button type="submit" class="btn btn-primary">Generate Ticket</button>
+        @if (!$disabled)
+            <button type="submit" class="btn btn-primary">Generate Ticket</button>
+        @endif
     </div>
 </form>

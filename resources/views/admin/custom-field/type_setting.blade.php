@@ -3,6 +3,7 @@
 
     @php
         $indexKey = !empty($index) ? $index : 0;
+        $disabled = !empty($disabled) ? $disabled : '';
     @endphp
 
     @if($fieldType->has_options)
@@ -13,16 +14,16 @@
                 @if (!empty($options))
                     @foreach ($options as $key => $option)
                         <div class="input-group mb-2 option-row custom-field-option-row">
-                            <input type="text" name="custom_field[options][{{ $indexKey }}][{{ $key }}]" class="form-control" placeholder="Enter option value" value="{{ $option }}">
-                            <button class="btn {{ $loop->first ? 'btn-success add-option-btn' : 'btn-danger remove-option-btn' }}" type="button">
+                            <input {{ $disabled }} type="text" name="custom_field[options][{{ $indexKey }}][{{ $key }}]" class="form-control" placeholder="Enter option value" value="{{ $option }}">
+                            <button {{ $disabled }} class="btn {{ $loop->first ? 'btn-success add-option-btn' : 'btn-danger remove-option-btn' }}" type="button">
                                 <strong>{{ $loop->first ? '+' : '-' }}</strong>
                             </button>
                         </div>
                     @endforeach
                 @else
                     <div class="input-group mb-2 option-row">
-                        <input type="text" name="custom_field[options][{{ $indexKey }}][]" class="form-control" placeholder="Enter option value">
-                        <button class="btn btn-success add-option-btn" type="button">
+                        <input {{ $disabled }} type="text" name="custom_field[options][{{ $indexKey }}][]" class="form-control" placeholder="Enter option value">
+                        <button {{ $disabled }} class="btn btn-success add-option-btn" type="button">
                             <strong>+</strong>
                         </button>
                     </div>
@@ -37,42 +38,42 @@
         @if(is_array($field_type_params) && array_key_exists('placeholder', $field_type_params))
             <div class="col-md-6 mb-3">
                 <label>Placeholder</label>
-                <input type="text" name="custom_field[params][{{ $indexKey }}][placeholder]" class="form-control" placeholder="e.g., Enter your name..." value="{{ !empty($params['placeholder']) ? $params['placeholder'] : '' }}" >
+                <input {{ $disabled }} type="text" name="custom_field[params][{{ $indexKey }}][placeholder]" class="form-control" placeholder="e.g., Enter your name..." value="{{ !empty($params['placeholder']) ? $params['placeholder'] : '' }}" >
             </div>
         @endif
 
         @if(is_array($field_type_params) && array_key_exists('default_value', $field_type_params))
             <div class="col-md-6 mb-3">
                 <label>Default Value</label>
-                <input type="text" name="custom_field[params][{{ $indexKey }}][default_value]" class="form-control" value="{{ !empty($params['default_value']) ? $params['default_value'] : '' }}">
+                <input {{ $disabled }} type="text" name="custom_field[params][{{ $indexKey }}][default_value]" class="form-control" value="{{ !empty($params['default_value']) ? $params['default_value'] : '' }}">
             </div>
         @endif
 
         @if(is_array($field_type_params) && array_key_exists('min', $field_type_params))
             <div class="col-md-6 mb-3">
                 <label>Min Value</label>
-                <input type="text" name="custom_field[params][{{ $indexKey }}][min]" class="form-control" placeholder="Min value" value="{{ !empty($params['min']) ? $params['min'] : '' }}">
+                <input {{ $disabled }} type="text" name="custom_field[params][{{ $indexKey }}][min]" class="form-control" placeholder="Min value" value="{{ !empty($params['min']) ? $params['min'] : '' }}">
             </div>
         @endif
 
         @if(is_array($field_type_params) && array_key_exists('max', $field_type_params))
             <div class="col-md-6 mb-3">
                 <label>Max Value</label>
-                <input type="text" name="custom_field[params][{{ $indexKey }}][max]" class="form-control" placeholder="Max value" value="{{ !empty($params['max']) ? $params['max'] : '' }}">
+                <input {{ $disabled }} type="text" name="custom_field[params][{{ $indexKey }}][max]" class="form-control" placeholder="Max value" value="{{ !empty($params['max']) ? $params['max'] : '' }}">
             </div>
         @endif
 
         @if(is_array($field_type_params) && array_key_exists('rows', $field_type_params))
             <div class="col-md-6 mb-3">
                 <label>Textarea Rows</label>
-                <input type="number" name="custom_field[params][{{ $indexKey }}][rows]" class="form-control" value="{{ !empty($params['rows']) ? $params['rows'] : '3' }}">
+                <input {{ $disabled }} type="number" name="custom_field[params][{{ $indexKey }}][rows]" class="form-control" value="{{ !empty($params['rows']) ? $params['rows'] : '3' }}">
             </div>
         @endif
     </div>
 
     @if(is_array($field_type_params) && array_key_exists('is_required', $field_type_params))
         <div class="form-check mt-2">
-            <input class="form-check-input" type="checkbox" name="custom_field[params][{{ $indexKey }}][is_required]" value="1" {{ !empty($params['is_required']) ? 'checked' : '' }} id="is_required_check_{{ $indexKey }}">
+            <input {{ $disabled }} class="form-check-input" type="checkbox" name="custom_field[params][{{ $indexKey }}][is_required]" value="1" {{ !empty($params['is_required']) ? 'checked' : '' }} id="is_required_check_{{ $indexKey }}">
             <label class="form-check-label" for="is_required_check_{{ $indexKey }}">
                 Is this field required?
             </label>

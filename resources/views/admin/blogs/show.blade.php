@@ -1,7 +1,9 @@
 <x-master-layout>
     <x-form-wrapper action="{{ isset($action) ? $action : (isset($blog) ? 'Edit Blog' : 'Create Blog') }}">
-        
-            
+
+        @php
+            $disabled = request()->route()->getName() == 'admin.blogs.show' ? 'disabled' : '';
+        @endphp
 
             <div class="row">
                 <div class="col-md-6">
@@ -142,9 +144,9 @@
 
             <div class="text-end mt-3">
                 <a href="{{ isset($moduleUrl) ? route($moduleUrl) : url()->previous() }}" class="btn btn-soft-light">Cancel</a>
-                
+
             </div>
-        
+
     </x-form-wrapper>
 
     @push('scripts')
@@ -187,6 +189,7 @@
 
                 var quill = new Quill('#quill-editor', {
                     theme: 'snow',
+                    readOnly: '{{ $disabled ? 'true' : '' }}',
                     placeholder: 'Detailed service description...',
                     modules: {
                         toolbar: toolbarOptions,

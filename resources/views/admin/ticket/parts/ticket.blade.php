@@ -4,6 +4,10 @@
         @method('PUT')
     @endif
 
+    @php
+        $disabled = request()->route()->getName() == 'admin.tickets.show' ? 'disabled' : '';
+    @endphp
+
     <input type="hidden" name="tab" value="ticket-form">
 
     <div class="row">
@@ -11,7 +15,7 @@
         <div class="col-md-6">
             <div class="mb-3">
                 <label class="form-label" for="user_id">Client <span class="text-danger">*</span></label>
-                <select class="form-select select2" name="user_id" id="user_id">
+                <select {{ $disabled }} class="form-select select2" name="user_id" id="user_id">
                     <option value="">Select Client...</option>
                     @if (isset($users) && count($users) > 0)
                         @foreach ($users as $userItem)
@@ -31,7 +35,7 @@
         <div class="col-md-6">
             <div class="mb-3">
                 <label class="form-label" for="name">Name</label>
-                <input type="text" class="form-control" name="name" id="name" placeholder="Name"
+                <input {{ $disabled }} type="text" class="form-control" name="name" id="name" placeholder="Name"
                     value="{{ old('name', $ticket->name ?? '') }}">
                 @error('name')
                     <span class="text-danger small">{{ $message }}</span>
@@ -43,10 +47,10 @@
             <div class="mb-3">
                 <label class="form-label" for="email">Email Address <span class="text-danger">*</span></label>
                 <div class="input-group">
-                    <input type="email" class="form-control" name="email" id="email" placeholder="Email Address"
+                    <input {{ $disabled }} type="email" class="form-control" name="email" id="email" placeholder="Email Address"
                         value="{{ old('email', $ticket->email ?? '') }}">
                     <div class="input-group-text">
-                        <input class="form-check-input mt-0" type="checkbox" name="send_email" id="send_email"
+                        <input {{ $disabled }} class="form-check-input mt-0" type="checkbox" name="send_email" id="send_email"
                             value="1"
                             {{ old('send_email', $ticket->send_email ?? 1) ? 'checked' : '' }}>
                         <label class="form-check-label ms-2" for="send_email">Send Email</label>
@@ -61,7 +65,7 @@
         <div class="col-md-6">
             <div class="mb-3">
                 <label class="form-label" for="cc_recipients">CC Recipients</label>
-                <select class="select2 form-control select2-multiple" name="cc_recipients[]" data-toggle="select2"
+                <select {{ $disabled }} class="select2 form-control select2-multiple" name="cc_recipients[]" data-toggle="select2"
                     multiple="multiple" id="cc_recipients"
                     data-placeholder="Start Typing to Add or Select Recipient ...">
                     @if ($cc_recipients->isNotEmpty())
@@ -92,7 +96,7 @@
         <div class="col-md-12">
             <div class="mb-3">
                 <label class="form-label" for="subject">Subject <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject"
+                <input {{ $disabled }} type="text" class="form-control" name="subject" id="subject" placeholder="Subject"
                     value="{{ old('subject', $ticket->subject ?? '') }}">
                 @error('subject')
                     <span class="text-danger small">{{ $message }}</span>
@@ -103,7 +107,7 @@
         <div class="col-md-4">
             <div class="mb-3">
                 <label class="form-label" for="department_id">Department <span class="text-danger">*</span></label>
-                <select class="form-select" name="department_id" id="department_id">
+                <select {{ $disabled }} class="form-select" name="department_id" id="department_id">
                     <option value="">Select Department...</option>
                     @if ($departments->isNotEmpty())
                         @foreach ($departments as $department)
@@ -124,7 +128,7 @@
         <div class="col-md-4">
             <div class="mb-3">
                 <label class="form-label" for="priority">Priority <span class="text-danger">*</span></label>
-                <select class="form-select" name="priority" id="priority">
+                <select {{ $disabled }} class="form-select" name="priority" id="priority">
                     <option value="High"
                         {{ old('priority', $ticket->priority ?? '') == 'High' ? 'selected' : '' }}>
                         High
@@ -147,7 +151,7 @@
         <div class="col-md-4">
             <div class="mb-3">
                 <label class="form-label" for="assign_id">Assign <span class="text-danger">*</span></label>
-                <select class="form-select" name="assign_id" id="assign_id">
+                <select {{ $disabled }} class="form-select" name="assign_id" id="assign_id">
                     <option value="">Select User...</option>
                     @if ($developers->isNotEmpty())
                         @foreach ($developers as $developer)
@@ -170,7 +174,7 @@
                 <label class="form-label" for="description">Full Description <span
                         class="text-danger">*</span></label>
 
-                <input type="hidden" name="description" id="description"
+                <input {{ $disabled }} type="hidden" name="description" id="description"
                     value="{{ old('description', $ticket->description ?? '') }}">
 
                 <div id="quill-editor" style="height: 200px;">{!! old('description', $ticket->description ?? '') !!}</div>
@@ -184,7 +188,7 @@
         <div class="col-md-12">
             <div class="mb-3">
                 <label class="form-label">Note</label>
-                <textarea name="note" id="note" rows="3" class="form-control">{{ old('note', $ticket->note ?? '') }}</textarea>
+                <textarea {{ $disabled }} name="note" id="note" rows="3" class="form-control">{{ old('note', $ticket->note ?? '') }}</textarea>
             </div>
         </div>
 
@@ -200,7 +204,7 @@
                     </div>
                 </div>
 
-                <input type="file" name="attachments[]" id="hiddenFileInput" multiple style="display: none;">
+                <input {{ $disabled }} type="file" name="attachments[]" id="hiddenFileInput" multiple style="display: none;">
 
                 <div id="existing-files-container">
                     @if (isset($ticket) && !empty($ticket->attachments))
@@ -209,7 +213,7 @@
                         @endphp
                         @if (is_array($existingFiles))
                             @foreach ($existingFiles as $filePath)
-                                <input type="hidden" name="existing_attachments[]" value="{{ $filePath }}">
+                                <input {{ $disabled }} type="hidden" name="existing_attachments[]" value="{{ $filePath }}">
                             @endforeach
                         @endif
                     @endif
@@ -222,6 +226,8 @@
 
     <div class="text-end mt-3">
         <a href="{{ route($moduleUrl ?? 'admin.tasks.index') }}" class="btn btn-soft-light">Cancel</a>
-        <button type="submit" class="btn btn-primary">Generate Ticket</button>
+        @if (!$disabled)
+            <button type="submit" class="btn btn-primary">Generate Ticket</button>
+        @endif
     </div>
 </form>

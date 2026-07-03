@@ -1,3 +1,6 @@
+@php
+    $disabled = request()->route()->getName() == 'admin.tickets.show' ? 'disabled' : '';
+@endphp
 <script>
     $(document).ready(function () {
         $('#user_id').select2({
@@ -173,6 +176,7 @@
 
         var quill = new Quill('#quill-editor', {
             theme: 'snow',
+            readOnly: '{{ !empty($disabled) ? 'true' : '' }}',
             placeholder: 'Detailed service description...',
             modules: {
                 toolbar: toolbarOptions,

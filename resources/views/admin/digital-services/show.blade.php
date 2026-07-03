@@ -1,7 +1,9 @@
 <x-master-layout>
     <x-form-wrapper action="{{ isset($action) ? $action : (isset($digitalservice) ? 'Edit Digital Service' : 'Create Digital Service') }}">
-        
-            
+
+            @php
+                $disabled = request()->route()->getName() == 'admin.digital.services.show' ? 'disabled' : '';
+            @endphp
 
             <div class="row">
                 <div class="col-md-4">
@@ -219,13 +221,15 @@
                 <div class="fw-bold mb-3">Services Features</div>
                 @include('admin.digital-services.features', [
                     'service_id' => !empty($digitalservice->id) ? $digitalservice->id : '' ,
-                    'features' => !empty($digitalservice->serviceFeatures) ? $digitalservice->serviceFeatures : collect([])
+                    'features' => !empty($digitalservice->serviceFeatures) ? $digitalservice->serviceFeatures : collect([]),
+                    'is_disabled' => $disabled
                 ])
             <hr>
                 <div class="fw-bold mb-3">Services Variants</div>
                 @include('admin.digital-services.variants', [
                     'service_id' => !empty($digitalservice->id) ? $digitalservice->id : '' ,
-                    'variants' => !empty($digitalservice->variants) ? $digitalservice->variants : collect([])
+                    'variants' => !empty($digitalservice->variants) ? $digitalservice->variants : collect([]),
+                    'is_disabled' => $disabled
                 ])
             <hr>
             <div class="fw-bold mb-3">Custom Fields</div>
@@ -233,15 +237,16 @@
                 'recode_id' => !empty($digitalservice->id) ? $digitalservice->id : '' ,
                 'customfieldtyeps' => $customfieldtyeps,
                 'customfields' => isset($customfields) ? $customfields : collect([]),
+                'is_disabled' => $disabled
             ])
 
             <hr>
 
             <div class="text-end mt-3">
                 <a href="{{ isset($moduleUrl) ? route($moduleUrl) : url()->previous() }}" class="btn btn-soft-light">Cancel</a>
-                
+
             </div>
-        
+
     </x-form-wrapper>
 
     @push('scripts')
@@ -284,6 +289,7 @@
 
                 var quill = new Quill('#quill-editor', {
                     theme: 'snow',
+                    readOnly: '{{ $disabled ? 'true' : '' }}',
                     placeholder: 'Detailed service description...',
                     modules: {
                         toolbar: toolbarOptions,

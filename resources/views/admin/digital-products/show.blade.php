@@ -1,7 +1,9 @@
 <x-master-layout>
     <x-form-wrapper action="{{ isset($action) ? $action : (isset($digitalproduct) ? 'Edit Digital Product' : 'Create Digital Product') }}">
-        
-            
+
+            @php
+                $disabled = request()->route()->getName() == 'admin.digital.products.show' ? 'disabled' : '';
+            @endphp
 
             <div class="row">
                 <div class="col-md-4">
@@ -252,13 +254,14 @@
                 'recode_id' => !empty($digitalproduct->id) ? $digitalproduct->id : '' ,
                 'customfieldtyeps' => $customfieldtyeps,
                 'customfields' => isset($customfields) ? $customfields : collect([]),
+                'is_disabled' => $disabled
             ])
 
             <div class="text-end mt-3">
                 <a href="{{ isset($moduleUrl) ? route($moduleUrl) : url()->previous() }}" class="btn btn-soft-light">Cancel</a>
-                
+
             </div>
-        
+
     </x-form-wrapper>
 
     @push('scripts')
@@ -301,6 +304,7 @@
 
                 var quill = new Quill('#quill-editor', {
                     theme: 'snow',
+                    readOnly: '{{ $disabled ? 'true' : '' }}',
                     placeholder: 'Detailed service description...',
                     modules: {
                         toolbar: toolbarOptions,

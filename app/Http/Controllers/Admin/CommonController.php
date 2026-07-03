@@ -77,6 +77,7 @@ class CommonController extends Controller
         $fieldTypeParams = json_decode($fieldType->params, true) ?? [];
         $options = !empty($customfields->options) ? json_decode($customfields->options, true) : [];
         $params = !empty($customfields->params) ? json_decode($customfields->params, true) : [];
+        $disabled = $request->is_disabled ?? '';
 
         $html = view('admin.custom-field.type_setting', [
             'fieldType' => $fieldType,
@@ -84,6 +85,7 @@ class CommonController extends Controller
             'options' => $options,
             'params' => $params,
             'index' => $request->index,
+            'disabled' => $disabled
         ])->render();
 
         return response()->json([

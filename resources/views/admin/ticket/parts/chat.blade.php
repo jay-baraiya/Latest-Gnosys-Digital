@@ -1,6 +1,10 @@
 <div class="flex-fill chat-messages">
     <div class="card border-0 mb-0">
 
+        @php
+            $disabled = request()->route()->getName() == 'admin.tickets.show' ? 'disabled' : '';
+        @endphp
+
         <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3 p-3">
             <div class="d-flex align-items-center">
                 <span class="avatar me-2 flex-shrink-0"><img src="{{ asset('assets/img/profiles/default.jpg') }}"
@@ -50,11 +54,11 @@
             </div>
             <form id="chat-form" enctype="multipart/form-data">
                 @csrf
-                <input type="hidden" name="ticket_id" value="{{ $ticket->id ?? '' }}">
-                <input type="hidden" name="task_id" value="">
-                <input type="hidden" name="text" id="chat-text">
+                <input {{ $disabled }} type="hidden" name="ticket_id" value="{{ $ticket->id ?? '' }}">
+                <input {{ $disabled }} type="hidden" name="task_id" value="">
+                <input {{ $disabled }} type="hidden" name="text" id="chat-text">
 
-                <input type="file" name="attachment" id="chat-attachment" class="d-none" accept="image/*, .pdf, .doc, .docx, .zip">
+                <input {{ $disabled }} type="file" name="attachment" id="chat-attachment" class="d-none" accept="image/*, .pdf, .doc, .docx, .zip">
 
                 <div id="attachment-preview-container" class="px-3 pt-2" style="display: none;">
                     <span class="badge bg-light text-dark border p-2 fs-12">
@@ -156,6 +160,7 @@
 
             var quill = new Quill('#chat-quill-editor', {
                 theme: 'snow',
+                readOnly: '{{ $disabled ? 'true' : '' }}',
                 placeholder: 'Type your message here...',
                 modules: {
                     toolbar: [

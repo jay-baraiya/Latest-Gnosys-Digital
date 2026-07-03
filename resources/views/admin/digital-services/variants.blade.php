@@ -1,7 +1,10 @@
-<input type="hidden" name="variant[service_id]" value="{{ $service_id }}">
+@php
+    $is_disabled = !empty($is_disabled) ? 'disabled' : '';
+@endphp
+<input {{ $is_disabled }} type="hidden" name="variant[service_id]" value="{{ $service_id }}">
 @if (isset($variants) && $variants->isNotEmpty())
     @foreach ($variants as $key => $variant)
-        <input type="hidden" class="existing-variant-id" name="variant[{{ $key }}][variant_id]" value="{{ $variant->id }}">
+        <input {{ $is_disabled }} type="hidden" class="existing-variant-id" name="variant[{{ $key }}][variant_id]" value="{{ $variant->id }}">
 
         <div class="builder-row-wrapper border p-3 rounded mb-4">
             <div class="row mb-5 builder-rows">
@@ -9,19 +12,19 @@
                 <div class="row mb-3">
                     <div class="col-md-5">
                         <label class="form-label">Field Name</label>
-                        <input type="text" class="form-control builder-name-input" name="variant[{{ $key }}][name]" placeholder="Field name" value="{{ $variant->name }}">
+                        <input {{ $is_disabled }} type="text" class="form-control builder-name-input" name="variant[{{ $key }}][name]" placeholder="Field name" value="{{ $variant->name }}">
                     </div>
 
                     <div class="col-md-5">
                         <label class="form-label">Price</label>
-                        <input type="text" class="form-control builder-price-input" name="variant[{{ $key }}][price]" placeholder="e.g. $1.00" value="{{ $variant->price }}">
+                        <input {{ $is_disabled }} type="text" class="form-control builder-price-input" name="variant[{{ $key }}][price]" placeholder="e.g. $1.00" value="{{ $variant->price }}">
                     </div>
 
                     <div class="col-md-2 d-flex align-items-end gap-2">
-                        <button type="button" class="btn btn-success builder-add-btn">
+                        <button {{ $is_disabled }} type="button" class="btn btn-success builder-add-btn">
                             <i class="ti ti-plus"></i>
                         </button>
-                        <button type="button" class="btn btn-danger builder-remove-btn">
+                        <button {{ $is_disabled }} type="button" class="btn btn-danger builder-remove-btn">
                             <i class="ti ti-minus"></i>
                         </button>
                     </div>
@@ -39,17 +42,17 @@
                             @foreach ($features as $subKey => $feature)
                                 <div class="variant-feature-item d-flex align-items-center gap-2 mb-2">
                                     <div class="flex-grow-1">
-                                        <input type="text"
+                                        <input {{ $is_disabled }} type="text"
                                             name="variant[{{ $key }}][features][]"
                                             class="form-control"
                                             placeholder="Feature" value="{{ is_array($feature) ? ($feature['name'] ?? '') : $feature }}">
                                     </div>
 
-                                    <button type="button" class="btn btn-success add-variant-feature-btn" title="Add Feature">
+                                    <button {{ $is_disabled }} type="button" class="btn btn-success add-variant-feature-btn" title="Add Feature">
                                         <i class="ti ti-plus"></i>
                                     </button>
 
-                                    <button type="button" class="btn btn-danger remove-variant-feature-btn" title="Remove Feature">
+                                    <button {{ $is_disabled }} type="button" class="btn btn-danger remove-variant-feature-btn" title="Remove Feature">
                                         <i class="ti ti-minus"></i>
                                     </button>
                                 </div>
@@ -57,17 +60,17 @@
                         @else
                             <div class="variant-feature-item d-flex align-items-center gap-2 mb-2">
                                 <div class="flex-grow-1">
-                                    <input type="text"
+                                    <input {{ $is_disabled }} type="text"
                                         name="variant[0][features][]"
                                         class="form-control"
                                         placeholder="Feature" value="">
                                 </div>
 
-                                <button type="button" class="btn btn-success add-variant-feature-btn" title="Add Feature">
+                                <button {{ $is_disabled }} type="button" class="btn btn-success add-variant-feature-btn" title="Add Feature">
                                     <i class="ti ti-plus"></i>
                                 </button>
 
-                                <button type="button" class="btn btn-danger remove-variant-feature-btn" title="Remove Feature">
+                                <button {{ $is_disabled }} type="button" class="btn btn-danger remove-variant-feature-btn" title="Remove Feature">
                                     <i class="ti ti-minus"></i>
                                 </button>
                             </div>
@@ -80,7 +83,7 @@
                         <div class="mb-3">
                             <label class="form-label" for="variant-description-{{ $key }}">Full Description </label>
 
-                            <input type="hidden" name="variant[{{ $key }}][description]" id="variant-description-{{ $key }}" value="{{ $variant->description }}">
+                            <input {{ $is_disabled }} type="hidden" name="variant[{{ $key }}][description]" id="variant-description-{{ $key }}" value="{{ $variant->description }}">
 
                             <div id="variant-quill-editor-{{ $key }}" style="height: 200px;"></div>
                         </div>
@@ -98,19 +101,19 @@
             <div class="row mb-3">
                 <div class="col-md-5">
                     <label class="form-label">Field Name</label>
-                    <input type="text" class="form-control builder-name-input" name="variant[0][name]" placeholder="Field name" value="">
+                    <input {{ $is_disabled }} type="text" class="form-control builder-name-input" name="variant[0][name]" placeholder="Field name" value="">
                 </div>
 
                 <div class="col-md-5">
                     <label class="form-label">Price</label>
-                    <input type="text" class="form-control builder-price-input" name="variant[0][price]" placeholder="e.g. $1.00" value="">
+                    <input {{ $is_disabled }} type="text" class="form-control builder-price-input" name="variant[0][price]" placeholder="e.g. $1.00" value="">
                 </div>
 
                 <div class="col-md-2 d-flex align-items-end gap-2">
-                    <button type="button" class="btn btn-success builder-add-btn">
+                    <button {{ $is_disabled }} type="button" class="btn btn-success builder-add-btn">
                         <i class="ti ti-plus"></i>
                     </button>
-                    <button type="button" class="btn btn-danger builder-remove-btn">
+                    <button {{ $is_disabled }} type="button" class="btn btn-danger builder-remove-btn">
                         <i class="ti ti-minus"></i>
                     </button>
                 </div>
@@ -121,17 +124,17 @@
                     <label class="form-label">Features</label>
                     <div class="variant-feature-item d-flex align-items-center gap-2 mb-2">
                         <div class="flex-grow-1">
-                            <input type="text"
+                            <input {{ $is_disabled }} type="text"
                                 name="variant[0][features][]"
                                 class="form-control"
                                 placeholder="Feature" value="">
                         </div>
 
-                        <button type="button" class="btn btn-success add-variant-feature-btn" title="Add Feature">
+                        <button {{ $is_disabled }} type="button" class="btn btn-success add-variant-feature-btn" title="Add Feature">
                             <i class="ti ti-plus"></i>
                         </button>
 
-                        <button type="button" class="btn btn-danger remove-variant-feature-btn" title="Remove Feature">
+                        <button {{ $is_disabled }} type="button" class="btn btn-danger remove-variant-feature-btn" title="Remove Feature">
                             <i class="ti ti-minus"></i>
                         </button>
                     </div>
@@ -143,7 +146,7 @@
                     <div class="mb-3">
                         <label class="form-label" for="variant-description-0">Full Description </label>
 
-                        <input type="hidden" name="variant[0][description]" id="variant-description-0" value="">
+                        <input {{ $is_disabled }} type="hidden" name="variant[0][description]" id="variant-description-0" value="">
 
                         <div id="variant-quill-editor-0" style="height: 200px;"></div>
                     </div>
@@ -162,6 +165,7 @@
     function initQuillEditor(index) {
         var quill = new Quill('#variant-quill-editor-' + index, {
             theme: 'snow',
+            readOnly: '{{ $is_disabled ? 'true' : '' }}',
             placeholder: 'Detailed service description...',
             modules: {
                 toolbar: [

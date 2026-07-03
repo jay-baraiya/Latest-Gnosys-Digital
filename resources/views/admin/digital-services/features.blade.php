@@ -1,4 +1,7 @@
-<input type="hidden" name="features[service_id]" value="{{ $service_id }}">
+@php
+    $is_disabled = !empty($is_disabled) ? 'disabled' : '';
+@endphp
+<input {{ $is_disabled }} type="hidden" name="features[service_id]" value="{{ $service_id }}">
 
 <div class="mb-4">
 
@@ -6,20 +9,20 @@
 
         @if ($features->isNotEmpty())
             @foreach ($features as $key => $feature)
-                <input type="hidden" name="features[{{ $key }}][feature_id]" class="form-control" value="{{ $feature->id }}">
+                <input {{ $is_disabled }} type="hidden" name="features[{{ $key }}][feature_id]" class="form-control" value="{{ $feature->id }}">
                 <div class="feature-item d-flex align-items-center gap-2">
                     <div class="flex-grow-1">
-                        <input type="text"
+                        <input {{ $is_disabled }} type="text"
                             name="features[{{ $key }}][name]"
                             class="form-control"
                             placeholder="Feature 1" value="{{ $feature->name }}">
                     </div>
 
-                    <button type="button" class="btn btn-success add-feature-btn" title="Add Feature">
+                    <button {{ $is_disabled }} type="button" class="btn btn-success add-feature-btn" title="Add Feature">
                         <i class="ti ti-plus"></i>
                     </button>
 
-                    <button type="button" class="btn btn-danger remove-feature-btn" title="Remove Feature">
+                    <button {{ $is_disabled }} type="button" class="btn btn-danger remove-feature-btn" title="Remove Feature">
                         <i class="ti ti-minus"></i>
                     </button>
                 </div>
@@ -27,17 +30,17 @@
         @else
             <div class="feature-item d-flex align-items-center gap-2">
                 <div class="flex-grow-1">
-                    <input type="text"
+                    <input {{ $is_disabled }} type="text"
                         name="features[0][name]"
                         class="form-control"
                         placeholder="Feature 1">
                 </div>
 
-                <button type="button" class="btn btn-success add-feature-btn" title="Add Feature">
+                <button {{ $is_disabled }} type="button" class="btn btn-success add-feature-btn" title="Add Feature">
                     <i class="ti ti-plus"></i>
                 </button>
 
-                <button type="button" class="btn btn-danger remove-feature-btn" style="display: none;" title="Remove Feature">
+                <button {{ $is_disabled }} type="button" class="btn btn-danger remove-feature-btn" style="display: none;" title="Remove Feature">
                     <i class="ti ti-minus"></i>
                 </button>
             </div>

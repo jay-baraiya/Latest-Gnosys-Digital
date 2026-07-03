@@ -1,7 +1,9 @@
 <x-master-layout>
     <x-form-wrapper action="{{ isset($action) ? $action : 'Create' }}">
-        
-            
+
+        @php
+            $disabled = request()->route()->getName() == 'admin.orders.show' ? 'disabled' : '';
+        @endphp
 
             <div class="row">
                 <h5 class="mb-3 text-primary">Order Details</h5>
@@ -224,7 +226,7 @@
 
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <h5 class="text-primary mb-0">Order Items</h5>
-                <button type="button" class="btn btn-sm btn-outline-primary" id="addItemBtn">
+                <button {{ $disabled }} type="button" class="btn btn-sm btn-outline-primary" id="addItemBtn">
                     <i class="ti ti-plus me-1"></i> Add More
                 </button>
             </div>
@@ -256,7 +258,7 @@
                                 <input disabled type="hidden" name="order_item_id[]" value="{{ $item->id }}">
                                 <input disabled type="hidden" name="product_type[]" class="item-type-hidden" value="{{ $isProduct ? 'product' : 'service' }}">
                                 <div class="d-flex align-items-center mb-2">
-                                    <span class="badge {{ $isProduct ? 'bg-primary' : 'bg-success' }} me-2 item-type-badge pointer" style="cursor:pointer;" title="Click to toggle type">
+                                    <span class="badge {{ $isProduct ? 'bg-primary' : 'bg-success' }} me-2 {{ !$disabled ? 'item-type-badge' : ''}} pointer" style="cursor:pointer;" title="Click to toggle type">
                                         {{ $isProduct ? 'Product' : 'Service' }}
                                     </span>
                                     <small class="text-muted text-uppercase fw-bold" style="font-size:10px;">Click to switch</small>
@@ -385,9 +387,9 @@
 
             <div class="text-end mt-3">
                 <a href="{{ route($moduleUrl ?? 'admin.orders.index') }}" class="btn btn-soft-light">Cancel</a>
-                
+
             </div>
-        
+
     </x-form-wrapper>
 
     @push('scripts')

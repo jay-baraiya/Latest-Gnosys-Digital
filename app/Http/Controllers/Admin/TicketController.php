@@ -31,7 +31,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class TicketController extends Controller
 {
-    protected $moduleName = 'Ticket';
+    protected $moduleName = 'Tickets';
     protected $moduleUrl = 'admin.tickets.index';
 
     protected $authUser;
@@ -361,6 +361,9 @@ class TicketController extends Controller
 
         $cc_recipients = User::query()
                 ->where('status', 1)
+                ->whereHas('roles', function($sq) {
+                    $sq->whereNotIn('role_id', [User::IS_ADMIN]);
+                })
                 ->get();
 
         $departments = Role::query()->where('slug', '!=', 'super-admin')->where('status', 1)->get();
@@ -432,6 +435,9 @@ class TicketController extends Controller
 
         $cc_recipients = User::query()
                 ->where('status', 1)
+                ->whereHas('roles', function($sq) {
+                    $sq->whereNotIn('role_id', [User::IS_ADMIN]);
+                })
                 ->get();
 
         $departments = Role::query()->where('slug', '!=', 'super-admin')->where('status', 1)->get();
@@ -608,7 +614,8 @@ class TicketController extends Controller
                 Task::query()->where('ticket_id', $ticket->id)->delete();
             }
 
-            return redirect()->route($this->moduleUrl ?? 'admin.tickets.index')->with('success', 'Ticket updated successfully.');
+            return redirect()->back()->with('success', 'Ticket updated successfully.');
+            // return redirect()->route($this->moduleUrl ?? 'admin.tickets.index')->with('success', 'Ticket updated successfully.');
 
         } catch (\Exception $e) {
             Log::error('Ticket Update Error', [

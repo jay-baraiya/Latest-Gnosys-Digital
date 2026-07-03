@@ -3,6 +3,9 @@
         <div class="simplebar-content-wrapper" tabindex="0" role="region" aria-label="scrollable content" style="height: auto; overflow: hidden scroll;" id="chat-scroll-container">
             <div class="simplebar-content" style="padding: 24px;">
 
+                @php
+                    $disabled = request()->route()->getName() == 'admin.tickets.show' ? 'disabled' : '';
+                @endphp
                 @if(isset($chats) && $chats->count() > 0)
                     @foreach($chats as $chat)
                         @php
@@ -88,11 +91,11 @@
 
                                                 <div id="edit-mode-{{ $chat->id }}" class="d-none mt-2">
                                                     <div class="input-group input-group-sm">
-                                                        <input type="text" class="form-control" id="edit-input-{{ $chat->id }}" value="{{ strip_tags($chat->text) }}">
-                                                        <button class="btn btn-success btn-save-edit" data-id="{{ $chat->id }}" title="Save">
+                                                        <input {{ $disabled }} type="text" class="form-control" id="edit-input-{{ $chat->id }}" value="{{ strip_tags($chat->text) }}">
+                                                        <button {{ $disabled }} class="btn btn-success btn-save-edit" data-id="{{ $chat->id }}" title="Save">
                                                             <i class="ti ti-check"></i>
                                                         </button>
-                                                        <button class="btn btn-light btn-cancel-edit text-dark" data-id="{{ $chat->id }}" title="Cancel">
+                                                        <button {{ $disabled }} class="btn btn-light btn-cancel-edit text-dark" data-id="{{ $chat->id }}" title="Cancel">
                                                             <i class="ti ti-x"></i>
                                                         </button>
                                                     </div>

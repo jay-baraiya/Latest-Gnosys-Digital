@@ -214,8 +214,7 @@
                 $select.focus();
 
                 $.ajax({
-                    url: '{{ route('
-                    admin.tickets.dev.user ') }}',
+                    url: '{{ route('admin.tickets.dev.user') }}',
                     method: 'POST',
                     success: function(response) {
                         $select.empty().append('<option value="">Select Developer...</option>');
@@ -248,8 +247,7 @@
                     $select.prop('disabled', true);
 
                     $.ajax({
-                        url: '{{ route('
-                        admin.tickets.assign.dev.user ') }}',
+                        url: '{{ route('admin.tickets.assign.dev.user') }}',
                         method: 'POST',
                         data: {
                             ticket_id: ticketId,
@@ -438,8 +436,7 @@
                 let ticketId = $btn.data('id');
                 let newStatus = $btn.data('status');
                 let statusLabel = $btn.text().trim();
-                let url = '{{ route('
-                admin.tickets.update.status ') }}';
+                let url = '{{ route('admin.tickets.update.status') }}';
 
                 if (!ticketId || !newStatus) return;
 
