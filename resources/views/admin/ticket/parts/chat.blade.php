@@ -77,7 +77,7 @@
                             <i class="ti ti-photo-plus"></i>
                         </a>
 
-                        <button type="submit" class="btn btn-icon btn-primary" id="send-chat-btn">
+                        <button {{ $disabled }} type="submit" class="btn btn-icon btn-primary" id="send-chat-btn">
                             <i class="ti ti-send"></i>
                         </button>
                     </div>
