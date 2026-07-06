@@ -12,6 +12,7 @@ use App\Models\ServiceFeature;
 use App\Models\ServiceVariant;
 use App\Models\State;
 use App\Models\Ticket;
+use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -389,5 +390,75 @@ class CommonController extends Controller
         }
 
         return response()->json(['results' => $formattedData]);
+    }
+
+    public function getDevelopers(Request $request)
+    {
+        $search = $request->input('q');
+
+        $developersQuery = User::query()
+            ->with(['roles', 'designation'])
+            ->where('status', 1)
+            ->whereHas('roles', function($sq) {
+                $sq->whereIn('role_id', [User::IS_DEVELOPER])
+                   ->whereNotIn('role_id', [User::IS_ADMIN]);
+            });
+
+        if (!empty($search)) {
+            $developersQuery->where(function($query) use ($search) {
+                $query->where('name', 'LIKE', '%' . $search . '%')
+                      ->orWhere('email', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        $developers = $developersQuery->get();
+
+        $formattedData = [];
+        foreach ($developers as $developer) {
+            $formattedData[] = [
+                'id'   => $developer->id,
+                'name' => $developer->name . ($developer->designation ? ' - ' . $developer->designation->name : '')
+            ];
+        }
+
+        return response()->json([
+            'items'       => $formattedData,
+            'total_count' => count($formattedData)
+        ]);
+    }
+
+    public function getBuyers(Request $request)
+    {
+        $search = $request->input('q');
+
+        $usersQuery = User::query()
+            ->with(['roles'])
+            ->where('status', 1)
+            ->whereHas('roles', function($sq) {
+                $sq->whereNotIn('role_id', [User::IS_ADMIN])
+                   ->whereIn('role_id', [User::IS_BUYER]);
+            });
+
+        if (!empty($search)) {
+            $usersQuery->where(function($query) use ($search) {
+                $query->where('name', 'LIKE', '%' . $search . '%')
+                      ->orWhere('email', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        $buyers = $usersQuery->get();
+
+        $formattedData = [];
+        foreach ($buyers as $buyer) {
+            $formattedData[] = [
+                'id'   => $buyer->id,
+                'name' => $buyer->name . ' - ' . $buyer->email
+            ];
+        }
+
+        return response()->json([
+            'items'       => $formattedData,
+            'total_count' => count($formattedData)
+        ]);
     }
 }

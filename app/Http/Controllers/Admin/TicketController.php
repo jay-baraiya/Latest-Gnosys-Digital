@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Chat;
+use App\Models\Department;
 use App\Models\Designation;
 use App\Models\DigitalProduct;
 use App\Models\DigitalService;
@@ -83,11 +84,13 @@ class TicketController extends Controller
 
             $query = Ticket::query()
                 ->with([
+                    'user:id,name,email',
                     'department:id,name',
                     'assign:id,name'
                 ])
                 ->select([
                     'id',
+                    'user_id',
                     'ticket_number',
                     'datetime',
                     'name',
@@ -101,8 +104,8 @@ class TicketController extends Controller
                     $search = $request->input('ticket_number');
                     $query->where('ticket_number', 'like', "%{$search}%");
                 })
-                ->where('status', $status)
-                ->where('priority', $priority)
+                // ->where('status', $status)
+                // ->where('priority', $priority)
                 ->orderBy('id', 'DESC');
 
             return DataTables::eloquent($query)
@@ -128,8 +131,8 @@ class TicketController extends Controller
                     return Carbon::parse($row?->datetime)->format('d-m-Y H:i');
                 })
                 ->addColumn('client_info', function ($row) {
-                    $name = $row->name ?? 'Unknown';
-                    $email = $row->email ?? '-';
+                    $name = $row?->user?->name ?? 'Unknown';
+                    $email = $row?->user?->email ?? '-';
                     return '<div><span class="fw-medium">' . $name . '</span><br><small class="text-muted">' . $email . '</small></div>';
                 })
                 ->addColumn('subject', function ($row) {
@@ -206,7 +209,7 @@ class TicketController extends Controller
                 ->where('status', 1)
                 ->get();
 
-        $departments = Role::query()->where('slug', '!=', 'super-admin')->where('status', 1)->get();
+        $departments = Department::query()->where('status', 1)->get();
 
         $products  = DigitalProduct::query()->where('status', 1)->get();
 
@@ -226,97 +229,101 @@ class TicketController extends Controller
     {
 
         $validatedData = $request->validate([
-            'user_id'       => 'required|integer|exists:users,id',
-            'name'          => 'nullable|string|max:255',
-            'email'         => 'required|email|max:255',
-            'send_email'    => 'nullable|boolean',
+            'user_id'          => 'required|integer|exists:users,id',
+            'cc_recipients'    => 'nullable|array',
+            'cc_recipients.*'  => 'email', // CC માં રહેલી વેલ્યુ ઈમેલ હોવી જોઈએ
 
-            'cc_recipients' => 'nullable|array',
-            'cc_recipients.*'=> 'email',
+            'ticket_notice'    => 'nullable|string',
+            'ticket_source'    => 'required|string|in:phone,email,other',
+            'help_topic'       => 'required|string',
+            'department_id'    => 'nullable|integer', // જો ફરજીયાત હોય તો required કરો
+            'sla_plan'         => 'nullable|string',
+            'due_date'         => 'nullable|date',
+            'assign_id'        => 'nullable|integer',
+            'canned_response'  => 'nullable|string',
 
-            'subject'       => 'required|string|max:255',
-            'department_id' => 'required|integer',
-            'assign_id' => 'required|integer',
-            'priority'      => 'required|string|in:High,Medium,Low',
-            'description'   => 'required|string',
-            'note'          => 'nullable|string',
+            'description'      => 'required|string',
+            'ticket_status'    => 'nullable|string|in:open,resolved,closed',
+            'signature_option' => 'nullable|string',
+            'internal_note'    => 'nullable|string',
 
-            'attachments'   => 'nullable|array|max:10',
-            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
-
-            'product_type'  => 'nullable|array',
-            'product_id'    => 'nullable|array',
-            'variant_id'    => 'nullable|array',
-            'quantity'      => 'nullable|array',
-            'price'         => 'nullable|array',
-            'due_date'      => 'nullable|array',
+            // જો ભવિષ્યમાં ફાઈલ અપલોડ ચાલુ કરો તો આ કોમેન્ટ હટાવી દેજો:
+            // 'attachments'   => 'nullable|array|max:10',
+            // 'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
         ]);
 
         try {
 
             $ticket = Ticket::create([
-                'ticket_number' => 'TCK-' . strtoupper(Str::random(6)),
-                'datetime'      => now(),
-                'user_id'       => $request->user_id,
-                'name'          => $request->name,
-                'email'         => $request->email,
-                'cc_recipients' => $request->cc_recipients ? json_encode($request->cc_recipients) : null,
-                'subject'       => $request->subject,
-                'department_id' => $request->department_id,
-                'assign_id' => $request->assign_id,
-                'priority'      => $request->priority,
-                'description'   => $request->description,
-                'note'          => $request->note,
-                'status'        => 'pending',
+                'ticket_number'    => 'TCK-' . strtoupper(Str::random(6)),
+                'datetime'         => now(),
+                'user_id'          => $request->user_id,
+                'cc_recipients'    => $request->cc_recipients ? json_encode($request->cc_recipients) : null,
+
+                'ticket_notice'    => $request->ticket_notice,
+                'ticket_source'    => $request->ticket_source,
+                'help_topic'       => $request->help_topic,
+                'department_id'    => $request->department_id,
+                'sla_plan'         => $request->sla_plan,
+                'due_date'         => $request->due_date,
+                'assign_id'        => $request->assign_id,
+                'canned_response'  => $request->canned_response,
+
+                'description'      => $request->description,
+                'internal_note'    => $request->internal_note,
+                'signature_option' => $request->signature_option,
+
+                'status'           => 'pending',
+                'ticket_status'    => $request->ticket_status ?? 'open',
             ]);
 
-            if ($request->hasFile('attachments')) {
-                $attachmentPaths = [];
+            // if ($request->hasFile('attachments')) {
+            //     $attachmentPaths = [];
 
-                foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('tickets', 'public');
-                    $fileUrl = Storage::url($path);
+            //     foreach ($request->file('attachments') as $file) {
+            //         $path = $file->store('tickets', 'public');
+            //         $fileUrl = Storage::url($path);
 
-                    TicketAttachment::create([
-                        'ticket_id' => $ticket->id,
-                        'file_path' => $fileUrl,
-                    ]);
+            //         TicketAttachment::create([
+            //             'ticket_id' => $ticket->id,
+            //             'file_path' => $fileUrl,
+            //         ]);
 
-                    $attachmentPaths[] = $fileUrl;
-                }
+            //         $attachmentPaths[] = $fileUrl;
+            //     }
 
-                $ticket->update(['attachments' => json_encode($attachmentPaths)]);
-            }
+            //     $ticket->update(['attachments' => json_encode($attachmentPaths)]);
+            // }
 
-            if ($ticket->id) {
-                $productTypes = $request->input('product_type', []);
-                $productIds   = $request->input('product_id', []);
-                $variantIds   = $request->input('variant_id', []);
-                $quantities   = $request->input('quantity', []);
-                $prices       = $request->input('price', []);
-                $duedate      = $request->input('due_date', []);
+            // if ($ticket->id) {
+            //     $productTypes = $request->input('product_type', []);
+            //     $productIds   = $request->input('product_id', []);
+            //     $variantIds   = $request->input('variant_id', []);
+            //     $quantities   = $request->input('quantity', []);
+            //     $prices       = $request->input('price', []);
+            //     $duedate      = $request->input('due_date', []);
 
-                if (!empty($productTypes) && is_array($productTypes)) {
+            //     if (!empty($productTypes) && is_array($productTypes)) {
 
-                    foreach ($productTypes as $i => $type) {
+            //         foreach ($productTypes as $i => $type) {
 
-                        if (!empty($productIds[$i])) {
-                            Task::create([
-                                'ticket_id'    => $ticket->id,
-                                'product_type' => $type,
-                                'product_id'   => $productIds[$i],
-                                'due_date'     => $duedate[$i],
-                                'variant_id'   => !empty($variantIds[$i]) ? $variantIds[$i] : null,
-                                'quantity'     => $quantities[$i] ?? 1,
-                                'price'        => $prices[$i] ?? 0.00,
-                            ]);
-                        }
-                    }
-                }
-            }
+            //             if (!empty($productIds[$i])) {
+            //                 Task::create([
+            //                     'ticket_id'    => $ticket->id,
+            //                     'product_type' => $type,
+            //                     'product_id'   => $productIds[$i],
+            //                     'due_date'     => $duedate[$i],
+            //                     'variant_id'   => !empty($variantIds[$i]) ? $variantIds[$i] : null,
+            //                     'quantity'     => $quantities[$i] ?? 1,
+            //                     'price'        => $prices[$i] ?? 0.00,
+            //                 ]);
+            //             }
+            //         }
+            //     }
+            // }
 
-            return redirect()->route('admin.tickets.edit', [ 'ticket' => encrypt($ticket->id) ])->with('success', 'Ticket created successfully.');
-            // return redirect()->route($this->moduleUrl)->with('success', 'Ticket created successfully.');
+            // return redirect()->route('admin.tickets.edit', [ 'ticket' => encrypt($ticket->id) ])->with('success', 'Ticket created successfully.');
+            return redirect()->route($this->moduleUrl)->with('success', 'Ticket created successfully.');
         } catch (\Exception $e) {
             Log::error('Ticket Store Error', [
                 'message' => $e->getMessage(),
@@ -406,12 +413,15 @@ class TicketController extends Controller
      */
     public function edit(Request $request, string $id)
     {
-        view()->share('action', 'Edit');
+        view()->share('action', 'Open');
 
-        $tab = $request->input('tab', 'ticket-form');
+        $tab = $request->input('tab', 'ticket-post-raplay');
 
-        $ticket = Ticket::find(decrypt($id));
-
+        $ticket = Ticket::with(['assign:id,name', 'department:id,name'])->find(decrypt($id));
+        // echo '<pre>';
+        // print_r($ticket->toArray());
+        // echo '</pre>';
+        // exit;
         $orderItems_product = OrderItem::query()->where('order_id', $ticket->order_id)->where('product_type', 'product')->pluck('product_id')->toArray();
         $orderItems_service = OrderItem::query()->where('order_id', $ticket->order_id)->where('product_type', 'service')->pluck('product_id')->toArray();
 
@@ -472,7 +482,7 @@ class TicketController extends Controller
 
         $chats = Chat::query()->where('ticket_id', decrypt($id))->get();
 
-        return view('admin.ticket.form', compact('tab', 'tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments'));
+        return view('admin.ticket.edit', compact('tab', 'tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments'));
     }
 
     /**

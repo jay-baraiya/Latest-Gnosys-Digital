@@ -89,6 +89,20 @@
                     </li>
                 @endcan
 
+                @can('view.departments')
+                    <li class="menu-title"><span>Category Management</span></li>
+                    <li>
+                        <ul>
+                            <li class="{{ request()->routeIs('admin.departments.*') ? 'active' : '' }}">
+                                <a href="{{ route('admin.departments.index') }}">
+                                    <i class="ti ti-category"></i>
+                                    <span>Departments</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endcan
+
                 @canany(['view.digital.products','view.digital.services'])
                     <li class="menu-title"><span>Products & Services</span></li>
                     <li>

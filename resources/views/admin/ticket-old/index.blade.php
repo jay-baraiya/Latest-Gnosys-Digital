@@ -18,7 +18,7 @@
         </x-page-header>
 
         <x-card>
-            {{-- <div class="card border-0 mb-3">
+            <div class="card border-0 mb-3">
                 <div class="card-body pb-0 pt-0 px-2">
                     <ul class="nav nav-tabs nav-bordered nav-bordered-primary">
                         <li class="nav-item me-3">
@@ -38,9 +38,9 @@
                         </li>
                     </ul>
                 </div>
-            </div> --}}
+            </div>
 
-            {{-- <div class="card border-0">
+            <div class="card border-0">
                 <div class="card-body pb-0 pt-0 px-2">
                     <ul class="nav nav-tabs nav-bordered nav-bordered-primary">
                         <li class="nav-item me-3">
@@ -70,7 +70,7 @@
                         </li>
                     </ul>
                 </div>
-            </div> --}}
+            </div>
             <x-slot:header>
                 <div class="d-flex align-items-center flex-wrap gap-2 w-100">
 
@@ -327,8 +327,8 @@
                         data: function(d) {
                             d.is_deleted = $('#is_deleted').val();
                             d.ticket_number = $('#filter-ticket-number').val();
-                            // d.status = currentStatus;
-                            // d.priority = currentPriority;
+                            d.status = currentStatus;
+                            d.priority = currentPriority;
                         }
                     },
                     "language": {

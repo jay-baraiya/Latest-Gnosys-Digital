@@ -563,5 +563,79 @@
             }
         });
 
+        $('.addSelect2').each(function () {
+            $(this).select2({
+                placeholder: $(this).data('placeholder') || 'Select an option',
+                allowClear: true,
+                width: '100%'
+            });
+        });
+
+        if ($('#assign-to-select').length > 0) {
+            $('#assign-to-select').select2({
+                placeholder: "— Select an Agent OR a Team —",
+                allowClear: true,
+                ajax: {
+                    url: '{{ route('admin.ajax.get.assign') }}',
+                    dataType: 'json',
+                    delay: 250,
+                    method: 'POST',
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page || 1
+                        };
+                    },
+                    processResults: function (data, params) {
+                        params.page = params.page || 1;
+
+                        return {
+                            results: $.map(data.items, function (item) {
+                                return {
+                                    id: item.id,
+                                    text: item.name
+                                }
+                            }),
+                            pagination: {
+                                more: (params.page * 30) < data.total_count
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 1
+            });
+        }
+
+        if ($('#buyer-select').length > 0) {
+            $('#buyer-select').select2({
+                placeholder: "— Select a Buyer —",
+                allowClear: true,
+                ajax: {
+                    url: '{{ route('admin.ajax.get.buyers') }}',
+                    dataType: 'json',
+                    delay: 250,
+                    method: 'POST',
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: $.map(data.items, function (item) {
+                                return {
+                                    id: item.id,
+                                    text: item.name
+                                }
+                            })
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 1
+            });
+        }
+
     });
 </script>

@@ -2,10 +2,6 @@
     <x-form-wrapper action="{{ isset($action) ? $action : (isset($ticket) ? 'Edit' : 'Create') }}">
 
         @php
-        // echo '<pre>';
-        // print_r($tab);
-        // echo '</pre>';
-        // exit;
             $url = isset($ticket) ? route('admin.tickets.update', encrypt($ticket->id)) : route('admin.tickets.store');
         @endphp
 
@@ -15,7 +11,7 @@
                     <ul class="nav nav-tabs nav-bordered nav-bordered-primary">
                         <li class="nav-item me-3">
                             <a href="{{ $url }}?tab=ticket-post-raplay" data-tab="ticket-post-raplay"
-                                class="nav-link p-2 {{ $tab == 'ticket-post-raplay' ? 'active' : '' }}">
+                                class="nav-link custom-nav-link p-2 {{ $tab == 'ticket-post-raplay' ? 'active' : '' }}">
                                 <i class="ti ti-ticket  me-2"></i>Ticket
                             </a>
                         </li>
@@ -214,46 +210,6 @@
                                 <option value="all">All Active Recipients</option>
                             </select>
                             <i class="bi bi-question-circle text-muted" title="Help information"></i>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3 align-items-center">
-                        <label for="canned_response" class="col-md-2 col-form-label fw-bold text-dark">Response:</label>
-                        <div class="col-md-5">
-                            <select class="form-select" name="canned_response" id="canned_response">
-                                <option value="">Select a canned response</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <div class="mb-3">
-                                <label class="form-label" for="description">Description <span class="text-danger">*</span></label>
-
-                                <input type="hidden" name="description" id="description"
-                                    value="{{ old('description', $ticket->description ?? '') }}">
-
-                                <div class="ticket-create-quill-editor-edit" id="ticket-create-quill-editor" style="height: 200px;">{!! old('description', $ticket->description ?? '') !!}</div>
-
-                                @error('description')
-                                    <span class="text-danger small mt-1 d-block">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-md-2 col-form-label fw-bold text-dark">Signature:</label>
-                        <div class="col-md-10">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="signature_type" id="sigNone" value="none" checked>
-                                <label class="form-check-label" for="sigNone">None</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="signature_type" id="sigDept" value="department">
-                                <label class="form-check-label" for="sigDept">Department Signature (Support)</label>
-                            </div>
                         </div>
                     </div>
 

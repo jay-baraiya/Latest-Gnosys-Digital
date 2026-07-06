@@ -23,11 +23,6 @@
             allowClear: true,
         });
 
-        $('#ticket_notice').select2({
-            placeholder: 'Select a ticket notice',
-            allowClear: true,
-        });
-
         $(document).on('change', '#user_id', function() {
             var text = $(this).find('option:selected').text();
             var email = $(this).find('option:selected').data('email');

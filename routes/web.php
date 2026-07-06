@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\StateController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\CommonController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\DigitalProductController;
 use App\Http\Controllers\Admin\DigitalServiceController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
@@ -90,11 +91,21 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
 
     Route::get('ajax/tickets/get-order-numbers', [CommonController::class, 'getOrderNumbers'])->name('tickets.get.order_numbers');
     Route::get('ajax/tickets/get-ticket-numbers', [CommonController::class, 'getTicketNumbers'])->name('tickets.get.ticket_numbers');
+
+    Route::post('ajax/assign/get-data', [CommonController::class, 'getDevelopers'])->name('ajax.get.assign');
+    Route::post('ajax/get-buyers', [CommonController::class, 'getBuyers'])->name('ajax.get.buyers');
+
     /* roles */
     Route::resource('roles', RoleController::class)->names('roles');
     Route::post('roles/get-data', [RoleController::class, 'getData'])->name('roles.getData');
     Route::post('roles/update-status', [RoleController::class, 'updateStatus'])->name('roles.updateStatus');
     Route::post('roles/check-role', [RoleController::class, 'checkRole'])->name('validate.role');
+
+    /* departments */
+    Route::resource('departments', DepartmentController::class)->names('departments');
+    Route::post('departments/get-data', [DepartmentController::class, 'getData'])->name('departments.getData');
+    Route::post('departments/update-status', [DepartmentController::class, 'updateStatus'])->name('departments.updateStatus');
+    Route::post('departments/check-departments', [DepartmentController::class, 'checkDepartment'])->name('validate.departments');
 
     /* permissions */
     Route::resource('permissions', PermissionController::class)->names('permissions');

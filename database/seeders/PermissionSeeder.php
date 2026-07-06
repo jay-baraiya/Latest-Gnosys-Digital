@@ -385,6 +385,48 @@ class PermissionSeeder extends Seeder
                 'description' => 'Delete Orders',
                 'status' => 1,
             ],
+
+            // Departments
+            [
+                'id' => 45,
+                'name' => 'Create',
+                'module' => 'Departments',
+                'slug' => 'create.departments',
+                'description' => 'Create Departments',
+                'status' => 1,
+            ],
+            [
+                'id' => 46,
+                'name' => 'View',
+                'module' => 'Departments',
+                'slug' => 'view.departments',
+                'description' => 'View Departments',
+                'status' => 1,
+            ],
+            [
+                'id' => 47,
+                'name' => 'Edit',
+                'module' => 'Departments',
+                'slug' => 'edit.departments',
+                'description' => 'Edit Departments',
+                'status' => 1,
+            ],
+            [
+                'id' => 48,
+                'name' => 'Delete',
+                'module' => 'Departments',
+                'slug' => 'delete.departments',
+                'description' => 'Delete Departments',
+                'status' => 1,
+            ],
+            [
+                'id' => 49,
+                'name' => 'Restore',
+                'module' => 'Departments',
+                'slug' => 'restore.departments',
+                'description' => 'Restore Departments',
+                'status' => 1,
+            ],
         ];
 
         foreach ($permissions as $permission) {
