@@ -15,6 +15,7 @@ use App\Models\ServiceVariant;
 use App\Models\Task;
 use App\Models\Ticket;
 use App\Models\TicketAttachment;
+use App\Models\Note;
 use App\Models\User;
 use App\Models\UserRole;
 use App\Notifications\RealTimeNotification;
@@ -210,6 +211,7 @@ class TicketController extends Controller
                 ->get();
 
         $departments = Department::query()->where('status', 1)->get();
+        $roles = Role::query()->where('status', 1)->where('id', '!=', 1)->get();
 
         $products  = DigitalProduct::query()->where('status', 1)->get();
 
@@ -219,7 +221,7 @@ class TicketController extends Controller
 
         $priority = '';
 
-        return view('admin.ticket.form', compact('tab', 'priority', 'services', 'products', 'developers', 'users', 'departments', 'cc_recipients'));
+        return view('admin.ticket.form', compact('tab', 'priority', 'services', 'products', 'developers', 'users', 'departments', 'cc_recipients', 'roles'));
     }
 
     /**
@@ -253,11 +255,16 @@ class TicketController extends Controller
         ]);
 
         try {
+            $user = User::find($request->user_id);
+            $name = $user?->name ?? null;
+            $email = $user?->email ?? null;
 
             $ticket = Ticket::create([
                 'ticket_number'    => 'TCK-' . strtoupper(Str::random(6)),
                 'datetime'         => now(),
                 'user_id'          => $request->user_id,
+                'name'             => $name,
+                'email'            => $email,
                 'cc_recipients'    => $request->cc_recipients ? json_encode($request->cc_recipients) : null,
 
                 'ticket_notice'    => $request->ticket_notice,
@@ -269,13 +276,31 @@ class TicketController extends Controller
                 'assign_id'        => $request->assign_id,
                 'canned_response'  => $request->canned_response,
 
-                'description'      => $request->description,
-                'internal_note'    => $request->internal_note,
                 'signature_option' => $request->signature_option,
 
                 'status'           => 'pending',
                 'ticket_status'    => $request->ticket_status ?? 'open',
             ]);
+
+            if ($request->description) {
+                Note::create([
+                    'ref_id'   => $ticket->id,
+                    'ref_type' => 'description',
+                    'datetime' => now(),
+                    'text'     => $request->description,
+                    'user_id'  => Auth::id(),
+                ]);
+            }
+
+            if ($request->internal_note) {
+                Note::create([
+                    'ref_id'   => $ticket->id,
+                    'ref_type' => 'internal_note',
+                    'datetime' => now(),
+                    'text'     => $request->internal_note,
+                    'user_id'  => Auth::id(),
+                ]);
+            }
 
             // if ($request->hasFile('attachments')) {
             //     $attachmentPaths = [];
@@ -343,7 +368,7 @@ class TicketController extends Controller
     {
         view()->share('action', 'View');
 
-        $ticket = Ticket::find(decrypt($id));
+        $ticket = Ticket::with(['descriptionNote', 'internalNoteRelation'])->find(decrypt($id));
 
         $orderItems_product = OrderItem::query()->where('order_id', $ticket->order_id)->where('product_type', 'product')->pluck('product_id')->toArray();
         $orderItems_service = OrderItem::query()->where('order_id', $ticket->order_id)->where('product_type', 'service')->pluck('product_id')->toArray();
@@ -373,7 +398,8 @@ class TicketController extends Controller
                 })
                 ->get();
 
-        $departments = Role::query()->where('slug', '!=', 'super-admin')->where('status', 1)->get();
+        $departments = Department::query()->where('status', 1)->get();
+        $roles = Role::query()->where('status', 1)->where('id', '!=', 1)->get();
 
         $products = DigitalProduct::query()->where('status', 1)
         ->when((!empty($ticket->order_id) && !empty($orderItems_product)), function($q) use ($orderItems_product) {
@@ -405,7 +431,7 @@ class TicketController extends Controller
 
         $priority = '';
 
-        return view('admin.ticket.show', compact('tab', 'priority', 'tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments'));
+        return view('admin.ticket.show', compact('tab', 'priority', 'tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments', 'roles'));
     }
 
     /**
@@ -417,7 +443,15 @@ class TicketController extends Controller
 
         $tab = $request->input('tab', 'ticket-post-raplay');
 
-        $ticket = Ticket::with(['assign:id,name', 'department:id,name'])->find(decrypt($id));
+        $ticket = Ticket::with([
+            'assign:id,name',
+            'department:id,name',
+            'descriptionNote',
+            'internalNoteRelation',
+            'notes' => function($q) {
+                $q->with('user')->orderBy('datetime', 'asc');
+            }
+        ])->find(decrypt($id));
         // echo '<pre>';
         // print_r($ticket->toArray());
         // echo '</pre>';
@@ -450,7 +484,8 @@ class TicketController extends Controller
                 })
                 ->get();
 
-        $departments = Role::query()->where('slug', '!=', 'super-admin')->where('status', 1)->get();
+        $departments = Department::query()->where('status', 1)->get();
+        $roles = Role::query()->where('status', 1)->where('id', '!=', 1)->get();
 
         $products = DigitalProduct::query()->where('status', 1)
         ->when((!empty($ticket->order_id) && !empty($orderItems_product)), function($q) use ($orderItems_product) {
@@ -482,7 +517,7 @@ class TicketController extends Controller
 
         $chats = Chat::query()->where('ticket_id', decrypt($id))->get();
 
-        return view('admin.ticket.edit', compact('tab', 'tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments'));
+        return view('admin.ticket.edit', compact('tab', 'tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments', 'roles'));
     }
 
     /**
@@ -493,17 +528,25 @@ class TicketController extends Controller
 
         $validatedData = $request->validate([
             'user_id'              => 'required|integer|exists:users,id',
-            'name'                 => 'nullable|string|max:255',
-            'email'                => 'required|email|max:255',
-            'send_email'           => 'nullable|boolean',
             'cc_recipients'        => 'nullable|array',
             'cc_recipients.*'      => 'email',
-            'subject'              => 'required|string|max:255',
-            'department_id'        => 'required|integer',
-            'assign_id'            => 'required|integer',
+            'ticket_notice'        => 'nullable|string',
+            'ticket_source'        => 'required|string|in:phone,email,other',
+            'help_topic'           => 'required|string',
+            'department_id'        => 'nullable|integer',
+            'sla_plan'             => 'nullable|string',
+            'due_date'             => 'nullable|date',
+            'assign_id'            => 'nullable|integer',
             'priority'             => 'required|string|in:High,Medium,Low',
+            'canned_response'      => 'nullable|string',
             'description'          => 'required|string',
-            'note'                 => 'nullable|string',
+            'ticket_status'        => 'nullable|string|in:open,resolved,closed',
+            'signature_option'     => 'nullable|string',
+            'internal_note'        => 'nullable|string',
+
+            'name'                 => 'nullable|string|max:255',
+            'email'                => 'nullable|email|max:255',
+            'subject'              => 'nullable|string|max:255',
             'attachments'          => 'nullable|array|max:10',
             'attachments.*'        => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
             'existing_attachments' => 'nullable|array',
@@ -559,20 +602,54 @@ class TicketController extends Controller
                 }
             }
 
-            $ticket->update([
-                'user_id'       => $request->user_id,
-                'name'          => $request->name,
-                'email'         => $request->email,
-                'cc_recipients' => $request->cc_recipients ? json_encode($request->cc_recipients) : null,
-                'subject'       => $request->subject,
-                'department_id' => $request->department_id,
-                'assign_id'     => $request->assign_id,
-                'priority'      => $request->priority,
-                'description'   => $request->description,
-                'note'          => $request->note,
+            $user = User::find($request->user_id);
+            $name = $request->name ?? ($user?->name ?? null);
+            $email = $request->email ?? ($user?->email ?? null);
 
-                'attachments'   => !empty($allActiveFiles) ? json_encode(array_values($allActiveFiles)) : null
+            $ticket->update([
+                'user_id'          => $request->user_id,
+                'name'             => $name,
+                'email'            => $email,
+                'cc_recipients'    => $request->cc_recipients ? json_encode($request->cc_recipients) : null,
+                'subject'          => $request->subject ?? $ticket->subject,
+                'ticket_notice'    => $request->ticket_notice,
+                'ticket_source'    => $request->ticket_source,
+                'help_topic'       => $request->help_topic,
+                'department_id'    => $request->department_id,
+                'sla_plan'         => $request->sla_plan,
+                'due_date'         => $request->due_date,
+                'assign_id'        => $request->assign_id,
+                'priority'         => $request->priority,
+                'canned_response'  => $request->canned_response,
+                'ticket_status'    => $request->ticket_status ?? 'open',
+                'signature_option' => $request->signature_option,
+
+                'attachments'      => !empty($allActiveFiles) ? json_encode(array_values($allActiveFiles)) : null
             ]);
+
+            // Save/Update description in notes table
+            Note::updateOrCreate(
+                ['ref_id' => $ticket->id, 'ref_type' => 'description'],
+                [
+                    'datetime' => now(),
+                    'text'     => $request->description,
+                    'user_id'  => Auth::id(),
+                ]
+            );
+
+            // Save/Update internal_note in notes table
+            if ($request->internal_note) {
+                Note::updateOrCreate(
+                    ['ref_id' => $ticket->id, 'ref_type' => 'internal_note'],
+                    [
+                        'datetime' => now(),
+                        'text'     => $request->internal_note,
+                        'user_id'  => Auth::id(),
+                    ]
+                );
+            } else {
+                Note::where('ref_id', $ticket->id)->where('ref_type', 'internal_note')->delete();
+            }
 
             $taskIds      = $request->input('task_id', []);
             $productTypes = $request->input('product_type', []);
@@ -711,8 +788,61 @@ class TicketController extends Controller
 
         } catch (\Exception $e) {
             return response()->json([
-                'status'  => 'error',
-                'message' => $e->getMessage()
+                'status' => 'error',
+                'message' => 'Unauthorized action.'
+            ], 403);
+        }
+    }
+
+    /**
+     * Store a new user created via AJAX popup.
+     */
+    public function storeUser(Request $request)
+    {
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'role_id' => 'required|exists:roles,id',
+            'department_id' => 'nullable|exists:departments,id',
+        ]);
+
+        try {
+            $validatedData['password'] = Hash::make('12345678');
+            $validatedData['status'] = 1;
+            $validatedData['is_user'] = 1;
+
+            $roleId = $validatedData['role_id'];
+            unset($validatedData['role_id']);
+            unset($validatedData['department_id']);
+
+            $user = User::create($validatedData);
+
+            if ($user && !empty($roleId)) {
+                UserRole::create([
+                    'user_id' => $user->id,
+                    'role_id' => $roleId,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User created successfully.',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('AJAX User Store Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create user: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -1046,5 +1176,79 @@ class TicketController extends Controller
             'status' => 'error',
             'message' => 'Unauthorized action.'
         ], 403);
+    }
+
+    /**
+     * Store a reply (public note) for the ticket.
+     */
+    public function storeReply(Request $request, string $id)
+    {
+        $ticketId = decrypt($id);
+        $ticket = Ticket::findOrFail($ticketId);
+
+        $request->validate([
+            'description' => 'required|string',
+            'ticket_status' => 'nullable|string|in:open,resolved,closed',
+        ]);
+
+        try {
+            Note::create([
+                'ref_id' => $ticket->id,
+                'ref_type' => 'reply',
+                'datetime' => now(),
+                'text' => $request->description,
+                'user_id' => Auth::id(),
+            ]);
+
+            if ($request->ticket_status) {
+                $ticket->update(['ticket_status' => $request->ticket_status]);
+            }
+
+            return redirect()->back()->with('success', 'Reply posted successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Store Reply Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return redirect()->back()->with('error', 'Failed to post reply. Please try again.');
+        }
+    }
+
+    /**
+     * Store an internal note for the ticket.
+     */
+    public function storeInternalNote(Request $request, string $id)
+    {
+        $ticketId = decrypt($id);
+        $ticket = Ticket::findOrFail($ticketId);
+
+        $request->validate([
+            'internal_note' => 'required|string',
+            'ticket_status' => 'nullable|string|in:open,resolved,closed',
+        ]);
+
+        try {
+            Note::create([
+                'ref_id' => $ticket->id,
+                'ref_type' => 'internal_note',
+                'datetime' => now(),
+                'text' => $request->internal_note,
+                'user_id' => Auth::id(),
+            ]);
+
+            if ($request->ticket_status) {
+                $ticket->update(['ticket_status' => $request->ticket_status]);
+            }
+
+            return redirect()->back()->with('success', 'Internal note posted successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Store Internal Note Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return redirect()->back()->with('error', 'Failed to post internal note. Please try again.');
+        }
     }
 }

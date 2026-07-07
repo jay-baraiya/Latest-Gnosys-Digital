@@ -34,12 +34,37 @@ class Ticket extends Model
     }
 
     public function department() {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Department::class);
     }
 
     public function assign()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function notes()
+    {
+        return $this->hasMany(Note::class, 'ref_id');
+    }
+
+    public function descriptionNote()
+    {
+        return $this->hasOne(Note::class, 'ref_id')->where('ref_type', 'description');
+    }
+
+    public function internalNoteRelation()
+    {
+        return $this->hasOne(Note::class, 'ref_id')->where('ref_type', 'internal_note');
+    }
+
+    public function getDescriptionAttribute()
+    {
+        return $this->descriptionNote?->text;
+    }
+
+    public function getInternalNoteAttribute()
+    {
+        return $this->internalNoteRelation?->text;
     }
 
 }

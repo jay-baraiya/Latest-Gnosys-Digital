@@ -169,6 +169,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('/tickets/get-chats', [TicketController::class, 'getChats'])->name('tickets.get.chats');
     Route::post('/tickets/delete-chat', [TicketController::class, 'deleteChat'])->name('tickets.delete.chat');
     Route::post('/tickets/update-chat-message', [TicketController::class, 'updateChatMessage'])->name('tickets.update.chat.message');
+    Route::post('/tickets/store-user', [TicketController::class, 'storeUser'])->name('tickets.storeUser');
+    Route::post('/tickets/{id}/store-reply', [TicketController::class, 'storeReply'])->name('tickets.storeReply');
+    Route::post('/tickets/{id}/store-internal-note', [TicketController::class, 'storeInternalNote'])->name('tickets.storeInternalNote');
 });
 
 
