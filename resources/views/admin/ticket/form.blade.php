@@ -28,8 +28,8 @@
                         required: true
                     },
                     "cc_recipients[]": {
-                        required: true
-                    }, 
+                        required: false
+                    },
                     ticket_source: {
                         required: true
                     },
@@ -188,6 +188,34 @@
                 $('#ticket-internal-note-input').val(html);
 
                 validator.element('#ticket-internal-note-input');
+            });
+
+            var quillBody = new Quill('#ticket-description-editor-body', {
+                theme: 'snow',
+                readOnly: '{{ !empty($disabled) ? 'true' : '' }}',
+                placeholder: 'Detailed service description...',
+                modules: {
+                    toolbar: toolbarOptions,
+                    htmlEditButton: {
+                        debug: false,
+                        msg: "Edit the HTML below. Clicking 'Save' will update the editor.",
+                        okText: "Save",
+                        cancelText: "Cancel",
+                        buttonHTML: "&lt;&gt;",
+                        buttonTitle: "Show HTML source",
+                        syntax: false
+                    }
+                }
+            });
+
+            quillBody.on('text-change', function() {
+                var html = quillBody.root.innerHTML;
+                if (quillBody.getText().trim().length === 0) {
+                    html = '';
+                }
+                $('#ticket-description-input-body-hidden').val(html);
+
+                // validator.element('#description');
             });
 
         });

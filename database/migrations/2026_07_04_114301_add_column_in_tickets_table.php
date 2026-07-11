@@ -29,7 +29,9 @@ return new class extends Migration
         // 2. Have navi column ane relation properly add karo
         Schema::table('tickets', function (Blueprint $table) {
             $table->foreignId('department_id')->nullable()->constrained('departments')->onDelete('set null');
-            $table->string('ticket_notice')->nullable();
+            if (!Schema::hasColumn('tickets', 'ticket_notice')) {
+                $table->string('ticket_notice')->nullable();
+            }
             $table->string('ticket_source')->nullable();
             $table->string('help_topic')->nullable();
             $table->string('sla_plan')->nullable();

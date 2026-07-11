@@ -21,7 +21,7 @@
                             <i class="ti ti-ticket  me-2"></i>Edit
                         </a>
                     </li>
-                    <li class="nav-item me-3">
+                    {{-- <li class="nav-item me-3">
                         <a href="{{ $url }}?tab=task-form" data-tab="task-form"
                             class="nav-link custom-nav-link p-2 {{ $tab == 'task-form' ? 'active' : '' }}">
                             <i class="ti ti-list me-2"></i>Tasks
@@ -34,7 +34,7 @@
                             <i class="ti ti-messages me-2"></i>Chats
                         </a>
                     </li>
-                    @endif
+                    @endif --}}
                 </ul>
             </div>
         </div>
@@ -110,9 +110,13 @@
                                     <div class="col-4 fw-medium text-secondary">Department:</div>
                                     <div class="col-8 text-dark fw-semibold">{{ $ticket?->department?->name ?? 'None' }}</div>
                                 </div>
-                                <div class="row mb-0">
+                                <div class="row mb-2">
                                     <div class="col-4 fw-medium text-secondary">Create Date:</div>
                                     <div class="col-8 text-dark">{{ \Carbon\Carbon::parse($ticket->created_at)->format('d M Y, h:i A') }}</div>
+                                </div>
+                                <div class="row mb-0">
+                                    <div class="col-4 fw-medium text-secondary">Due Date:</div>
+                                    <div class="col-8 text-dark">{{ \Carbon\Carbon::parse($ticket->due_date)->format('d M Y, h:i A') }}</div>
                                 </div>
                             </div>
                         </div>
@@ -174,7 +178,7 @@
                                     <div class="col-4 fw-medium text-secondary">Assigned To:</div>
                                     <div class="col-8 text-dark fw-semibold">
                                         @if($ticket?->assign)
-                                            {{ $ticket->assign->name }} 
+                                            {{ $ticket->assign->name }}
                                             <span class="badge bg-light text-secondary border ms-1">{{ $ticket->assign->role?->name ?? 'Agent' }}</span>
                                         @else
                                             <span class="text-muted">Unassigned</span>
@@ -192,9 +196,26 @@
                     </div>
                 </div>
 
+                <div class="card shadow-none border mb-4">
+                    <div class="card-body p-3">
+                        <h6 class="fs-14 fw-bold mb-3 text-dark border-bottom pb-2">
+                            <i class="ti ti-user-check me-1 text-primary"></i> Ticket Thread
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                @if (!empty($ticket->body))
+                                {!! $ticket->body !!}
+                                @else
+                                Ticket Thread Not Found!
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 @if($ticket->description || $ticket->internal_note)
                     <div class="row g-3 mb-4">
-                        @if($ticket->description)
+                        {{-- @if($ticket->description)
                             <div class="col-12">
                                 <div class="card shadow-none border mb-0" style="background-color: #fafafa;">
                                     <div class="card-body p-3">
@@ -208,7 +229,7 @@
                                 </div>
                             </div>
                         @endif
-                        
+
                         @if($ticket->internal_note)
                             <div class="col-12">
                                 <div class="card shadow-none border mb-0" style="background-color: #fffbeb; border-color: #fef08a !important;">
@@ -222,7 +243,7 @@
                                     </div>
                                 </div>
                             </div>
-                        @endif
+                        @endif --}}
                     </div>
                 @endif
             </div>
@@ -241,13 +262,13 @@
                             @endphp
                             <div class="position-relative mb-4">
                                 <!-- Avatar icon on left of card -->
-                                <span class="position-absolute rounded-circle bg-light border border-2 d-flex align-items-center justify-content-center shadow-sm" 
+                                <span class="position-absolute rounded-circle bg-light border border-2 d-flex align-items-center justify-content-center shadow-sm"
                                       style="left: -3.2rem; top: 0.5rem; width: 2.5rem; height: 2.5rem; border-color: #dee2e6 !important;">
                                     <i class="ti ti-user fs-16 text-muted"></i>
                                 </span>
 
                                 <div class="card border mb-0 shadow-sm" style="border-color: {{ $borderColor }} !important;">
-                                    <div class="card-header d-flex justify-content-between align-items-center py-2 px-3 border-bottom" 
+                                    <div class="card-header d-flex justify-content-between align-items-center py-2 px-3 border-bottom"
                                          style="background-color: {{ $headerBg }}; border-color: {{ $borderColor }} !important;">
                                         <div class="d-flex align-items-center flex-wrap gap-1">
                                             <span class="fw-bold text-dark me-1">{{ $note->user?->name ?? 'System' }}</span>
@@ -257,14 +278,14 @@
                                                 <span class="text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded px-2 py-0.5 ms-2" style="font-size: 11px;">internal</span>
                                             @endif
                                         </div>
-                                        <div class="dropdown">
+                                        {{-- <div class="dropdown">
                                             <button class="btn btn-sm btn-icon btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <i class="ti ti-chevron-down fs-15"></i>
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end">
                                                 <li><a class="dropdown-item" href="#">View Details</a></li>
                                             </ul>
-                                        </div>
+                                        </div> --}}
                                     </div>
                                     <div class="card-body p-3 bg-white">
                                         <div class="note-text text-dark fs-14">
@@ -335,8 +356,10 @@
                 <div class="row mb-3 align-items-center">
                     <label for="reply_canned_response" class="col-md-2 col-form-label fw-bold text-dark">Response:</label>
                     <div class="col-md-5">
-                        <select class="form-select" name="canned_response" id="reply_canned_response">
+                        <select class="form-select addSelect2" name="canned_response" id="reply_canned_response">
                             <option value="">Select a canned response</option>
+                            <option value="original_message">Original Message</option>
+                            <option value="last_message">Last Message</option>
                         </select>
                     </div>
                 </div>
@@ -344,12 +367,12 @@
                 <div class="row mb-3">
                     <div class="col-md-12">
                         <div class="mb-3">
-                            <label class="form-label" for="reply-description-input">Description <span class="text-danger">*</span></label>
+                            <label class="form-label" for="reply-description-input">Response Description <span class="text-danger">*</span></label>
 
                             <input type="hidden" name="description" id="reply-description-input"
-                                value="{{ old('description', $ticket->description ?? '') }}">
+                                value="">
 
-                            <div class="reply-description-editor" id="reply-description-editor" style="height: 200px;">{!! old('description', $ticket->description ?? '') !!}</div>
+                            <div class="reply-description-editor" id="reply-description-editor" style="height: 200px;"></div>
 
                             @error('description')
                             <span class="text-danger small mt-1 d-block">{{ $message }}</span>
@@ -376,9 +399,9 @@
                     <label for="reply_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Ticket Status:</label>
                     <div class="col-md-3">
                         <select class="form-select" name="ticket_status" id="reply_ticket_status">
-                            <option value="open">Open (current)</option>
-                            <option value="closed">Closed</option>
-                            <option value="resolved">Resolved</option>
+                            <option value="open" {{ $ticket->ticket_status == 'open' ? 'selected' : '' }}>Open (current)</option>
+                            <option value="closed" {{ $ticket->ticket_status == 'closed' ? 'selected' : '' }}>Closed</option>
+                            <option value="resolved" {{ $ticket->ticket_status == 'resolved' ? 'selected' : '' }}>Resolved</option>
                         </select>
                     </div>
                 </div>
@@ -405,9 +428,9 @@
                         <div class="col-md-12">
                             <div class="mb-3">
                                 <input type="hidden" name="internal_note" id="reply-internal-note-input"
-                                    value="{{ old('internal_note', $ticket->internal_note ?? '') }}">
+                                    value="">
 
-                                <div class="reply-internal-note-editor" id="reply-internal-note-editor" style="height: 200px;">{!! old('internal_note', $ticket->internal_note ?? '') !!}
+                                <div class="reply-internal-note-editor" id="reply-internal-note-editor" style="height: 200px;">
                                 </div>
 
                                 @error('description')

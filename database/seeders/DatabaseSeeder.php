@@ -23,7 +23,8 @@ class DatabaseSeeder extends Seeder
             CustomFieldTypeSeeder::class,
             DesignationSeeder::class,
             UserSeeder::class,
-            SettingSeeder::class
+            SettingSeeder::class,
+            DepartmentSeeder::class
         ]);
     }
 }

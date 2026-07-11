@@ -207,6 +207,25 @@
         </div>
     </div>
 
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="mb-3">
+                <label class="form-label" for="ticket-description-input-body-hidden">Body <span class="text-danger">*</span></label>
+
+                <input type="hidden" name="body" id="ticket-description-input-body-hidden"
+                    value="{{ old('body', $ticket?->body ?? '') }}">
+
+                <div class="ticket-description-editor-body" id="ticket-description-editor-body" style="height: 200px;">{!! old('body', $ticket?->body ?? '') !!}</div>
+
+                @error('body')
+                <span class="text-danger small mt-1 d-block">{{ $message }}</span>
+                @enderror
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
     <div
         class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 bg-light p-2 border-bottom border-top">
         <h5 class="mb-0 fs-16 fw-bold d-inline-flex items-center">
@@ -236,7 +255,7 @@
     <div class="row mb-3">
         <div class="col-md-12">
             <div class="mb-3">
-                <label class="form-label" for="ticket-description-input">Description <span class="text-danger">*</span></label>
+                <label class="form-label" for="ticket-description-input">Response Description <span class="text-danger">*</span></label>
 
                 <input type="hidden" name="description" id="ticket-description-input"
                     value="{{ old('description', $ticket?->description ?? '') }}">

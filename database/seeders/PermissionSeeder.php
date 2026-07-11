@@ -427,6 +427,48 @@ class PermissionSeeder extends Seeder
                 'description' => 'Restore Departments',
                 'status' => 1,
             ],
+
+            // Tasks
+            [
+                'id' => 50,
+                'name' => 'Create',
+                'module' => 'Tasks',
+                'slug' => 'create.tasks',
+                'description' => 'Create Tasks',
+                'status' => 1,
+            ],
+            [
+                'id' => 51,
+                'name' => 'View',
+                'module' => 'Tasks',
+                'slug' => 'view.tasks',
+                'description' => 'View Tasks',
+                'status' => 1,
+            ],
+            [
+                'id' => 52,
+                'name' => 'Edit',
+                'module' => 'Tasks',
+                'slug' => 'edit.tasks',
+                'description' => 'Edit Tasks',
+                'status' => 1,
+            ],
+            [
+                'id' => 53,
+                'name' => 'Delete',
+                'module' => 'Tasks',
+                'slug' => 'delete.tasks',
+                'description' => 'Delete Tasks',
+                'status' => 1,
+            ],
+            [
+                'id' => 54,
+                'name' => 'Restore',
+                'module' => 'Tasks',
+                'slug' => 'restore.tasks',
+                'description' => 'Restore Tasks',
+                'status' => 1,
+            ],
         ];
 
         foreach ($permissions as $permission) {

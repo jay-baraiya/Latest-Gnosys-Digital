@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\DigitalServiceController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\ProfileController as UserProfileController;
 use App\Http\Controllers\Admin\UserController;
@@ -71,7 +72,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
 
     Route::resource('settings', SettingController::class)->names('settings');
     Route::post('settings/store-website-settings', [SettingController::class, 'storeWebsiteSetting'])->name('settings.storeWebsiteSetting');
-
 
     /* users */
     Route::resource('users', UserController::class)->names('users');
@@ -172,6 +172,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('/tickets/store-user', [TicketController::class, 'storeUser'])->name('tickets.storeUser');
     Route::post('/tickets/{id}/store-reply', [TicketController::class, 'storeReply'])->name('tickets.storeReply');
     Route::post('/tickets/{id}/store-internal-note', [TicketController::class, 'storeInternalNote'])->name('tickets.storeInternalNote');
+
+    Route::resource('tasks', TaskController::class)->names('tasks');
+    Route::post('tasks/get-data', [TaskController::class, 'getData'])->name('tasks.getData');
+    Route::post('tasks/restore/{id}', [TaskController::class, 'restore'])->name('tasks.restore');
+    Route::post('tasks/update-status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
+    Route::post('tasks/check-email', [TaskController::class, 'checkEmail'])->name('tasks.check.email');
+    Route::post('tasks/check-phone', [TaskController::class, 'checkPhone'])->name('tasks.check.phone');
+
 });
 
 

@@ -171,13 +171,27 @@
                 @endcan
 
                 @can('view.tickets')
-                    <li class="menu-title"><span>Task Management</span></li>
+                    <li class="menu-title"><span>Ticket Management</span></li>
                     <li>
                         <ul>
                             <li class="{{ request()->routeIs('admin.tickets.*') ? 'active' : '' }}">
                                 <a href="{{ route('admin.tickets.index') }}">
                                     <i class="ti ti-category"></i>
                                     <span>Tickets</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endcan
+
+                @can('view.tasks')
+                    <li class="menu-title"><span>Task Management</span></li>
+                    <li>
+                        <ul>
+                            <li class="{{ request()->routeIs('admin.tasks.*') ? 'active' : '' }}">
+                                <a href="{{ route('admin.tasks.index') }}">
+                                    <i class="ti ti-category"></i>
+                                    <span>Task</span>
                                 </a>
                             </li>
                         </ul>

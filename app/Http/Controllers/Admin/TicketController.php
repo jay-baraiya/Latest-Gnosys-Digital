@@ -265,6 +265,7 @@ class TicketController extends Controller
                 'user_id'          => $request->user_id,
                 'name'             => $name,
                 'email'            => $email,
+                'body'            => $request->body,
                 'cc_recipients'    => $request->cc_recipients ? json_encode($request->cc_recipients) : null,
 
                 'ticket_notice'    => $request->ticket_notice,
@@ -610,6 +611,7 @@ class TicketController extends Controller
                 'user_id'          => $request->user_id,
                 'name'             => $name,
                 'email'            => $email,
+                'body'            => $request->body,
                 'cc_recipients'    => $request->cc_recipients ? json_encode($request->cc_recipients) : null,
                 'subject'          => $request->subject ?? $ticket->subject,
                 'ticket_notice'    => $request->ticket_notice,
