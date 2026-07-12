@@ -1,12 +1,12 @@
 <x-master-layout>
     <x-form-wrapper action="{{ isset($action) ? $action : (isset($task) ? 'Edit' : 'Create') }}">
+        <div class="mb-3">
+            <h5 class="mb-0 fs-16 fw-bold">Ticket <span class="text-primary">#{{ $ticket->ticket_number }}</span> - {{ isset($action) ? $action : (isset($task) ? 'Edit' : 'Create') }} Task</h5>
+        </div>
         <form id="taskForm"
-            action="{{ !empty($task) ? route('admin.tasks.update', encrypt($task->id)) : route('admin.tasks.store') }}" method="post"
+            action="{{ !empty($task) ? route('admin.tickets.tasks.update', ['id' => encrypt($ticket->id), 'taskId' => encrypt($task->id)]) : route('admin.tickets.tasks.store', encrypt($ticket->id)) }}" method="post"
             enctype="multipart/form-data">
             @csrf
-            @if (!empty($task))
-                @method('PUT')
-            @endif
 
             @php
                 if (empty($task_number) && isset($task_number)) {
@@ -50,7 +50,7 @@
                                     <option value="">Select Product...</option>
                                     @if (!empty($products))
                                         @foreach ($products as $product)
-                                            <option value="{{ $product->id }}" {{ old('product_id', $task->order_item_id ?? '') == $product->id ? 'selected' : '' }}>{{ $product->name }}</option>
+                                            <option value="{{ $product->id }}" {{ old('product_id', $task->product_id ?? '') == $product->id ? 'selected' : '' }}>{{ $product->name }}</option>
                                         @endforeach
                                     @endif
                                 </select>
@@ -66,7 +66,7 @@
                                     <option value="">Select Service...</option>
                                     @if (!empty($services))
                                         @foreach ($services as $service)
-                                            <option value="{{ $service->id }}" {{ old('service_id', $task->order_item_id ?? '') == $service->id ? 'selected' : '' }}>{{ $service->name }}</option>
+                                            <option value="{{ $service->id }}" {{ old('service_id', $task->product_id ?? '') == $service->id ? 'selected' : '' }}>{{ $service->name }}</option>
                                         @endforeach
                                     @endif
                                 </select>
@@ -93,7 +93,7 @@
                         <label class="form-label" for="task_number">Task Number <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
                             <input type="text" class="form-control" name="task_number" id="task_number" placeholder="Task Number"
-                                value="{{ !empty($task_number) ? $task_number : ''  }}" readonly>
+                                value="{{ !empty($task_number) ? $task_number : ($task->task_number ?? '')  }}" readonly>
                         </div>
                         @error('task_number')
                             <span class="text-danger small">{{ $message }}</span>
@@ -103,21 +103,10 @@
 
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <label class="form-label" for="ticket_id">Ticket No.</label>
-                        <select class="form-select addSelect2 select2" name="ticket_id" id="ticket_id">
-                            <option value="">Select Ticket</option>
-                            @if (isset($tickets) && count($tickets) > 0)
-                                @foreach ($tickets as $ticket)
-                                    <option value="{{ $ticket->id }}"
-                                        {{ old('ticket_id', $task->ticket_id ?? '') == $ticket->id ? 'selected' : '' }}>
-                                        {{ $ticket->ticket_number }}
-                                    </option>
-                                @endforeach
-                            @endif
-                        </select>
-                        @error('ticket_id')
-                            <span class="text-danger small">{{ $message }}</span>
-                        @enderror
+                        <label class="form-label" for="user_id">Ticket No.</label>
+                        <div class="input-group mb-1">
+                            <input type="text" class="form-control bg-light" value="{{ $ticket->ticket_number }}" readonly>
+                        </div>
                     </div>
                 </div>
 
@@ -156,7 +145,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label" for="department_id">Department <span class="text-danger">*</span></label>
-                        <select class="form-select select2 addSelect2" name="department_id" id="department_id">
+                        <select class="form-select select2" name="department_id" id="department_id">
                             <option value="">Select Department</option>
                             @if (isset($departments) && count($departments) > 0)
                                 @foreach ($departments as $department)
@@ -180,12 +169,9 @@
                         <select class="form-select select2" name="status" id="status">
                             <option value="">Select Status</option>
                             <option value="pending" {{ $currentStatus == 'pending' ? 'selected' : '' }}>Pending</option>
-                            {{-- <option value="assign_requested" {{ $currentStatus == 'assign_requested' ? 'selected' : '' }}>Assign Requested</option> --}}
                             <option value="assigned" {{ $currentStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                            {{-- <option value="assign_not_accepted" {{ $currentStatus == 'assign_not_accepted' ? 'selected' : '' }}>Assign Not Accepted</option> --}}
                             <option value="in_progress" {{ $currentStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                             <option value="completed" {{ $currentStatus == 'completed' ? 'selected' : '' }}>Completed</option>
-                            {{-- <option value="cancel_requested" {{ $currentStatus == 'cancel_requested' ? 'selected' : '' }}>Cancel Requested</option> --}}
                             <option value="cancelled" {{ $currentStatus == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                             <option value="refund" {{ $currentStatus == 'refund' ? 'selected' : '' }}>Refund</option>
                         </select>
@@ -208,11 +194,8 @@
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label class="form-label" for="description">Description <span class="text-danger">*</span></label>
-
-                        <input type="hidden" name="description" id="description" value="{{ old('description', $digitalservice->description ?? '') }}">
-
-                        <div id="quill-editor" style="height: 200px;">{!! old('description', $digitalservice->description ?? '') !!}</div>
-
+                        <input type="hidden" name="description" id="description" value="{{ old('description', $task->description ?? '') }}">
+                        <div id="quill-editor" style="height: 200px;">{!! old('description', $task->description ?? '') !!}</div>
                         @error('description')
                             <span class="text-danger small mt-1 d-block">{{ $message }}</span>
                         @enderror
@@ -224,7 +207,7 @@
             <hr>
 
             <div class="text-end mt-3">
-                <a href="{{ route($moduleUrl ?? 'admin.tasks.index') }}" class="btn btn-soft-light">Cancel</a>
+                <a href="{{ route('admin.tickets.edit', encrypt($ticket->id) . '?tab=task-form') }}" class="btn btn-soft-light">Cancel</a>
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
         </form>
@@ -290,7 +273,6 @@
                     }
 
                     $('input[name="product_type"]').val($(this).data('type'));
-
                 });
 
                 function toggleCancelReason() {
@@ -299,7 +281,6 @@
                         $('#cancel_reason_section').slideDown();
                     } else {
                         $('#cancel_reason_section').slideUp();
-                        // $('#cancel_reason').val('');
                     }
                 }
 
@@ -309,7 +290,7 @@
                 $('#user_id').select2({ placeholder: 'Select a user', allowClear: true });
                 $('#status').select2({ placeholder: 'Select a status', allowClear: true });
                 $('#assign_id').select2({ placeholder: 'Select a user', allowClear: true });
-
+                $('#department_id').select2({ placeholder: 'Select a department', allowClear: true });
                 $('#product_id').select2({ placeholder: 'Select a product', allowClear: true });
                 $('#service_id').select2({ placeholder: 'Select a service', allowClear: true });
 
@@ -318,48 +299,35 @@
                     $(this).valid();
                 });
 
-                $('#user_id, #developer_id').on('change', function() {
-                    $(this).valid();
-                });
-
                 $('#service_id').on('change', function() {
                     let serviceId = $(this).val();
                     let variantSelect = $('#service_variant_id');
                     let variantSection = $('#service_variant_section');
 
-                    // Reset the variant dropdown
                     variantSelect.html('<option value="">Select Variant...</option>');
 
                     if (serviceId) {
-                        // Show loading text while fetching
                         variantSelect.html('<option value="">Loading variants...</option>');
                         variantSection.show();
 
                         $.ajax({
-                            // Ensure this script is inside a blade file for the route() helper to work
                             url: "{{ route('admin.tickets.get.service.variant') }}",
                             type: "POST",
                             data: {
                                 service_id: serviceId,
-                                // variant_id: variantId
                             },
                             success: function(response) {
                                 if (response.success === 1 && response.variants.length > 0) {
                                     $('input[name="is_variant"]').val(1);
                                     let options = '<option value="">Select Variant...</option>';
 
-                                    // Loop through returned variants and append to options string
                                     $.each(response.variants, function(index, variant) {
-                                        // Assuming your variants table has 'id' and 'name' columns.
-                                        // Adjust 'variant.name' if your column is called something else (e.g., 'title')
                                         var selected = variantId == variant.id ? 'selected' : '';
                                         options += `<option value="${variant.id}" ${selected} >${variant.name}</option>`;
                                     });
 
                                     variantSelect.html(options);
                                 } else {
-                                    console.log('test');
-
                                     $('input[name="is_variant"]').val(0);
                                     variantSelect.html('<option value="">No variants found</option>');
                                 }
@@ -382,13 +350,8 @@
 
                 var validator = $('#taskForm').validate({
                     rules: {
-                        title: {
-                            required: true
-                        },
-                        task_number: {
-                            required: true,
-                            maxlength: 255
-                        },
+                        title: { required: true },
+                        task_number: { required: true, maxlength: 255 },
                         product_id: {
                             required: function(element) {
                                 return $('input[name="product_type"]').val() === 'product';
@@ -404,12 +367,9 @@
                                 return $('input[name="is_variant"]').val() == 1 ? true : false;
                             }
                         },
-                        assign_id: {
-                            required: true
-                        },
-                        status: {
-                            required: true
-                        },
+                        assign_id: { required: true },
+                        department_id: { required: true },
+                        status: { required: true },
                         cancel_reason: {
                             required: function(element) {
                                 let st = $('#status').val();
@@ -419,9 +379,12 @@
                         description: { required: true },
                     },
                     messages: {
+                        title: { required: "Please enter a title." },
                         task_number: { required: "Please enter a ticket number." },
                         product_id: { required: "Please select a product." },
                         service_id: { required: "Please select a service." },
+                        assign_id: { required: "Please select a user." },
+                        department_id: { required: "Please select a department." },
                         status: { required: "Please select a status." },
                         cancel_reason: { required: "Please provide a reason for cancellation." },
                         description: { required: "Please provide a detailed description." },
@@ -481,7 +444,7 @@
 
                 var quill = new Quill('#quill-editor', {
                     theme: 'snow',
-                    placeholder: 'Detailed service description...',
+                    placeholder: 'Detailed description...',
                     modules: {
                         toolbar: toolbarOptions,
 

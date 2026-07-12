@@ -21,7 +21,7 @@
                             <i class="ti ti-ticket  me-2"></i>Edit
                         </a>
                     </li>
-                    {{-- <li class="nav-item me-3">
+                    <li class="nav-item me-3">
                         <a href="{{ $url }}?tab=task-form" data-tab="task-form"
                             class="nav-link custom-nav-link p-2 {{ $tab == 'task-form' ? 'active' : '' }}">
                             <i class="ti ti-list me-2"></i>Tasks
@@ -34,7 +34,7 @@
                             <i class="ti ti-messages me-2"></i>Chats
                         </a>
                     </li>
-                    @endif --}}
+                    @endif
                 </ul>
             </div>
         </div>
@@ -51,7 +51,7 @@
         </div>
 
         @if (isset($ticket))
-        <div class="row tabHide" id="ticket-post-raplay">
+        <div class="row tabHide" id="ticket-post-raplay" style="display: {{ $tab == 'ticket-post-raplay' ? 'block' : 'none' }}">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <h5 class="mb-0 fs-16 fw-bold d-inline-flex items-center">
                     <span class="line-title d-block me-2"></span>
@@ -276,6 +276,9 @@
                                             <span class="text-secondary-emphasis fw-medium">{{ \Carbon\Carbon::parse($note->datetime)->format('m/d/y g:i A') }}</span>
                                             @if($isInternal)
                                                 <span class="text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded px-2 py-0.5 ms-2" style="font-size: 11px;">internal</span>
+                                                @if(!empty($note->title))
+                                                    <span class="ms-2 fw-semibold text-dark">{{ $note->title }}</span>
+                                                @endif
                                             @endif
                                         </div>
                                         {{-- <div class="dropdown">
@@ -367,7 +370,7 @@
                 <div class="row mb-3">
                     <div class="col-md-12">
                         <div class="mb-3">
-                            <label class="form-label" for="reply-description-input">Response Description <span class="text-danger">*</span></label>
+                            <label class="form-label" for="reply-description-input">Response Description </label>
 
                             <input type="hidden" name="description" id="reply-description-input"
                                 value="">
@@ -399,9 +402,9 @@
                     <label for="reply_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Ticket Status:</label>
                     <div class="col-md-3">
                         <select class="form-select" name="ticket_status" id="reply_ticket_status">
-                            <option value="open" {{ $ticket->ticket_status == 'open' ? 'selected' : '' }}>Open (current)</option>
-                            <option value="closed" {{ $ticket->ticket_status == 'closed' ? 'selected' : '' }}>Closed</option>
-                            <option value="resolved" {{ $ticket->ticket_status == 'resolved' ? 'selected' : '' }}>Resolved</option>
+                            <option value="open" {{ $ticket->ticket_status == 'open' ? 'selected' : '' }}>Open {{ $ticket->ticket_status == 'open' ? '(current)' : '' }}</option>
+                            <option value="closed" {{ $ticket->ticket_status == 'closed' ? 'selected' : '' }}>Closed {{ $ticket->ticket_status == 'closed' ? '(current)' : '' }}</option>
+                            <option value="resolved" {{ $ticket->ticket_status == 'resolved' ? 'selected' : '' }}>Resolved {{ $ticket->ticket_status == 'resolved' ? '(current)' : '' }}</option>
                         </select>
                     </div>
                 </div>
@@ -433,9 +436,9 @@
                                 <div class="reply-internal-note-editor" id="reply-internal-note-editor" style="height: 200px;">
                                 </div>
 
-                                @error('description')
+                                {{-- @error('description')
                                 <span class="text-danger small mt-1 d-block">{{ $message }}</span>
-                                @enderror
+                                @enderror --}}
                             </div>
                         </div>
                     </div>
@@ -445,9 +448,9 @@
                     <label for="reply_internal_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Ticket Status:</label>
                     <div class="col-md-3">
                         <select class="form-select" name="ticket_status" id="reply_internal_ticket_status">
-                            <option value="open">Open (current)</option>
-                            <option value="closed">Closed</option>
-                            <option value="resolved">Resolved</option>
+                            <option value="open" {{ $ticket->ticket_status == 'open' ? 'selected' : '' }}>Open {{ $ticket->ticket_status == 'open' ? '(current)' : '' }}</option>
+                            <option value="closed" {{ $ticket->ticket_status == 'closed' ? 'selected' : '' }}>Closed {{ $ticket->ticket_status == 'closed' ? '(current)' : '' }}</option>
+                            <option value="resolved" {{ $ticket->ticket_status == 'resolved' ? 'selected' : '' }}>Resolved {{ $ticket->ticket_status == 'resolved' ? '(current)' : '' }}</option>
                         </select>
                     </div>
                 </div>
@@ -458,6 +461,67 @@
                     <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </form>
+        </div>
+        
+        <div class="row tabHide" id="task-form" style="display: {{ $tab == 'task-form' ? 'block' : 'none' }}">
+            <div class="card border-0 shadow-none">
+                <div class="card-header border-bottom bg-transparent py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fs-16 fw-bold">Tasks for this Ticket</h5>
+                    <a href="{{ route('admin.tickets.tasks.create', encrypt($ticket->id)) }}" class="btn btn-primary btn-sm">
+                        <i class="ti ti-plus me-1"></i> Add Task
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Task No</th>
+                                    <th>Title</th>
+                                    <th>Assignee</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (isset($tasks) && $tasks->count() > 0)
+                                    @foreach ($tasks as $taskItem)
+                                        <tr>
+                                            <td><span class="fw-medium text-primary">{{ $taskItem->task_number }}</span></td>
+                                            <td>{{ $taskItem->title ?? 'N/A' }}</td>
+                                            <td>{{ $taskItem->assign?->name ?? 'Unassigned' }}</td>
+                                            <td>{{ $taskItem->due_date ? \Carbon\Carbon::parse($taskItem->due_date)->format('d M Y') : 'N/A' }}</td>
+                                            <td>
+                                                <span class="badge {{ $taskItem->status == 'completed' ? 'bg-success' : 'bg-warning' }}">
+                                                    {{ ucfirst($taskItem->status) }}
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="d-inline-flex gap-1">
+                                                    <a href="{{ route('admin.tickets.tasks.edit', ['id' => encrypt($ticket->id), 'taskId' => encrypt($taskItem->id)]) }}" class="btn btn-sm btn-icon btn-soft-primary" title="Edit">
+                                                        <i class="ti ti-edit"></i>
+                                                    </a>
+                                                    <form action="{{ route('admin.tickets.tasks.delete', ['id' => encrypt($ticket->id), 'taskId' => encrypt($taskItem->id)]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this task?');">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-sm btn-icon btn-soft-danger" title="Delete">
+                                                            <i class="ti ti-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">No tasks found for this ticket.</td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
         @endif
     </x-form-wrapper>
@@ -518,9 +582,9 @@
                     help_topic: {
                         required: "Please select a help topic."
                     },
-                    description: {
-                        required: "Please enter the ticket description."
-                    }
+                    // description: {
+                    //     required: "Please enter the ticket description."
+                    // }
                 },
                 errorClass: 'text-danger small mt-1',
                 errorElement: 'span',
@@ -616,7 +680,7 @@
             $('#replyForm').validate({
                 ignore: ":hidden:not(#reply-description-input)",
                 rules: {
-                    description: { required: true }
+                    // description: { required: true }
                 },
                 messages: {
                     description: { required: "Please enter your reply." }
@@ -633,11 +697,11 @@
                     error.insertAfter(element.closest('.mb-3'));
                 },
                 submitHandler: function(form) {
-                    var html = quillTicketEdit.root.innerHTML;
-                    if (quillTicketEdit.getText().trim().length === 0) {
-                        html = '';
-                    }
-                    $('#reply-description-input').val(html);
+                    // var html = quillTicketEdit.root.innerHTML;
+                    // if (quillTicketEdit.getText().trim().length === 0) {
+                    //     html = '';
+                    // }
+                    // $('#reply-description-input').val(html);
                     form.submit();
                 }
             });
@@ -646,11 +710,11 @@
             $('#replyInternalForm').validate({
                 ignore: ":hidden:not(#reply-internal-note-input)",
                 rules: {
-                    internal_note: { required: true }
+                    // internal_note: { required: true }
                 },
-                messages: {
-                    internal_note: { required: "Please enter your internal note." }
-                },
+                // messages: {
+                //     internal_note: { required: "Please enter your internal note." }
+                // },
                 errorClass: 'text-danger small mt-1',
                 errorElement: 'span',
                 highlight: function(element) {
@@ -663,11 +727,11 @@
                     error.insertAfter(element.closest('.mb-3'));
                 },
                 submitHandler: function(form) {
-                    var html = quillInternalNoteEdit.root.innerHTML;
-                    if (quillInternalNoteEdit.getText().trim().length === 0) {
-                        html = '';
-                    }
-                    $('#reply-internal-note-input').val(html);
+                    // var html = quillInternalNoteEdit.root.innerHTML;
+                    // if (quillInternalNoteEdit.getText().trim().length === 0) {
+                    //     html = '';
+                    // }
+                    // $('#reply-internal-note-input').val(html);
                     form.submit();
                 }
             });

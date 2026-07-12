@@ -173,6 +173,9 @@
                                                 <span class="text-secondary-emphasis fw-medium">{{ \Carbon\Carbon::parse($note->datetime)->format('m/d/y g:i A') }}</span>
                                                 @if($isInternal)
                                                     <span class="text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded px-2 py-0.5 ms-2" style="font-size: 11px;">internal</span>
+                                                    @if(!empty($note->title))
+                                                        <span class="ms-2 fw-semibold text-dark">{{ $note->title }}</span>
+                                                    @endif
                                                 @endif
                                             </div>
                                             {{-- <div class="dropdown">
@@ -217,8 +220,8 @@
 
                 <hr>
 
-                <form class="ticket-post-raplay" id="replyForm"
-                    action="{{ route('admin.tickets.storeReply', encrypt($task->id)) }}"
+                <form class="ticket-post-raplay tabCustomHide" id="replyForm"
+                    action="{{ route('admin.tasks.storeReply', encrypt($task->id)) }}"
                     method="POST">
                     @csrf
 
@@ -243,15 +246,59 @@
                         <label for="reply_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Task Status:</label>
                         <div class="col-md-3">
                             <select class="form-select" name="ticket_status" id="reply_ticket_status">
-                                <option value="open" {{ $task->ticket_status == 'open' ? 'selected' : '' }}>Open (current)</option>
-                                <option value="closed" {{ $task->ticket_status == 'closed' ? 'selected' : '' }}>Closed</option>
-                                <option value="resolved" {{ $task->ticket_status == 'resolved' ? 'selected' : '' }}>Resolved</option>
+                                <option value="pending" {{ $task->status == 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="assigned" {{ $task->status == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                                <option value="in_progress" {{ $task->status == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                <option value="completed" {{ $task->status == 'completed' ? 'selected' : '' }}>Completed</option>
+                                <option value="cancelled" {{ $task->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                <option value="refund" {{ $task->status == 'refund' ? 'selected' : '' }}>Refund</option>
+                                <option value="on_hold" {{ $task->status == 'on_hold' ? 'selected' : '' }}>On Hold</option>
                             </select>
                         </div>
                     </div>
 
                     <hr>
 
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+
+                <form style="display: none;" class="ticket-post-internal-note tabCustomHide" id="replyInternalForm" action="{{ route('admin.tasks.storeInternalNote', encrypt($task->id)) }}" method="POST">
+                    @csrf
+                    <div class="row mb-3 align-items-center mt-3">
+                        <label for="from_email" class="col-md-2 col-form-label fw-bold text-dark">Internal Note:</label>
+                        <div class="col-md-5">
+                            <label>Note title - summary of the note (optional)</label>
+                            <input type="text" class="form-control" name="internal_note_title" value="">
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <input type="hidden" name="internal_note" id="reply-internal-note-input" value="">
+                                <div class="reply-internal-note-editor" id="reply-internal-note-editor" style="height: 200px;"></div>
+                                @error('internal_note')
+                                <span class="text-danger small mt-1 d-block">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-4 align-items-center">
+                        <label for="reply_internal_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Task Status:</label>
+                        <div class="col-md-3">
+                            <select class="form-select" name="ticket_status" id="reply_internal_ticket_status">
+                                <option value="pending" {{ $task->status == 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="assigned" {{ $task->status == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                                <option value="in_progress" {{ $task->status == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                <option value="completed" {{ $task->status == 'completed' ? 'selected' : '' }}>Completed</option>
+                                <option value="cancelled" {{ $task->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                <option value="refund" {{ $task->status == 'refund' ? 'selected' : '' }}>Refund</option>
+                                <option value="on_hold" {{ $task->status == 'on_hold' ? 'selected' : '' }}>On Hold</option>
+                            </select>
+                        </div>
+                    </div>
+                    <hr>
                     <div class="text-end mt-3">
                         <button type="submit" class="btn btn-primary">Save</button>
                     </div>
@@ -363,14 +410,14 @@
 
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label class="form-label" for="user_id">Ticket No. <span class="text-danger">*</span></label>
+                            <label class="form-label" for="ticket_id">Ticket No.</label>
                             <select class="form-select addSelect2 select2" name="ticket_id" id="ticket_id">
                                 <option value="">Select Ticket</option>
-                                @if (isset($tasks) && count($tasks) > 0)
-                                    @foreach ($tasks as $task)
-                                        <option value="{{ $task->id }}"
-                                            {{ old('ticket_id', $task->ticket_id ?? '') == $task->id ? 'selected' : '' }}>
-                                            {{ $task->ticket_number }}
+                                @if (isset($tickets) && count($tickets) > 0)
+                                    @foreach ($tickets as $t)
+                                        <option value="{{ $t->id }}"
+                                            {{ old('ticket_id', $task->ticket_id ?? '') == $t->id ? 'selected' : '' }}>
+                                            {{ $t->ticket_number }}
                                         </option>
                                     @endforeach
                                 @endif
@@ -523,7 +570,7 @@
                     $('#reply-description-input').val(html);
                 });
 
-                var quillInternalNote = new Quill('#ticket-internal-note-editor', {
+                var quillInternalNoteEdit = new Quill('#reply-internal-note-editor', {
                     theme: 'snow',
                     readOnly: {{ !empty($disabled) ? 'true' : 'false' }},
                     modules: {
@@ -531,10 +578,9 @@
                     }
                 });
 
-                quillInternalNote.on('text-change', function() {
-                    var html = quillInternalNote.root.innerHTML;
-                    $('#ticket-internal-note-input').val(html);
-                    validator.element('#ticket-internal-note-input');
+                quillInternalNoteEdit.on('text-change', function() {
+                    var html = quillInternalNoteEdit.root.innerHTML;
+                    $('#reply-internal-note-input').val(html);
                 });
 
                 $(document).on('click', '.custom-nav-link', function(e) {
@@ -727,13 +773,7 @@
                                 return $('input[name="is_variant"]').val() == 1 ? true : false;
                             }
                         },
-                        user_id: {
-                            required: true
-                        },
                         assign_id: {
-                            required: true
-                        },
-                        developer_id: {
                             required: true
                         },
                         status: {
@@ -751,8 +791,6 @@
                         task_number: { required: "Please enter a ticket number." },
                         product_id: { required: "Please select a product." },
                         service_id: { required: "Please select a service." },
-                        user_id: { required: "Please select a user." },
-                        developer_id: { required: "Please select a developer." },
                         status: { required: "Please select a status." },
                         cancel_reason: { required: "Please provide a reason for cancellation." },
                         description: { required: "Please provide a detailed description." },
@@ -836,6 +874,66 @@
                     $('#description').val(html);
 
                     validator.element('#description');
+                });
+
+                // Post Reply Form Validation
+                $('#replyForm').validate({
+                    ignore: ":hidden:not(#reply-description-input)",
+                    rules: {
+                        description: { required: true }
+                    },
+                    messages: {
+                        description: { required: "Please enter your reply." }
+                    },
+                    errorClass: 'text-danger small mt-1',
+                    errorElement: 'span',
+                    highlight: function(element) {
+                        $(element).addClass('is-invalid');
+                    },
+                    unhighlight: function(element) {
+                        $(element).removeClass('is-invalid');
+                    },
+                    errorPlacement: function(error, element) {
+                        error.insertAfter(element.closest('.mb-3'));
+                    },
+                    submitHandler: function(form) {
+                        var html = quillTicketEdit.root.innerHTML;
+                        if (quillTicketEdit.getText().trim().length === 0) {
+                            html = '';
+                        }
+                        $('#reply-description-input').val(html);
+                        form.submit();
+                    }
+                });
+
+                // Post Internal Note Form Validation
+                $('#replyInternalForm').validate({
+                    ignore: ":hidden:not(#reply-internal-note-input)",
+                    rules: {
+                        internal_note: { required: true }
+                    },
+                    messages: {
+                        internal_note: { required: "Please enter your internal note." }
+                    },
+                    errorClass: 'text-danger small mt-1',
+                    errorElement: 'span',
+                    highlight: function(element) {
+                        $(element).addClass('is-invalid');
+                    },
+                    unhighlight: function(element) {
+                        $(element).removeClass('is-invalid');
+                    },
+                    errorPlacement: function(error, element) {
+                        error.insertAfter(element.closest('.mb-3'));
+                    },
+                    submitHandler: function(form) {
+                        var html = quillInternalNoteEdit.root.innerHTML;
+                        if (quillInternalNoteEdit.getText().trim().length === 0) {
+                            html = '';
+                        }
+                        $('#reply-internal-note-input').val(html);
+                        form.submit();
+                    }
                 });
 
             });

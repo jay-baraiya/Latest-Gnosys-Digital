@@ -173,12 +173,21 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('/tickets/{id}/store-reply', [TicketController::class, 'storeReply'])->name('tickets.storeReply');
     Route::post('/tickets/{id}/store-internal-note', [TicketController::class, 'storeInternalNote'])->name('tickets.storeInternalNote');
 
+    // Ticket tasks
+    Route::get('/tickets/{id}/tasks/create', [TicketController::class, 'createTask'])->name('tickets.tasks.create');
+    Route::post('/tickets/{id}/tasks/store', [TicketController::class, 'storeTicketTask'])->name('tickets.tasks.store');
+    Route::get('/tickets/{id}/tasks/{taskId}/edit', [TicketController::class, 'editTask'])->name('tickets.tasks.edit');
+    Route::post('/tickets/{id}/tasks/{taskId}/update', [TicketController::class, 'updateTask'])->name('tickets.tasks.update');
+    Route::post('/tickets/{id}/tasks/{taskId}/delete', [TicketController::class, 'deleteTask'])->name('tickets.tasks.delete');
+
     Route::resource('tasks', TaskController::class)->names('tasks');
     Route::post('tasks/get-data', [TaskController::class, 'getData'])->name('tasks.getData');
     Route::post('tasks/restore/{id}', [TaskController::class, 'restore'])->name('tasks.restore');
     Route::post('tasks/update-status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
     Route::post('tasks/check-email', [TaskController::class, 'checkEmail'])->name('tasks.check.email');
     Route::post('tasks/check-phone', [TaskController::class, 'checkPhone'])->name('tasks.check.phone');
+    Route::post('tasks/{id}/store-reply', [TaskController::class, 'storeReply'])->name('tasks.storeReply');
+    Route::post('tasks/{id}/store-internal-note', [TaskController::class, 'storeInternalNote'])->name('tasks.storeInternalNote');
 
 });
 

@@ -178,7 +178,7 @@ class TaskController extends Controller
             'description'   => 'required',
             'status'        => 'required',
             // 'product_id'    => 'required',
-            'ticket_id'     => 'required',
+            'ticket_id'     => 'nullable',
             'due_date'      => 'required',
             'department_id' => 'required',
             'assign_id'     => 'required'
@@ -249,7 +249,7 @@ class TaskController extends Controller
                 'assign_id'      => $request->assign_id
             ]);
 
-            return redirect()->route($this->moduleUrl)->with('success', 'Ticket created successfully.');
+            return redirect()->route($this->moduleUrl)->with('success', 'Task created successfully.');
         } catch (\Exception $e) {
             Log::error('Ticket Store Error', [
                 'message' => $e->getMessage(),
@@ -320,87 +320,204 @@ class TaskController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
         try {
-            $userId = decrypt($id);
-            $user = User::findOrFail($userId);
+            $taskId = decrypt($id);
+            $task = Task::findOrFail($taskId);
 
             $validatedData = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($userId)],
-                'password' => 'nullable|string|min:8|confirmed',
-                'phone' => ['nullable', 'string', 'max:20', Rule::unique('users')->ignore($userId)],
-                'address' => 'nullable|string',
-                'country_id' => 'required|exists:countries,id',
-                'state_id' => 'required|exists:states,id',
-                'city_id' => 'required',
-                'zip' => 'nullable|string|max:10',
-                'status' => 'required|in:1,0',
-                // 'image' => 'required|image|mimes:jpeg,jpg,png,webp|max:1024',
-            ],[
-                'image.mimes' => 'Only JPEG, JPG, PNG, and WEBP images are allowed.',
-                'image.max' => 'The image size must not exceed 1 MB.',
+                'task_number'   => 'required',
+                'title'         => 'required|string|max:255',
+                'product_type'  => 'required',
+                'description'   => 'required',
+                'status'        => 'required',
+                'ticket_id'     => 'nullable',
+                'due_date'      => 'required',
+                'department_id' => 'required',
+                'assign_id'     => 'required'
             ]);
 
-            $imagePath = $user->image;
+            $product_id = $request->input('product_id');
+            $service_id = $request->input('service_id');
+            $product_type = $request->input('product_type');
+            $is_variant = $request->input('is_variant');
+            $service_variant = $request->input('service_variant_id');
+            $duedate = $request->input('due_date');
 
-            if ($request->remove_existing_image == '1') {
-                if ($user->image && !filter_var($user->image, FILTER_VALIDATE_URL)) {
-                    $pathToDelete = str_replace('/storage/', '', $user->image);
-                    if(Storage::disk('public')->exists($pathToDelete)) {
-                        Storage::disk('public')->delete($pathToDelete);
-                    }
+            $product_name = null;
+            $product_price = 0;
+
+            $variant_id = null;
+            $variant_name = null;
+
+            if ($product_type == 'product') {
+                $products = DigitalProduct::query()
+                            ->where('id', $product_id)
+                            ->where('status', 1)
+                            ->first();
+
+                $product_name = $products->name ?? '';
+                $product_price = $products->price ?? 0;
+
+            } else if ($product_type == 'service') {
+                $services = DigitalService::query()
+                            ->where('id', $service_id)
+                            ->with(['variants' => function ($sq) use ($is_variant, $service_variant) {
+                                if ($is_variant && $service_variant) {
+                                    $sq->where('id', $service_variant);
+                                }
+                            }])
+                            ->where('status', 1)
+                            ->first();
+
+                $product_name = $services->name ?? '';
+                $product_price = $services->price ?? 0;
+
+                if (!empty($services->variants[0])) {
+                    $variant_id = $services->variants[0]->id;
+                    $variant_name = $services->variants[0]->name;
+                    $product_price = $services->variants[0]->price;
                 }
-                $imagePath = null;
             }
 
-            if ($request->hasFile('image')) {
-                if ($user->image && !filter_var($user->image, FILTER_VALIDATE_URL)) {
-                    $pathToDelete = str_replace('/storage/', '', $user->image);
-                    if(Storage::disk('public')->exists($pathToDelete)) {
-                        Storage::disk('public')->delete($pathToDelete);
-                    }
-                }
+            $oldStatus = $task->status;
 
-                $path = $request->file('image')->store('users', 'public');
-                $imagePath = Storage::url($path);
+            $task->update([
+                'title'          => $request->title,
+                'task_number'    => $request->task_number,
+                'ticket_id'      => $request->ticket_id,
+                'department_id'  => $request->department_id,
+                'product_type'   => $request->product_type,
+                'product_id'     => (($request->product_type == 'product') ? $request->product_id : $request->service_id),
+                'due_date'       => $duedate,
+                'variant_id'     => $variant_id,
+                'variant_name'   => $variant_name,
+                'price'          => $product_price ?? 0.00,
+                'status'         => !empty($request->status) ? $request->status : 'pending',
+                'description'    => $request->description,
+                'cancel_reason'  => $request->cancel_reason,
+                'product_name'   => $product_name,
+                'assign_id'      => $request->assign_id
+            ]);
 
-            }
-
-            if (empty($validatedData['password'])) {
-                unset($validatedData['password']);
-            } else {
-                $validatedData['password'] = Hash::make($validatedData['password']);
-            }
-
-            $validatedData['image'] = $imagePath;
-            $validatedData['is_user'] = 1;
-
-            $user->designation_id = $request->designation_id;
-
-            $user->update($validatedData);
-
-
-            if ($user && !empty($request->role_id)) {
-                UserRole::updateOrCreate([
-                    'user_id' => $user->id,
-                ], [
-                    'role_id' => $request->role_id,
+            $newStatus = !empty($request->status) ? $request->status : 'pending';
+            if ($oldStatus != $newStatus) {
+                \App\Models\Note::create([
+                    'task_id' => $task->id,
+                    'ref_type' => 'internal_note',
+                    'title' => 'Status Updated',
+                    'datetime' => now(),
+                    'text' => 'Task status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $newStatus)),
+                    'user_id' => Auth::id(),
                 ]);
-            } else {
-                UserRole::query()->where('user_id', $user->id)->delete();
             }
 
-            return redirect()->route($this->moduleUrl)->with('success', 'User updated successfully.');
+            return redirect()->route($this->moduleUrl)->with('success', 'Task updated successfully.');
         } catch (\Exception $e) {
-            Log::error('User Update Error', [
+            \Log::error('Task Update Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'request' => $request->all(),
             ]);
 
-            return redirect()->back()->withInput()->with('error', 'Failed to update user. Please try again later.');
+            return redirect()->back()->withInput()->with('error', 'Failed to update Task. Please try again later.');
+        }
+    }
+
+    public function storeReply(Request $request, string $id)
+    {
+        $taskId = decrypt($id);
+        $task = Task::findOrFail($taskId);
+
+        $request->validate([
+            'description' => 'nullable|string',
+            'ticket_status' => 'nullable|string|in:pending,assigned,in_progress,completed,cancelled,refund,on_hold',
+        ]);
+
+        try {
+            if (!empty($request->description)) {
+                \App\Models\Note::create([
+                    'task_id' => $task->id,
+                    'ref_type' => 'reply',
+                    'datetime' => now(),
+                    'text' => $request->description,
+                    'user_id' => Auth::id(),
+                ]);
+            }
+
+            if ($request->ticket_status) {
+                $oldStatus = $task->status;
+                $task->update(['status' => $request->ticket_status]);
+                
+                if ($oldStatus != $request->ticket_status) {
+                    \App\Models\Note::create([
+                        'task_id' => $task->id,
+                        'ref_type' => 'reply',
+                        'title' => 'Status Updated',
+                        'datetime' => now(),
+                        'text' => 'Task status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $request->ticket_status)),
+                        'user_id' => Auth::id(),
+                    ]);
+                }
+            }
+
+            return redirect()->back()->with('success', 'Reply posted successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Store Task Reply Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return redirect()->back()->with('error', 'Failed to post reply. Please try again.');
+        }
+    }
+
+    public function storeInternalNote(Request $request, string $id)
+    {
+        $taskId = decrypt($id);
+        $task = Task::findOrFail($taskId);
+
+        $request->validate([
+            'internal_note' => 'nullable|string',
+            'ticket_status' => 'nullable|string|in:pending,assigned,in_progress,completed,cancelled,refund,on_hold',
+        ]);
+
+        try {
+            if (!empty($request->internal_note)) {
+                \App\Models\Note::create([
+                    'task_id' => $task->id,
+                    'ref_type' => 'internal_note',
+                    'title' => $request->internal_note_title,
+                    'datetime' => now(),
+                    'text' => $request->internal_note,
+                    'user_id' => Auth::id(),
+                ]);
+            }
+
+            if ($request->ticket_status) {
+                $oldStatus = $task->status;
+                $task->update(['status' => $request->ticket_status]);
+                
+                if ($oldStatus != $request->ticket_status) {
+                    \App\Models\Note::create([
+                        'task_id' => $task->id,
+                        'ref_type' => 'internal_note',
+                        'title' => 'Status Updated',
+                        'datetime' => now(),
+                        'text' => 'Task status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $request->ticket_status)),
+                        'user_id' => Auth::id(),
+                    ]);
+                }
+            }
+
+            return redirect()->back()->with('success', 'Internal note posted successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Store Task Internal Note Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return redirect()->back()->with('error', 'Failed to post internal note. Please try again.');
         }
     }
 

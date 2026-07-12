@@ -244,7 +244,7 @@ class TicketController extends Controller
             'assign_id'        => 'nullable|integer',
             'canned_response'  => 'nullable|string',
 
-            'description'      => 'required|string',
+            'description'      => 'nullable|string',
             'ticket_status'    => 'nullable|string|in:open,resolved,closed',
             'signature_option' => 'nullable|string',
             'internal_note'    => 'nullable|string',
@@ -414,19 +414,7 @@ class TicketController extends Controller
         })
         ->get();
 
-        $tasks = Task::query()->select([
-            'id',
-            'ticket_id',
-            'product_type',
-            'product_id',
-            'product_name',
-            'variant_id',
-            'variant_name',
-            'due_date',
-            'quantity',
-            'price',
-            'status'
-        ])->where('ticket_id', decrypt($id))->get();
+        $tasks = Task::query()->with('assign')->where('ticket_id', decrypt($id))->get();
 
         $tab = $request->input('tab', 'ticket-form');
 
@@ -500,21 +488,7 @@ class TicketController extends Controller
         })
         ->get();
 
-        $tasks = Task::query()->select([
-            'id',
-            'ticket_id',
-            'department_id',
-            'assign_id',
-            'product_type',
-            'product_id',
-            'product_name',
-            'variant_id',
-            'variant_name',
-            'due_date',
-            'quantity',
-            'price',
-            'status'
-        ])->where('ticket_id', decrypt($id))->get();
+        $tasks = Task::query()->with('assign')->where('ticket_id', decrypt($id))->get();
 
         $chats = Chat::query()->where('ticket_id', decrypt($id))->get();
 
@@ -540,7 +514,7 @@ class TicketController extends Controller
             'assign_id'            => 'nullable|integer',
             'priority'             => 'required|string|in:High,Medium,Low',
             'canned_response'      => 'nullable|string',
-            'description'          => 'required|string',
+            'description'          => 'nullable|string',
             'ticket_status'        => 'nullable|string|in:open,resolved,closed',
             'signature_option'     => 'nullable|string',
             'internal_note'        => 'nullable|string',
@@ -607,6 +581,15 @@ class TicketController extends Controller
             $name = $request->name ?? ($user?->name ?? null);
             $email = $request->email ?? ($user?->email ?? null);
 
+            if (in_array($request->ticket_status, ['closed', 'resolved'])) {
+                $incompleteTasks = \App\Models\Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
+                if ($incompleteTasks > 0) {
+                    return redirect()->back()->withInput()->with('error', 'Cannot change ticket status to closed/resolved. All tasks must be completed first.');
+                }
+            }
+
+            $oldTicketStatus = $ticket->ticket_status;
+
             $ticket->update([
                 'user_id'          => $request->user_id,
                 'name'             => $name,
@@ -638,6 +621,17 @@ class TicketController extends Controller
                     'user_id'  => Auth::id(),
                 ]
             );
+
+            if ($oldTicketStatus != $request->ticket_status && $request->ticket_status) {
+                Note::create([
+                    'ref_id' => $ticket->id,
+                    'ref_type' => 'internal_note',
+                    'title' => 'Status Updated',
+                    'datetime' => now(),
+                    'text' => 'Ticket status changed from ' . ucfirst(str_replace('_', ' ', $oldTicketStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $request->ticket_status)),
+                    'user_id' => Auth::id(),
+                ]);
+            }
 
             // Save/Update internal_note in notes table
             if ($request->internal_note) {
@@ -927,8 +921,30 @@ class TicketController extends Controller
                 $ticket->assign_id = $request->assign_id;
             }
 
+            if (in_array($request->status, ['completed', 'cancel_requested', 'cancelled', 'refund'])) {
+                $incompleteTasks = \App\Models\Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
+                if ($incompleteTasks > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cannot change status to completed/cancelled. All tasks must be completed first.'
+                    ]);
+                }
+            }
+
+            $oldStatus = $ticket->status;
             $ticket->status = $request->status;
             $ticket->update();
+
+            if ($oldStatus != $ticket->status) {
+                Note::create([
+                    'ref_id' => $ticket->id,
+                    'ref_type' => 'internal_note',
+                    'title' => 'Status Updated',
+                    'datetime' => now(),
+                    'text' => 'Ticket status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $ticket->status)),
+                    'user_id' => Auth::id(),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
@@ -1189,26 +1205,46 @@ class TicketController extends Controller
         $ticket = Ticket::findOrFail($ticketId);
 
         $request->validate([
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'ticket_status' => 'nullable|string|in:open,resolved,closed',
         ]);
 
         try {
-            Note::create([
-                'ref_id' => $ticket->id,
-                'ref_type' => 'reply',
-                'datetime' => now(),
-                'text' => $request->description,
-                'user_id' => Auth::id(),
-            ]);
+            if (!empty($request->description)) {
+                Note::create([
+                    'ref_id' => $ticket->id,
+                    'ref_type' => 'reply',
+                    'datetime' => now(),
+                    'text' => $request->description,
+                    'user_id' => Auth::id(),
+                ]);
+            }
 
             if ($request->ticket_status) {
+                if (in_array($request->ticket_status, ['closed', 'resolved'])) {
+                    $incompleteTasks = \App\Models\Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
+                    if ($incompleteTasks > 0) {
+                        return redirect()->back()->withInput()->with('error', 'Reply posted, but cannot close ticket. All tasks must be completed first.');
+                    }
+                }
+                $oldStatus = $ticket->ticket_status;
                 $ticket->update(['ticket_status' => $request->ticket_status]);
+                
+                if ($oldStatus != $request->ticket_status) {
+                    Note::create([
+                        'ref_id' => $ticket->id,
+                        'ref_type' => 'reply',
+                        'title' => 'Status Updated',
+                        'datetime' => now(),
+                        'text' => 'Ticket status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $request->ticket_status)),
+                        'user_id' => Auth::id(),
+                    ]);
+                }
             }
 
             return redirect()->back()->with('success', 'Reply posted successfully.');
         } catch (\Exception $e) {
-            \Log::error('Store Reply Error', [
+            Log::error('Store Reply Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -1226,21 +1262,42 @@ class TicketController extends Controller
         $ticket = Ticket::findOrFail($ticketId);
 
         $request->validate([
-            'internal_note' => 'required|string',
+            'internal_note' => 'nullable|string',
             'ticket_status' => 'nullable|string|in:open,resolved,closed',
         ]);
 
         try {
-            Note::create([
-                'ref_id' => $ticket->id,
-                'ref_type' => 'internal_note',
-                'datetime' => now(),
-                'text' => $request->internal_note,
-                'user_id' => Auth::id(),
-            ]);
+            if (!empty($request->internal_note)) {
+                Note::create([
+                    'ref_id' => $ticket->id,
+                    'ref_type' => 'internal_note',
+                    'title' => $request->internal_note_title,
+                    'datetime' => now(),
+                    'text' => $request->internal_note,
+                    'user_id' => Auth::id(),
+                ]);
+            }
 
             if ($request->ticket_status) {
+                if (in_array($request->ticket_status, ['closed', 'resolved'])) {
+                    $incompleteTasks = \App\Models\Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
+                    if ($incompleteTasks > 0) {
+                        return redirect()->back()->withInput()->with('error', 'Note posted, but cannot close ticket. All tasks must be completed first.');
+                    }
+                }
+                $oldStatus = $ticket->ticket_status;
                 $ticket->update(['ticket_status' => $request->ticket_status]);
+                
+                if ($oldStatus != $request->ticket_status) {
+                    Note::create([
+                        'ref_id' => $ticket->id,
+                        'ref_type' => 'internal_note',
+                        'title' => 'Status Updated',
+                        'datetime' => now(),
+                        'text' => 'Ticket status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $request->ticket_status)),
+                        'user_id' => Auth::id(),
+                    ]);
+                }
             }
 
             return redirect()->back()->with('success', 'Internal note posted successfully.');
@@ -1251,6 +1308,270 @@ class TicketController extends Controller
                 'line' => $e->getLine(),
             ]);
             return redirect()->back()->with('error', 'Failed to post internal note. Please try again.');
+        }
+    }
+
+    public function createTask(Request $request, string $id)
+    {
+        $ticketId = decrypt($id);
+        $ticket = Ticket::findOrFail($ticketId);
+        
+        $departments = \App\Models\Department::query()->where('status', 1)->get();
+        $products  = \App\Models\DigitalProduct::query()->where('status', 1)->get();
+        $services  = \App\Models\DigitalService::with('variants')->where('status', 1)->get();
+        $developers = \App\Models\User::query()
+                ->with(['roles','designation'])
+                ->where('status', 1)
+                ->whereHas('roles', function($sq) {
+                    $sq->whereIn('role_id', [\App\Models\User::IS_DEVELOPER])
+                    ->whereNotIn('role_id', [\App\Models\User::IS_ADMIN]);
+                })
+                ->get();
+                
+        $task_number = 'TSK-' . strtoupper(\Illuminate\Support\Str::random(6));
+        $action = 'Create';
+        
+        return view('admin.ticket.tasks.form', compact('ticket', 'departments', 'products', 'services', 'developers', 'task_number', 'action'));
+    }
+    
+    public function storeTicketTask(Request $request, string $id)
+    {
+        $ticketId = decrypt($id);
+        $ticket = Ticket::findOrFail($ticketId);
+        
+        $validatedData = $request->validate([
+            'task_number'   => 'required',
+            'title'         => 'required|string|max:255',
+            'product_type'  => 'required',
+            'description'   => 'required',
+            'status'        => 'required',
+            'due_date'      => 'required',
+            'department_id' => 'required',
+            'assign_id'     => 'required'
+        ]);
+
+        $product_id = $request->input('product_id');
+        $service_id = $request->input('service_id');
+        $product_type = $request->input('product_type');
+        $is_variant = $request->input('is_variant');
+        $service_variant = $request->input('service_variant_id');
+        $duedate = $request->input('due_date');
+
+        $product_name = null;
+        $product_price = 0;
+
+        $variant_id = null;
+        $variant_name = null;
+
+        if ($product_type == 'product') {
+            $products = \App\Models\DigitalProduct::query()
+                        ->where('id', $product_id)
+                        ->where('status', 1)
+                        ->first();
+            $product_name = $products->name ?? '';
+            $product_price = $products->price ?? 0;
+        } else if ($product_type == 'service') {
+            $services = \App\Models\DigitalService::query()
+                        ->where('id', $service_id)
+                        ->with(['variants' => function ($sq) use ($is_variant, $service_variant) {
+                            if ($is_variant && $service_variant) {
+                                $sq->where('id', $service_variant);
+                            }
+                        }])
+                        ->where('status', 1)
+                        ->first();
+            $product_name = $services->name ?? '';
+            $product_price = $services->price ?? 0;
+
+            if (!empty($services->variants[0])) {
+                $variant_id = $services->variants[0]->id;
+                $variant_name = $services->variants[0]->name;
+                $product_price = $services->variants[0]->price;
+            }
+        }
+
+        try {
+            \App\Models\Task::create([
+                'title'          => $request->title,
+                'task_number'    => $request->task_number,
+                'ticket_id'      => $ticket->id,
+                'department_id'  => $request->department_id,
+                'user_id'        => $ticket->user_id,
+                'product_type'   => $request->product_type,
+                'product_id'     => (($request->product_type == 'product') ? $request->product_id : $request->service_id),
+                'due_date'       => $duedate,
+                'variant_id'     => $variant_id,
+                'variant_name'   => $variant_name,
+                'quantity'       => 1,
+                'price'          => $product_price ?? 0.00,
+                'status'         => !empty($request->status) ? $request->status : 'pending',
+                'description'    => $request->description,
+                'cancel_reason'  => $request->cancel_reason,
+                'product_name'   => $product_name,
+                'assign_id'      => $request->assign_id
+            ]);
+
+            return redirect()->route('admin.tickets.edit', ['ticket' => encrypt($ticket->id), 'tab' => 'task-form'])->with('success', 'Task created successfully.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Task Store Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'request' => $request->all(),
+            ]);
+
+            return redirect()->back()->withInput()->with('error', 'Failed to create Task. Please try again later.');
+        }
+    }
+    
+    public function editTask(Request $request, string $id, string $taskId)
+    {
+        $ticketId = decrypt($id);
+        $ticket = Ticket::findOrFail($ticketId);
+        
+        $decryptedTaskId = decrypt($taskId);
+        $task = \App\Models\Task::findOrFail($decryptedTaskId);
+        
+        $departments = \App\Models\Department::query()->where('status', 1)->get();
+        $products  = \App\Models\DigitalProduct::query()->where('status', 1)->get();
+        $services  = \App\Models\DigitalService::with('variants')->where('status', 1)->get();
+        $developers = \App\Models\User::query()
+                ->with(['roles','designation'])
+                ->where('status', 1)
+                ->whereHas('roles', function($sq) {
+                    $sq->whereIn('role_id', [\App\Models\User::IS_DEVELOPER])
+                    ->whereNotIn('role_id', [\App\Models\User::IS_ADMIN]);
+                })
+                ->get();
+                
+        $action = 'Edit';
+        
+        return view('admin.ticket.tasks.form', compact('ticket', 'task', 'departments', 'products', 'services', 'developers', 'action'));
+    }
+    
+    public function updateTask(Request $request, string $id, string $taskId)
+    {
+        $ticketId = decrypt($id);
+        $ticket = Ticket::findOrFail($ticketId);
+        
+        $decryptedTaskId = decrypt($taskId);
+        $task = \App\Models\Task::findOrFail($decryptedTaskId);
+        
+        $validatedData = $request->validate([
+            'task_number'   => 'required',
+            'title'         => 'required|string|max:255',
+            'product_type'  => 'required',
+            'description'   => 'required',
+            'status'        => 'required',
+            'due_date'      => 'required',
+            'department_id' => 'required',
+            'assign_id'     => 'required'
+        ]);
+
+        $product_id = $request->input('product_id');
+        $service_id = $request->input('service_id');
+        $product_type = $request->input('product_type');
+        $is_variant = $request->input('is_variant');
+        $service_variant = $request->input('service_variant_id');
+        $duedate = $request->input('due_date');
+
+        $product_name = null;
+        $product_price = 0;
+
+        $variant_id = null;
+        $variant_name = null;
+
+        if ($product_type == 'product') {
+            $products = \App\Models\DigitalProduct::query()
+                        ->where('id', $product_id)
+                        ->where('status', 1)
+                        ->first();
+            $product_name = $products->name ?? '';
+            $product_price = $products->price ?? 0;
+        } else if ($product_type == 'service') {
+            $services = \App\Models\DigitalService::query()
+                        ->where('id', $service_id)
+                        ->with(['variants' => function ($sq) use ($is_variant, $service_variant) {
+                            if ($is_variant && $service_variant) {
+                                $sq->where('id', $service_variant);
+                            }
+                        }])
+                        ->where('status', 1)
+                        ->first();
+            $product_name = $services->name ?? '';
+            $product_price = $services->price ?? 0;
+
+            if (!empty($services->variants[0])) {
+                $variant_id = $services->variants[0]->id;
+                $variant_name = $services->variants[0]->name;
+                $product_price = $services->variants[0]->price;
+            }
+        }
+
+        try {
+            $oldStatus = $task->status;
+            $task->update([
+                'title'          => $request->title,
+                'task_number'    => $request->task_number,
+                'ticket_id'      => $ticket->id,
+                'department_id'  => $request->department_id,
+                'product_type'   => $request->product_type,
+                'product_id'     => (($request->product_type == 'product') ? $request->product_id : $request->service_id),
+                'due_date'       => $duedate,
+                'variant_id'     => $variant_id,
+                'variant_name'   => $variant_name,
+                'price'          => $product_price ?? 0.00,
+                'status'         => !empty($request->status) ? $request->status : 'pending',
+                'description'    => $request->description,
+                'cancel_reason'  => $request->cancel_reason,
+                'product_name'   => $product_name,
+                'assign_id'      => $request->assign_id
+            ]);
+            
+            if ($oldStatus != $request->status && $request->status) {
+                \App\Models\Note::create([
+                    'task_id' => $task->id,
+                    'ref_type' => 'internal_note',
+                    'title' => 'Status Updated',
+                    'datetime' => now(),
+                    'text' => 'Task status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $request->status)),
+                    'user_id' => Auth::id(),
+                ]);
+            }
+
+            return redirect()->route('admin.tickets.edit', ['ticket' => encrypt($ticket->id), 'tab' => 'task-form'])->with('success', 'Task updated successfully.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Task Update Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'request' => $request->all(),
+            ]);
+
+            return redirect()->back()->withInput()->with('error', 'Failed to update Task. Please try again later.');
+        }
+    }
+    
+    public function deleteTask(Request $request, string $id, string $taskId)
+    {
+        try {
+            $ticketId = decrypt($id);
+            Ticket::findOrFail($ticketId); // verify ticket
+            
+            $decryptedTaskId = decrypt($taskId);
+            $task = \App\Models\Task::findOrFail($decryptedTaskId);
+            
+            $task->delete();
+            
+            return redirect()->route('admin.tickets.edit', ['ticket' => encrypt($ticketId), 'tab' => 'task-form'])->with('success', 'Task deleted successfully.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Task Delete Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return redirect()->back()->with('error', 'Failed to delete Task. Please try again later.');
         }
     }
 }

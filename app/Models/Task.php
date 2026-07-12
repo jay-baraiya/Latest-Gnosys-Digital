@@ -25,6 +25,6 @@ class Task extends Model
 
     public function notes()
     {
-        return $this->belongsTo(Note::class);
+        return $this->hasMany(Note::class, 'task_id');
     }
 }
