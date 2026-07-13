@@ -315,11 +315,6 @@ class TaskController extends Controller
                         ->where('recode_id', $task->department_id)
                         ->get();
 
-        echo '<pre>';
-        print_r($customfields->toArray());
-        echo '</pre>';
-        exit;
-
         $tab = $request->input('tab', 'task-detail');
 
         return view('admin.task.edit', compact('tab','task','departments','products','services','developers','tickets'));
