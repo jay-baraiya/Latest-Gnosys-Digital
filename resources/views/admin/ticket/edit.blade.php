@@ -28,12 +28,12 @@
                         </a>
                     </li>
                     @if (!empty($ticket->id) && !empty($ticket->user_id))
-                    <li class="nav-item me-3">
+                    {{-- <li class="nav-item me-3">
                         <a href="{{ $url }}?tab=chats-form" data-tab="chats-form"
                             class="nav-link custom-nav-link p-2 {{ $tab == 'chats-form' ? 'active' : '' }}">
                             <i class="ti ti-messages me-2"></i>Chats
                         </a>
-                    </li>
+                    </li> --}}
                     @endif
                 </ul>
             </div>
@@ -349,7 +349,7 @@
                 <div class="row mb-3 align-items-center">
                     <label for="reply_to" class="col-md-2 col-form-label fw-bold text-dark">Reply To:</label>
                     <div class="col-md-5 d-flex align-items-center gap-2">
-                        <select class="form-select" name="reply_to" id="reply_to">
+                        <select class="form-select addSelect2" name="reply_to" id="reply_to">
                             <option value="all">All Active Recipients</option>
                         </select>
                         <i class="bi bi-question-circle text-muted" title="Help information"></i>
@@ -401,7 +401,7 @@
                 <div class="row mb-4 align-items-center">
                     <label for="reply_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Ticket Status:</label>
                     <div class="col-md-3">
-                        <select class="form-select" name="ticket_status" id="reply_ticket_status">
+                        <select class="form-select addSelect2" name="ticket_status" id="reply_ticket_status">
                             <option value="open" {{ $ticket->ticket_status == 'open' ? 'selected' : '' }}>Open {{ $ticket->ticket_status == 'open' ? '(current)' : '' }}</option>
                             <option value="closed" {{ $ticket->ticket_status == 'closed' ? 'selected' : '' }}>Closed {{ $ticket->ticket_status == 'closed' ? '(current)' : '' }}</option>
                             <option value="resolved" {{ $ticket->ticket_status == 'resolved' ? 'selected' : '' }}>Resolved {{ $ticket->ticket_status == 'resolved' ? '(current)' : '' }}</option>
@@ -447,7 +447,7 @@
                 <div class="row mb-4 align-items-center">
                     <label for="reply_internal_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Ticket Status:</label>
                     <div class="col-md-3">
-                        <select class="form-select" name="ticket_status" id="reply_internal_ticket_status">
+                        <select class="form-select addSelect2" name="ticket_status" id="reply_internal_ticket_status">
                             <option value="open" {{ $ticket->ticket_status == 'open' ? 'selected' : '' }}>Open {{ $ticket->ticket_status == 'open' ? '(current)' : '' }}</option>
                             <option value="closed" {{ $ticket->ticket_status == 'closed' ? 'selected' : '' }}>Closed {{ $ticket->ticket_status == 'closed' ? '(current)' : '' }}</option>
                             <option value="resolved" {{ $ticket->ticket_status == 'resolved' ? 'selected' : '' }}>Resolved {{ $ticket->ticket_status == 'resolved' ? '(current)' : '' }}</option>
@@ -462,7 +462,7 @@
                 </div>
             </form>
         </div>
-        
+
         <div class="row tabHide" id="task-form" style="display: {{ $tab == 'task-form' ? 'block' : 'none' }}">
             <div class="card border-0 shadow-none">
                 <div class="card-header border-bottom bg-transparent py-3 d-flex justify-content-between align-items-center">
@@ -734,6 +734,34 @@
                     // $('#reply-internal-note-input').val(html);
                     form.submit();
                 }
+            });
+
+            var quillBody = new Quill('#ticket-description-editor-body', {
+                theme: 'snow',
+                readOnly: '{{ !empty($disabled) ? 'true' : '' }}',
+                placeholder: 'Detailed service description...',
+                modules: {
+                    toolbar: toolbarOptions,
+                    htmlEditButton: {
+                        debug: false,
+                        msg: "Edit the HTML below. Clicking 'Save' will update the editor.",
+                        okText: "Save",
+                        cancelText: "Cancel",
+                        buttonHTML: "&lt;&gt;",
+                        buttonTitle: "Show HTML source",
+                        syntax: false
+                    }
+                }
+            });
+
+            quillBody.on('text-change', function() {
+                var html = quillBody.root.innerHTML;
+                if (quillBody.getText().trim().length === 0) {
+                    html = '';
+                }
+                $('#ticket-description-input-body-hidden').val(html);
+
+                // validator.element('#description');
             });
         });
     </script>

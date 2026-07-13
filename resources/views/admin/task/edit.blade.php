@@ -20,6 +20,12 @@
                             <i class="ti ti-ticket  me-2"></i>Edit
                         </a>
                     </li>
+                    <li class="nav-item me-3">
+                        <a href="{{ $url }}?tab=task-custom-field" data-tab="task-custom-field"
+                            class="nav-link custom-nav-link p-2 {{ $tab == 'task-custom-field' ? 'active' : '' }}">
+                            <i class="ti ti-list me-2"></i>Custom Field
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -36,13 +42,19 @@
 
                             <div class="row mb-2">
                                 <div class="col-4 fw-medium text-secondary">Task No:</div>
-                                <div class="col-8 text-dark fw-semibold">{{ $task->task_number ?? 'N/A' }}</div>
+                                <div class="col-8 text-dark fw-semibold">#{{ $task->task_number ?? 'N/A' }}</div>
                             </div>
 
                             <div class="row mb-2">
                                 <div class="col-4 fw-medium text-secondary">Ticket No:</div>
                                 <div class="col-8 text-dark">
-                                    {{ $task?->ticket?->ticket_number ?? 'N/A' }}
+                                    @if (!empty($task->ticket->ticket_number))
+                                        <a target="_blank" href="{{ route('admin.tickets.edit', ['ticket' => encrypt($task->ticket_id)]) }}">
+                                            #{{ $task?->ticket?->ticket_number ?? 'N/A' }}
+                                        </a>
+                                    @else
+                                        {{ '-' }}
+                                    @endif
                                 </div>
                             </div>
 
@@ -130,14 +142,29 @@
 
                             <div class="row mb-2">
                                 <div class="col-4 fw-medium text-secondary">Price:</div>
-                                <div class="col-8 text-dark fw-semibold">₹{{ number_format($task->price ?? 0, 2) }}</div>
+                                <div class="col-8 text-dark fw-semibold">${{ number_format($task->price ?? 0, 2) }}</div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                            <div class="row mt-3 mb-0">
-                                <div class="col-12 fw-medium text-secondary mb-1">Description:</div>
-                                <div class="col-12 text-dark bg-light p-2 rounded border" style="min-height: 52px; font-size: 13px;">
-                                    {!! $task->description ?? 'No description provided.' !!}
-                                </div>
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card shadow-none border h-100 mb-0">
+                        <div class="card-body p-3">
+                            @php
+                                // Dynamic Title and Icon based on product_type
+                                $isService = strtolower($task->product_type ?? '') === 'service';
+                                $boxTitle = $isService ? 'Service Details' : 'Product Details';
+                                $boxIcon = $isService ? 'ti-briefcase' : 'ti-box';
+                            @endphp
+                            <h6 class="fs-14 fw-bold mb-3 text-dark border-bottom pb-2">
+                                <i class="ti ti-clipboard-text me-1 text-primary"></i> Description
+                            </h6>
+
+                            <div class="col-12 text-dark bg-light p-2 rounded border" style="min-height: 52px; font-size: 13px;">
+                                {!! $task->description ?? 'No description provided.' !!}
                             </div>
                         </div>
                     </div>
@@ -245,7 +272,7 @@
                     <div class="row mb-4 align-items-center">
                         <label for="reply_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Task Status:</label>
                         <div class="col-md-3">
-                            <select class="form-select" name="ticket_status" id="reply_ticket_status">
+                            <select class="form-select addSelect2" name="ticket_status" id="reply_ticket_status">
                                 <option value="pending" {{ $task->status == 'pending' ? 'selected' : '' }}>Pending</option>
                                 <option value="assigned" {{ $task->status == 'assigned' ? 'selected' : '' }}>Assigned</option>
                                 <option value="in_progress" {{ $task->status == 'in_progress' ? 'selected' : '' }}>In Progress</option>
@@ -287,7 +314,7 @@
                     <div class="row mb-4 align-items-center">
                         <label for="reply_internal_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Task Status:</label>
                         <div class="col-md-3">
-                            <select class="form-select" name="ticket_status" id="reply_internal_ticket_status">
+                            <select class="form-select addSelect2" name="ticket_status" id="reply_internal_ticket_status">
                                 <option value="pending" {{ $task->status == 'pending' ? 'selected' : '' }}>Pending</option>
                                 <option value="assigned" {{ $task->status == 'assigned' ? 'selected' : '' }}>Assigned</option>
                                 <option value="in_progress" {{ $task->status == 'in_progress' ? 'selected' : '' }}>In Progress</option>
@@ -535,6 +562,10 @@
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </div>
             </form>
+        </div>
+
+        <div class="task-custom-field tabHide" id="task-custom-field" style="display: {{ $tab != 'task-custom-field' ? 'none' : '' }}">
+
         </div>
 
     </x-form-wrapper>

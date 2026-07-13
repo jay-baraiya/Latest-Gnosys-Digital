@@ -50,6 +50,18 @@
                 @enderror
             </div>
 
+            <hr>
+
+            <div class="fw-bold mb-3">Custom Fields</div>
+
+            <input type="hidden" name="custom_field[module_type]" value="department">
+
+            @include('admin.custom-field.fields', [
+                'recode_id' => !empty($department->id) ? $department->id : '' ,
+                'customfieldtyeps' => !empty($customfieldtyeps) ? $customfieldtyeps : collect([]),
+                'customfields' => isset($customfields) ? $customfields : collect([]),
+            ])
+
             <div class="text-end mt-3">
                 <a href="{{ route($moduleUrl) }}" class="btn btn-soft-light">Cancel</a>
                 <button type="submit" class="btn btn-primary">Submit</button>

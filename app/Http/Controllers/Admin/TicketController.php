@@ -167,7 +167,7 @@ class TicketController extends Controller
                 ->addColumn('actions', function ($row) {
                     return view('admin.components.task-action-link', [
                         'edit'           => route('admin.tickets.edit', encrypt($row->id)),
-                        'show'           => route('admin.tickets.show', encrypt($row->id)),
+                        // 'show'           => route('admin.tickets.show', encrypt($row->id)),
                         'delete'         => route('admin.tickets.destroy', encrypt($row->id)),
                         'id'             => encrypt($row->id),
                         'current_status' => $row->status,
@@ -1229,7 +1229,7 @@ class TicketController extends Controller
                 }
                 $oldStatus = $ticket->ticket_status;
                 $ticket->update(['ticket_status' => $request->ticket_status]);
-                
+
                 if ($oldStatus != $request->ticket_status) {
                     Note::create([
                         'ref_id' => $ticket->id,
@@ -1287,7 +1287,7 @@ class TicketController extends Controller
                 }
                 $oldStatus = $ticket->ticket_status;
                 $ticket->update(['ticket_status' => $request->ticket_status]);
-                
+
                 if ($oldStatus != $request->ticket_status) {
                     Note::create([
                         'ref_id' => $ticket->id,
@@ -1315,7 +1315,7 @@ class TicketController extends Controller
     {
         $ticketId = decrypt($id);
         $ticket = Ticket::findOrFail($ticketId);
-        
+
         $departments = \App\Models\Department::query()->where('status', 1)->get();
         $products  = \App\Models\DigitalProduct::query()->where('status', 1)->get();
         $services  = \App\Models\DigitalService::with('variants')->where('status', 1)->get();
@@ -1327,18 +1327,18 @@ class TicketController extends Controller
                     ->whereNotIn('role_id', [\App\Models\User::IS_ADMIN]);
                 })
                 ->get();
-                
+
         $task_number = 'TSK-' . strtoupper(\Illuminate\Support\Str::random(6));
         $action = 'Create';
-        
+
         return view('admin.ticket.tasks.form', compact('ticket', 'departments', 'products', 'services', 'developers', 'task_number', 'action'));
     }
-    
+
     public function storeTicketTask(Request $request, string $id)
     {
         $ticketId = decrypt($id);
         $ticket = Ticket::findOrFail($ticketId);
-        
+
         $validatedData = $request->validate([
             'task_number'   => 'required',
             'title'         => 'required|string|max:255',
@@ -1423,15 +1423,15 @@ class TicketController extends Controller
             return redirect()->back()->withInput()->with('error', 'Failed to create Task. Please try again later.');
         }
     }
-    
+
     public function editTask(Request $request, string $id, string $taskId)
     {
         $ticketId = decrypt($id);
         $ticket = Ticket::findOrFail($ticketId);
-        
+
         $decryptedTaskId = decrypt($taskId);
         $task = \App\Models\Task::findOrFail($decryptedTaskId);
-        
+
         $departments = \App\Models\Department::query()->where('status', 1)->get();
         $products  = \App\Models\DigitalProduct::query()->where('status', 1)->get();
         $services  = \App\Models\DigitalService::with('variants')->where('status', 1)->get();
@@ -1443,20 +1443,20 @@ class TicketController extends Controller
                     ->whereNotIn('role_id', [\App\Models\User::IS_ADMIN]);
                 })
                 ->get();
-                
+
         $action = 'Edit';
-        
+
         return view('admin.ticket.tasks.form', compact('ticket', 'task', 'departments', 'products', 'services', 'developers', 'action'));
     }
-    
+
     public function updateTask(Request $request, string $id, string $taskId)
     {
         $ticketId = decrypt($id);
         $ticket = Ticket::findOrFail($ticketId);
-        
+
         $decryptedTaskId = decrypt($taskId);
         $task = \App\Models\Task::findOrFail($decryptedTaskId);
-        
+
         $validatedData = $request->validate([
             'task_number'   => 'required',
             'title'         => 'required|string|max:255',
@@ -1527,7 +1527,7 @@ class TicketController extends Controller
                 'product_name'   => $product_name,
                 'assign_id'      => $request->assign_id
             ]);
-            
+
             if ($oldStatus != $request->status && $request->status) {
                 \App\Models\Note::create([
                     'task_id' => $task->id,
@@ -1551,18 +1551,18 @@ class TicketController extends Controller
             return redirect()->back()->withInput()->with('error', 'Failed to update Task. Please try again later.');
         }
     }
-    
+
     public function deleteTask(Request $request, string $id, string $taskId)
     {
         try {
             $ticketId = decrypt($id);
             Ticket::findOrFail($ticketId); // verify ticket
-            
+
             $decryptedTaskId = decrypt($taskId);
             $task = \App\Models\Task::findOrFail($decryptedTaskId);
-            
+
             $task->delete();
-            
+
             return redirect()->route('admin.tickets.edit', ['ticket' => encrypt($ticketId), 'tab' => 'task-form'])->with('success', 'Task deleted successfully.');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Task Delete Error', [

@@ -104,6 +104,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     /* departments */
     Route::resource('departments', DepartmentController::class)->names('departments');
     Route::post('departments/get-data', [DepartmentController::class, 'getData'])->name('departments.getData');
+    Route::post('departments/restore/{id}', [DepartmentController::class, 'restore'])->name('departments.restore');
     Route::post('departments/update-status', [DepartmentController::class, 'updateStatus'])->name('departments.updateStatus');
     Route::post('departments/check-departments', [DepartmentController::class, 'checkDepartment'])->name('validate.departments');
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\CustomField;
 use App\Models\Department;
 use App\Models\DigitalProduct;
 use App\Models\DigitalService;
@@ -113,7 +114,11 @@ class TaskController extends Controller
                     return $row->title ?? '-';
                 })
                 ->addColumn('ticket_number', function ($row) {
-                    return '#' . $row?->ticket?->ticket_number ?? '-';
+                    if (!empty($row->ticket?->ticket_number)) {
+                        return '<a target="_blank" href="' . route('admin.tickets.edit', ['ticket' => encrypt($row->ticket_id)]) . '">#' . $row->ticket->ticket_number . '</a>';
+                    } else {
+                        return '-';
+                    }
                 })
                 ->addColumn('assign', function ($row) {
                     return $row?->assign?->name ?? '-';
@@ -124,7 +129,7 @@ class TaskController extends Controller
                 ->addColumn('actions', function ($row) use ($request) {
                     return view('admin.components.action-links', [
                         'edit' => route('admin.tasks.edit', encrypt($row->id)),
-                        'show' => route('admin.tasks.show', encrypt($row->id)),
+                        // 'show' => route('admin.tasks.show', encrypt($row->id)),
                         'delete' => route('admin.tasks.destroy', encrypt($row->id)),
                         'restore' => route('admin.tasks.restore', encrypt($row->id)),
                         'id' => encrypt($row->id),
@@ -305,10 +310,15 @@ class TaskController extends Controller
 
         $tickets = Ticket::select(['id', 'ticket_number'])->get();
 
-        // echo '<pre>';
-        // print_r($task->toArray());
-        // echo '</pre>';
-        // exit;
+        $customfields = CustomField::with(['fieldType'])
+                        ->where('module_type', 'department')
+                        ->where('recode_id', $task->department_id)
+                        ->get();
+
+        echo '<pre>';
+        print_r($customfields->toArray());
+        echo '</pre>';
+        exit;
 
         $tab = $request->input('tab', 'task-detail');
 
@@ -448,7 +458,7 @@ class TaskController extends Controller
             if ($request->ticket_status) {
                 $oldStatus = $task->status;
                 $task->update(['status' => $request->ticket_status]);
-                
+
                 if ($oldStatus != $request->ticket_status) {
                     \App\Models\Note::create([
                         'task_id' => $task->id,
@@ -497,7 +507,7 @@ class TaskController extends Controller
             if ($request->ticket_status) {
                 $oldStatus = $task->status;
                 $task->update(['status' => $request->ticket_status]);
-                
+
                 if ($oldStatus != $request->ticket_status) {
                     \App\Models\Note::create([
                         'task_id' => $task->id,

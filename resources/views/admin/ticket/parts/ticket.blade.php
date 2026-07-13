@@ -99,28 +99,28 @@
             <select class="form-select addSelect2" name="help_topic">
                 <option value="">— Select Help Topic —</option>
                 @php
-                $help_topic_array = [
-                'account-billing',
-                'custom-app-support',
-                'custom-app-support-bug-report',
-                'custom-app-support-feature-request',
-                'custom-app-support-performance',
-                'erp-support',
-                'feedback',
-                'general-inquiry',
-                'general-technical-support',
-                'report-a-problem',
-                'report-a-problem-access-issue',
-                'wordpress-support',
-                'wordpress-support-malware-hacked-site',
-                'wordpress-support-plugin-conflict-error',
-                'wordpress-support-site-down-critical-error',
-                'wordpress-support-theme-issue'
-                ];
+                    $help_topic_array = [
+                        'account-billing' => 'Account Billing',
+                        'custom-app-support' => 'Custom App Support',
+                        'custom-app-support-bug-report' => 'Custom App Support Bug Report',
+                        'custom-app-support-feature-request' => 'Custom App Support Feature Request',
+                        'custom-app-support-performance' => 'Custom App Support Performance',
+                        'erp-support' => 'ERP Support',
+                        'feedback' => 'Feedback',
+                        'general-inquiry' => 'General Inquiry',
+                        'general-technical-support' => 'General Technical Support',
+                        'report-a-problem' => 'Report A Problem',
+                        'report-a-problem-access-issue' => 'Report A Problem Access Issue',
+                        'wordpress-support' => 'Wordpress Support',
+                        'wordpress-support-malware-hacked-site' => 'Wordpress Support Malware Hacked Site',
+                        'wordpress-support-plugin-conflict-error' => 'Wordpress Support Plugin Conflict Error',
+                        'wordpress-support-site-down-critical-error' => 'Wordpress Support Site Down Critical Error',
+                        'wordpress-support-theme-issue' => 'Wordpress Support Theme Issue'
+                    ];
                 @endphp
 
-                @foreach ($help_topic_array as $help_topic)
-                <option value="{{ $help_topic }}" {{ $ticket?->help_topic == $help_topic ? 'selected' : '' }}>{{ $help_topic }}</option>
+                @foreach ($help_topic_array as $key => $help_topic)
+                <option value="{{ $key }}" {{ $ticket?->help_topic == $key ? 'selected' : '' }}>{{ $help_topic }}</option>
                 @endforeach
 
             </select>
@@ -149,15 +149,15 @@
                 <option value="" selected>— System Default —</option>
                 @php
                 $sla_plan_array = [
-                'critical-1-hours-active',
-                'high-priority-4-hours-active',
-                'low-priority-48-hours-active',
-                'standard-24-hours-active'
+                    'critical-1-hours-active' => 'Critical 1 Hours Active',
+                    'high-priority-4-hours-active' => 'High Priority 4 Hours Active',
+                    'low-priority-48-hours-active' => 'Low Priority 48 Hours Active',
+                    'standard-24-hours-active' => 'Standard 24 Hours Active'
                 ];
                 @endphp
 
-                @foreach ($sla_plan_array as $sla_plan)
-                <option value="{{ $sla_plan }}" {{ $ticket?->sla_plan == $sla_plan ? 'selected' : '' }}>{{ $sla_plan }}</option>
+                @foreach ($sla_plan_array as $key => $sla_plan)
+                <option value="{{ $key }}" {{ $ticket?->sla_plan == $key ? 'selected' : '' }}>{{ $sla_plan }}</option>
                 @endforeach
             </select>
         </div>

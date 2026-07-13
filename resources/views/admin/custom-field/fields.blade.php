@@ -18,7 +18,7 @@
                         <label class="form-label">Field Type</label>
                         <select {{ $disabled }} name="custom_field[fields][{{ $key }}][custom_field_type_id]" class="form-control custom-field-type">
                             <option value="">Select Field Type</option>
-                            @if ($customfieldtyeps->isNotEmpty())
+                            @if (isset($customfieldtyeps) && $customfieldtyeps->isNotEmpty())
                                 @foreach ($customfieldtyeps as $type)
                                     <option value="{{ $type->id }}" {{ $field?->fieldType?->id == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
                                 @endforeach

@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\CustomField;
+use App\Models\CustomFieldType;
 use App\Models\Department;
+use CompileError;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -61,12 +65,14 @@ class DepartmentController extends Controller
                         return '<a href="' . route('admin.departments.updateStatus', ['id' => encrypt($row->id), 'status' => 1]) . '" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
                     }
                 })
-                ->addColumn('actions', function ($row) {
+                ->addColumn('actions', function ($row) use ($request) {
                     return view('admin.components.action-links', [
                         'edit' => route('admin.departments.edit', encrypt($row->id)),
                         'show' => route('admin.departments.show', encrypt($row->id)),
                         'delete' => route('admin.departments.destroy', encrypt($row->id)),
-                        'id' => encrypt($row->id)
+                        'restore' => route('admin.departments.restore', encrypt($row->id)),
+                        'id' => encrypt($row->id),
+                        'is_deleted' => $request->is_deleted,
                     ])->render();
                 })
                 ->rawColumns(['status', 'actions', 'checkbox'])
@@ -81,7 +87,9 @@ class DepartmentController extends Controller
     {
         view()->share('action', 'Create');
 
-        return view('admin.department.form');
+        $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
+
+        return view('admin.department.form' , compact('customfieldtyeps'));
     }
 
     /**
@@ -89,7 +97,6 @@ class DepartmentController extends Controller
      */
     public function store(Request $request)
     {
-
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:departments,name',
             'status' => 'required|in:1,0',
@@ -101,6 +108,16 @@ class DepartmentController extends Controller
             'status' => $request->status,
         ]);
 
+        if ($request->has('custom_field') && $department->id) {
+            $customFieldData = $request->input('custom_field', []);
+            $customFieldData['recode_id'] = $department->id;
+            $request->merge([
+                'custom_field' => $customFieldData,
+            ]);
+
+            $customFieldIds = CommonController::storeCustomFields($request);
+        }
+
         return redirect()->route($this->moduleUrl)->with('success', 'Department created successfully.');
     }
 
@@ -111,8 +128,10 @@ class DepartmentController extends Controller
     {
         view()->share('action', 'View');
         $department = Department::findOrFail(decrypt($id));
+        $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
+        $customfields = CustomField::with(['fieldType'])->where('module_type', 'department')->where('recode_id', decrypt($id))->get();
 
-        return view('admin.department.show', compact('department'));
+        return view('admin.department.show', compact('department','customfieldtyeps','customfields'));
     }
 
     /**
@@ -122,8 +141,10 @@ class DepartmentController extends Controller
     {
         view()->share('action', 'Edit');
         $department = Department::findOrFail(decrypt($id));
+        $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
+        $customfields = CustomField::with(['fieldType'])->where('module_type', 'department')->where('recode_id', decrypt($id))->get();
 
-        return view('admin.department.form', compact('department'));
+        return view('admin.department.form', compact('department','customfieldtyeps','customfields'));
     }
 
     /**
@@ -131,6 +152,7 @@ class DepartmentController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
         $departmentId = decrypt($id);
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('departments', 'name')->ignore($departmentId)],
@@ -144,6 +166,10 @@ class DepartmentController extends Controller
             'description' => $request->description,
             'status' => $request->status,
         ]);
+
+        if ($request->has('custom_field')) {
+            $customFieldIds = CommonController::storeCustomFields($request);
+        }
 
         return redirect()->route($this->moduleUrl)->with('success', 'Department updated successfully.');
     }
@@ -200,5 +226,31 @@ class DepartmentController extends Controller
             ->exists();
 
         return response()->json(!$exists);
+    }
+
+    public function restore(string $id)
+    {
+        try {
+            $department = Department::withTrashed()->findOrFail(decrypt($id));
+
+            $department->restore();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Department restored successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Department Restore Error', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong!'
+            ]);
+        }
     }
 }

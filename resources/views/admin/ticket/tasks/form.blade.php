@@ -207,7 +207,7 @@
             <hr>
 
             <div class="text-end mt-3">
-                <a href="{{ route('admin.tickets.edit', encrypt($ticket->id) . '?tab=task-form') }}" class="btn btn-soft-light">Cancel</a>
+                <a href="{{ route('admin.tickets.edit', ['ticket' => encrypt($ticket->id)]) }}?tab=ticket-post-raplay" class="btn btn-soft-light">Cancel</a>
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
         </form>

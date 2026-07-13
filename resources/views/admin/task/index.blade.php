@@ -22,9 +22,9 @@
                 {{-- <a href="javascript:void(0);" class="btn btn-outline-light shadow buyerRecode" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Deleted Recodes" data-bs-original-title="See Buyer Users" data-buyer-value="0">
                     See Buyer Users
                 </a> --}}
-                <a href="javascript:void(0);" class="btn btn-outline-light shadow deletedRecode" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Deleted Recodes" data-bs-original-title="Deleted Recodes" data-value="1">
+                {{-- <a href="javascript:void(0);" class="btn btn-outline-light shadow deletedRecode" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Deleted Recodes" data-bs-original-title="Deleted Recodes" data-value="1">
                     Deleted Recodes
-                </a>
+                </a> --}}
                 <input type="hidden" name="is_deleted" id="is_deleted" value="0">
                 <a href="javascript:void(0);" class="btn btn-icon btn-outline-light shadow" data-bs-toggle="tooltip"
                     data-bs-placement="top" aria-label="Refresh" data-bs-original-title="Refresh"><i
