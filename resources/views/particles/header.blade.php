@@ -7,13 +7,16 @@
 
                 <!-- Logo Normal -->
                 <span class="logo-light">
-                    <span class="logo-lg"><img src="{{ asset('assets/img/Ginosys-Digital-logo.webp') }}" alt="logo"></span>
-                    <span class="logo-sm"><img src="{{ asset('assets/img/Ginosys-Digital-logo.webp') }}" alt="small logo"></span>
+                    <span class="logo-lg"><img src="{{ asset('assets/img/Ginosys-Digital-logo.webp') }}"
+                            alt="logo"></span>
+                    <span class="logo-sm"><img src="{{ asset('assets/img/Ginosys-Digital-logo.webp') }}"
+                            alt="small logo"></span>
                 </span>
 
                 <!-- Logo Dark -->
                 <span class="logo-dark">
-                    <span class="logo-lg"><img src="{{ asset('assets/img/Ginosys-Digital-logo.webp') }}" alt="dark logo"></span>
+                    <span class="logo-lg"><img src="{{ asset('assets/img/Ginosys-Digital-logo.webp') }}"
+                            alt="dark logo"></span>
                 </span>
             </a>
 
@@ -109,8 +112,7 @@
                                                 <a href="javascript:void(0);"
                                                     class="notification-read rounded-circle bg-danger"
                                                     data-bs-toggle="tooltip" title=""
-                                                    data-bs-original-title="Make as Read"
-                                                    aria-label="Make as Read"></a>
+                                                    data-bs-original-title="Make as Read" aria-label="Make as Read"></a>
                                                 <button class="btn rounded-circle p-0"
                                                     data-dismissible="#notification-1">
                                                     <i class="ti ti-x"></i>
@@ -141,8 +143,7 @@
                                                 <a href="javascript:void(0);"
                                                     class="notification-read rounded-circle bg-danger"
                                                     data-bs-toggle="tooltip" title=""
-                                                    data-bs-original-title="Make as Read"
-                                                    aria-label="Make as Read"></a>
+                                                    data-bs-original-title="Make as Read" aria-label="Make as Read"></a>
                                                 <button class="btn rounded-circle p-0"
                                                     data-dismissible="#notification-2">
                                                     <i class="ti ti-x"></i>
@@ -173,8 +174,7 @@
                                                 <a href="javascript:void(0);"
                                                     class="notification-read rounded-circle bg-danger"
                                                     data-bs-toggle="tooltip" title=""
-                                                    data-bs-original-title="Make as Read"
-                                                    aria-label="Make as Read"></a>
+                                                    data-bs-original-title="Make as Read" aria-label="Make as Read"></a>
                                                 <button class="btn rounded-circle p-0"
                                                     data-dismissible="#notification-3">
                                                     <i class="ti ti-x"></i>
@@ -189,8 +189,8 @@
                             <div class="dropdown-item notification-item py-3 text-wrap" id="notification-4">
                                 <div class="d-flex">
                                     <div class="me-2 position-relative flex-shrink-0">
-                                        <img src="{{ asset('assets/img/profiles/avatar-08.jpg') }}" class="avatar-md rounded-circle"
-                                            alt="Img">
+                                        <img src="{{ asset('assets/img/profiles/avatar-08.jpg') }}"
+                                            class="avatar-md rounded-circle" alt="Img">
                                     </div>
                                     <div class="flex-grow-1">
                                         <p class="mb-0 fw-medium text-dark">Ann McClure</p>
@@ -204,8 +204,7 @@
                                                 <a href="javascript:void(0);"
                                                     class="notification-read rounded-circle bg-danger"
                                                     data-bs-toggle="tooltip" title=""
-                                                    data-bs-original-title="Make as Read"
-                                                    aria-label="Make as Read"></a>
+                                                    data-bs-original-title="Make as Read" aria-label="Make as Read"></a>
                                                 <button class="btn rounded-circle p-0"
                                                     data-dismissible="#notification-4">
                                                     <i class="ti ti-x"></i>
@@ -233,16 +232,16 @@
             <div class="dropdown profile-dropdown d-flex align-items-center justify-content-center">
                 <a href="javascript:void(0);" class="topbar-link dropdown-toggle drop-arrow-none position-relative"
                     data-bs-toggle="dropdown" data-bs-offset="0,22" aria-haspopup="false" aria-expanded="false">
-                    <img src="{{ !empty(auth()->user()->image) ? asset(auth()->user()->image) : asset("assets/img/empty-image.webp") }}" width="38" class="rounded-1 d-flex"
-                        alt="user-image">
+                    <img src="{{ !empty(auth()->user()->image) ? asset(auth()->user()->image) : asset("assets/img/empty-image.webp") }}"
+                        width="38" class="rounded-1 d-flex" alt="user-image">
                     <span class="online text-success"><i
                             class="ti ti-circle-filled d-flex bg-white rounded-circle border border-1 border-white"></i></span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-md p-2">
 
                     <div class="d-flex align-items-center bg-light rounded-3 p-2 mb-2">
-                        <img src="{{ !empty(auth()->user()->image) ? asset(auth()->user()->image) : asset("assets/img/empty-image.webp") }}" class="rounded-circle" width="42"
-                            height="42" alt="Img">
+                        <img src="{{ !empty(auth()->user()->image) ? asset(auth()->user()->image) : asset("assets/img/empty-image.webp") }}"
+                            class="rounded-circle" width="42" height="42" alt="Img">
                         <div class="ms-2">
                             <p class="fw-medium text-dark mb-0">{{ auth()->user()->name }}</p>
                             <span class="d-block fs-13">{{ auth()->user()?->role?->name }}</span>
@@ -250,16 +249,15 @@
                     </div>
 
                     <!-- Item-->
-                    {{-- <a href="profile-settings.html" class="dropdown-item">
+                    <a href="{{ route('admin.profile.edit') }}" class="dropdown-item">
                         <i class="ti ti-user-circle me-1 align-middle"></i>
                         <span class="align-middle">Profile Settings</span>
-                    </a> --}}
+                    </a>
 
                     <!-- item -->
                     {{-- <div
                         class="form-check form-switch form-check-reverse d-flex align-items-center justify-content-between dropdown-item mb-0">
-                        <label class="form-check-label" for="notify"><i
-                                class="ti ti-bell"></i>Notifications</label>
+                        <label class="form-check-label" for="notify"><i class="ti ti-bell"></i>Notifications</label>
                         <input class="form-check-input me-0" type="checkbox" role="switch" id="notify">
                     </div> --}}
 
@@ -273,7 +271,9 @@
                     <div class="pt-2 mt-2 border-top">
                         <form method="POST" action="{{ route('admin.logout') }}">
                             @csrf
-                            <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start" style="cursor: pointer;">
+                            <button type="submit"
+                                class="dropdown-item text-danger border-0 bg-transparent w-100 text-start"
+                                style="cursor: pointer;">
                                 <i class="ti ti-logout me-1 fs-17 align-middle"></i>
                                 <span class="align-middle">Sign Out</span>
                             </button>
