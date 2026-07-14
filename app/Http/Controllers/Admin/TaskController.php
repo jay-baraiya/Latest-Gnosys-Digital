@@ -317,7 +317,7 @@ class TaskController extends Controller
 
         $tab = $request->input('tab', 'task-detail');
 
-        return view('admin.task.edit', compact('tab','task','departments','products','services','developers','tickets'));
+        return view('admin.task.edit', compact('tab','customfields','task','departments','products','services','developers','tickets'));
     }
 
     /**

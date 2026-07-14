@@ -2,7 +2,7 @@
     <x-form-wrapper action="{{ isset($action) ? $action : (isset($task) ? 'Edit' : 'Create') }}">
 
         @php
-        $url = isset($task) ? route('admin.tasks.update', encrypt($task->id)) : route('admin.tickets.store');
+            $url = isset($task) ? route('admin.tasks.update', encrypt($task->id)) : route('admin.tickets.store');
         @endphp
 
         <div class="card border-0">
@@ -49,7 +49,8 @@
                                 <div class="col-4 fw-medium text-secondary">Ticket No:</div>
                                 <div class="col-8 text-dark">
                                     @if (!empty($task->ticket->ticket_number))
-                                        <a target="_blank" href="{{ route('admin.tickets.edit', ['ticket' => encrypt($task->ticket_id)]) }}">
+                                        <a target="_blank"
+                                            href="{{ route('admin.tickets.edit', ['ticket' => encrypt($task->ticket_id)]) }}">
                                             #{{ $task?->ticket?->ticket_number ?? 'N/A' }}
                                         </a>
                                     @else
@@ -63,7 +64,7 @@
                                 <div class="col-8">
                                     @php
                                         // Updated status with your Enum list
-                                        $statusClass = match(strtolower($task->status ?? '')) {
+                                        $statusClass = match (strtolower($task->status ?? '')) {
                                             'pending' => 'bg-warning-subtle text-warning border-warning-subtle',
                                             'assigned' => 'bg-primary-subtle text-primary border-primary-subtle',
                                             'in_progress' => 'bg-info-subtle text-info border-info-subtle',
@@ -93,7 +94,9 @@
 
                             <div class="row mb-2">
                                 <div class="col-4 fw-medium text-secondary">Create Date:</div>
-                                <div class="col-8 text-dark">{{ \Carbon\Carbon::parse($task->created_at)->format('d M Y, h:i A') }}</div>
+                                <div class="col-8 text-dark">
+                                    {{ \Carbon\Carbon::parse($task->created_at)->format('d M Y, h:i A') }}
+                                </div>
                             </div>
 
                             <div class="row mb-0">
@@ -142,7 +145,8 @@
 
                             <div class="row mb-2">
                                 <div class="col-4 fw-medium text-secondary">Price:</div>
-                                <div class="col-8 text-dark fw-semibold">${{ number_format($task->price ?? 0, 2) }}</div>
+                                <div class="col-8 text-dark fw-semibold">${{ number_format($task->price ?? 0, 2) }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -163,7 +167,8 @@
                                 <i class="ti ti-clipboard-text me-1 text-primary"></i> Description
                             </h6>
 
-                            <div class="col-12 text-dark bg-light p-2 rounded border" style="min-height: 52px; font-size: 13px;">
+                            <div class="col-12 text-dark bg-light p-2 rounded border"
+                                style="min-height: 52px; font-size: 13px;">
                                 {!! $task->description ?? 'No description provided.' !!}
                             </div>
                         </div>
@@ -176,7 +181,8 @@
                     @if(isset($task) && isset($task->notes) && $task->notes->isNotEmpty())
                         <div class="position-relative ps-5">
                             <!-- Dotted vertical timeline line -->
-                            <div class="position-absolute start-0 top-0 bottom-0 ms-3 border-start border-2 border-dashed border-secondary-subtle" style="left: 0.25rem;"></div>
+                            <div class="position-absolute start-0 top-0 bottom-0 ms-3 border-start border-2 border-dashed border-secondary-subtle"
+                                style="left: 0.25rem;"></div>
 
                             @foreach($task->notes as $note)
                                 @php
@@ -186,27 +192,33 @@
                                 @endphp
                                 <div class="position-relative mb-4">
                                     <!-- Avatar icon on left of card -->
-                                    <span class="position-absolute rounded-circle bg-light border border-2 d-flex align-items-center justify-content-center shadow-sm"
+                                    <span
+                                        class="position-absolute rounded-circle bg-light border border-2 d-flex align-items-center justify-content-center shadow-sm"
                                         style="left: -3.2rem; top: 0.5rem; width: 2.5rem; height: 2.5rem; border-color: #dee2e6 !important;">
                                         <i class="ti ti-user fs-16 text-muted"></i>
                                     </span>
 
-                                    <div class="card border mb-0 shadow-sm" style="border-color: {{ $borderColor }} !important;">
+                                    <div class="card border mb-0 shadow-sm"
+                                        style="border-color: {{ $borderColor }} !important;">
                                         <div class="card-header d-flex justify-content-between align-items-center py-2 px-3 border-bottom"
                                             style="background-color: {{ $headerBg }}; border-color: {{ $borderColor }} !important;">
                                             <div class="d-flex align-items-center flex-wrap gap-1">
                                                 <span class="fw-bold text-dark me-1">{{ $note->user?->name ?? 'System' }}</span>
                                                 <span class="text-muted me-1">posted</span>
-                                                <span class="text-secondary-emphasis fw-medium">{{ \Carbon\Carbon::parse($note->datetime)->format('m/d/y g:i A') }}</span>
+                                                <span
+                                                    class="text-secondary-emphasis fw-medium">{{ \Carbon\Carbon::parse($note->datetime)->format('m/d/y g:i A') }}</span>
                                                 @if($isInternal)
-                                                    <span class="text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded px-2 py-0.5 ms-2" style="font-size: 11px;">internal</span>
+                                                    <span
+                                                        class="text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded px-2 py-0.5 ms-2"
+                                                        style="font-size: 11px;">internal</span>
                                                     @if(!empty($note->title))
                                                         <span class="ms-2 fw-semibold text-dark">{{ $note->title }}</span>
                                                     @endif
                                                 @endif
                                             </div>
                                             {{-- <div class="dropdown">
-                                                <button class="btn btn-sm btn-icon btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <button class="btn btn-sm btn-icon btn-link text-muted p-0" type="button"
+                                                    data-bs-toggle="dropdown" aria-expanded="false">
                                                     <i class="ti ti-chevron-down fs-15"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end">
@@ -248,38 +260,45 @@
                 <hr>
 
                 <form class="ticket-post-raplay tabCustomHide" id="replyForm"
-                    action="{{ route('admin.tasks.storeReply', encrypt($task->id)) }}"
-                    method="POST">
+                    action="{{ route('admin.tasks.storeReply', encrypt($task->id)) }}" method="POST">
                     @csrf
 
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <div class="mb-3">
-                                <label class="form-label" for="reply-description-input">Response Description <span class="text-danger">*</span></label>
+                                <label class="form-label" for="reply-description-input">Response Description <span
+                                        class="text-danger">*</span></label>
 
-                                <input type="hidden" name="description" id="reply-description-input"
-                                    value="">
+                                <input type="hidden" name="description" id="reply-description-input" value="">
 
-                                <div class="reply-description-editor" id="reply-description-editor" style="height: 200px;"></div>
+                                <div class="reply-description-editor" id="reply-description-editor"
+                                    style="height: 200px;"></div>
 
                                 @error('description')
-                                <span class="text-danger small mt-1 d-block">{{ $message }}</span>
+                                    <span class="text-danger small mt-1 d-block">{{ $message }}</span>
                                 @enderror
                             </div>
                         </div>
                     </div>
 
                     <div class="row mb-4 align-items-center">
-                        <label for="reply_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Task Status:</label>
+                        <label for="reply_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Task
+                            Status:</label>
                         <div class="col-md-3">
                             <select class="form-select addSelect2" name="ticket_status" id="reply_ticket_status">
-                                <option value="pending" {{ $task->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="assigned" {{ $task->status == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                                <option value="in_progress" {{ $task->status == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                <option value="completed" {{ $task->status == 'completed' ? 'selected' : '' }}>Completed</option>
-                                <option value="cancelled" {{ $task->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                <option value="pending" {{ $task->status == 'pending' ? 'selected' : '' }}>Pending
+                                </option>
+                                <option value="assigned" {{ $task->status == 'assigned' ? 'selected' : '' }}>Assigned
+                                </option>
+                                <option value="in_progress" {{ $task->status == 'in_progress' ? 'selected' : '' }}>In
+                                    Progress</option>
+                                <option value="completed" {{ $task->status == 'completed' ? 'selected' : '' }}>Completed
+                                </option>
+                                <option value="cancelled" {{ $task->status == 'cancelled' ? 'selected' : '' }}>Cancelled
+                                </option>
                                 <option value="refund" {{ $task->status == 'refund' ? 'selected' : '' }}>Refund</option>
-                                <option value="on_hold" {{ $task->status == 'on_hold' ? 'selected' : '' }}>On Hold</option>
+                                <option value="on_hold" {{ $task->status == 'on_hold' ? 'selected' : '' }}>On Hold
+                                </option>
                             </select>
                         </div>
                     </div>
@@ -291,7 +310,8 @@
                     </div>
                 </form>
 
-                <form style="display: none;" class="ticket-post-internal-note tabCustomHide" id="replyInternalForm" action="{{ route('admin.tasks.storeInternalNote', encrypt($task->id)) }}" method="POST">
+                <form style="display: none;" class="ticket-post-internal-note tabCustomHide" id="replyInternalForm"
+                    action="{{ route('admin.tasks.storeInternalNote', encrypt($task->id)) }}" method="POST">
                     @csrf
                     <div class="row mb-3 align-items-center mt-3">
                         <label for="from_email" class="col-md-2 col-form-label fw-bold text-dark">Internal Note:</label>
@@ -304,24 +324,33 @@
                         <div class="col-md-12">
                             <div class="mb-3">
                                 <input type="hidden" name="internal_note" id="reply-internal-note-input" value="">
-                                <div class="reply-internal-note-editor" id="reply-internal-note-editor" style="height: 200px;"></div>
+                                <div class="reply-internal-note-editor" id="reply-internal-note-editor"
+                                    style="height: 200px;"></div>
                                 @error('internal_note')
-                                <span class="text-danger small mt-1 d-block">{{ $message }}</span>
+                                    <span class="text-danger small mt-1 d-block">{{ $message }}</span>
                                 @enderror
                             </div>
                         </div>
                     </div>
                     <div class="row mb-4 align-items-center">
-                        <label for="reply_internal_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Task Status:</label>
+                        <label for="reply_internal_ticket_status" class="col-md-2 col-form-label fw-bold text-dark">Task
+                            Status:</label>
                         <div class="col-md-3">
-                            <select class="form-select addSelect2" name="ticket_status" id="reply_internal_ticket_status">
-                                <option value="pending" {{ $task->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="assigned" {{ $task->status == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                                <option value="in_progress" {{ $task->status == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                <option value="completed" {{ $task->status == 'completed' ? 'selected' : '' }}>Completed</option>
-                                <option value="cancelled" {{ $task->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            <select class="form-select addSelect2" name="ticket_status"
+                                id="reply_internal_ticket_status">
+                                <option value="pending" {{ $task->status == 'pending' ? 'selected' : '' }}>Pending
+                                </option>
+                                <option value="assigned" {{ $task->status == 'assigned' ? 'selected' : '' }}>Assigned
+                                </option>
+                                <option value="in_progress" {{ $task->status == 'in_progress' ? 'selected' : '' }}>In
+                                    Progress</option>
+                                <option value="completed" {{ $task->status == 'completed' ? 'selected' : '' }}>Completed
+                                </option>
+                                <option value="cancelled" {{ $task->status == 'cancelled' ? 'selected' : '' }}>Cancelled
+                                </option>
                                 <option value="refund" {{ $task->status == 'refund' ? 'selected' : '' }}>Refund</option>
-                                <option value="on_hold" {{ $task->status == 'on_hold' ? 'selected' : '' }}>On Hold</option>
+                                <option value="on_hold" {{ $task->status == 'on_hold' ? 'selected' : '' }}>On Hold
+                                </option>
                             </select>
                         </div>
                     </div>
@@ -335,8 +364,8 @@
 
         <div class="task-edit tabHide" id="task-edit" style="display: {{ $tab != 'task-edit' ? 'none' : '' }}">
             <form id="taskForm"
-                action="{{ !empty($task) ? route('admin.tasks.update', encrypt($task->id)) : route('admin.tasks.store') }}" method="post"
-                enctype="multipart/form-data">
+                action="{{ !empty($task) ? route('admin.tasks.update', encrypt($task->id)) : route('admin.tasks.store') }}"
+                method="post" enctype="multipart/form-data">
                 @csrf
                 @if (!empty($task))
                     @method('PUT')
@@ -374,8 +403,10 @@
                     <div class="col-md-6" id="dy-1">
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="form-label mb-0" id="main_label">Products <span class="text-danger">*</span></label>
-                                <a href="javascript:void(0);" id="toggle_type" data-type="{{ $product_type }}" class="text-primary text-decoration-none small">Switch to Services</a>
+                                <label class="form-label mb-0" id="main_label">Products <span
+                                        class="text-danger">*</span></label>
+                                <a href="javascript:void(0);" id="toggle_type" data-type="{{ $product_type }}"
+                                    class="text-primary text-decoration-none small">Switch to Services</a>
                             </div>
 
                             <div id="product_section">
@@ -424,10 +455,12 @@
 
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label class="form-label" for="task_number">Task Number <span class="text-danger">*</span></label>
+                            <label class="form-label" for="task_number">Task Number <span
+                                    class="text-danger">*</span></label>
                             <div class="input-group mb-1">
-                                <input type="text" class="form-control" name="task_number" id="task_number" placeholder="Task Number"
-                                    value="{{ !empty($task_number) ? $task_number : ''  }}" readonly>
+                                <input type="text" class="form-control" name="task_number" id="task_number"
+                                    placeholder="Task Number" value="{{ !empty($task_number) ? $task_number : ''  }}"
+                                    readonly>
                             </div>
                             @error('task_number')
                                 <span class="text-danger small">{{ $message }}</span>
@@ -442,8 +475,7 @@
                                 <option value="">Select Ticket</option>
                                 @if (isset($tickets) && count($tickets) > 0)
                                     @foreach ($tickets as $t)
-                                        <option value="{{ $t->id }}"
-                                            {{ old('ticket_id', $task->ticket_id ?? '') == $t->id ? 'selected' : '' }}>
+                                        <option value="{{ $t->id }}" {{ old('ticket_id', $task->ticket_id ?? '') == $t->id ? 'selected' : '' }}>
                                             {{ $t->ticket_number }}
                                         </option>
                                     @endforeach
@@ -459,7 +491,8 @@
                         <div class="mb-3">
                             <label class="form-label">Due Date:</label>
                             <div class="input-group mb-1">
-                                <input name="due_date" type="date" class="form-control w-auto" value="{{ !empty($task?->due_date) ? \Carbon\Carbon::parse($task?->due_date)->format('Y-m-d') : now()->format('Y-m-d') }}">
+                                <input name="due_date" type="date" class="form-control w-auto"
+                                    value="{{ !empty($task?->due_date) ? \Carbon\Carbon::parse($task?->due_date)->format('Y-m-d') : now()->format('Y-m-d') }}">
                             </div>
                             @error('due_date')
                                 <span class="text-danger small">{{ $message }}</span>
@@ -474,8 +507,7 @@
                                 <option value="">Select User</option>
                                 @if (isset($developers) && count($developers) > 0)
                                     @foreach ($developers as $developer)
-                                        <option value="{{ $developer->id }}"
-                                            {{ old('assign_id', $task->assign_id ?? '') == $developer->id ? 'selected' : '' }}>
+                                        <option value="{{ $developer->id }}" {{ old('assign_id', $task->assign_id ?? '') == $developer->id ? 'selected' : '' }}>
                                             {{ $developer->name }}
                                         </option>
                                     @endforeach
@@ -489,13 +521,13 @@
 
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label class="form-label" for="department_id">Department <span class="text-danger">*</span></label>
+                            <label class="form-label" for="department_id">Department <span
+                                    class="text-danger">*</span></label>
                             <select class="form-select select2 addSelect2" name="department_id" id="department_id">
                                 <option value="">Select Department</option>
                                 @if (isset($departments) && count($departments) > 0)
                                     @foreach ($departments as $department)
-                                        <option value="{{ $department->id }}"
-                                            {{ old('department_id', $task->department_id ?? '') == $department->id ? 'selected' : '' }}>
+                                        <option value="{{ $department->id }}" {{ old('department_id', $task->department_id ?? '') == $department->id ? 'selected' : '' }}>
                                             {{ $department->name }}
                                         </option>
                                     @endforeach
@@ -513,14 +545,22 @@
                             @php $currentStatus = old('status', $task->status ?? ''); @endphp
                             <select class="form-select select2" name="status" id="status">
                                 <option value="">Select Status</option>
-                                <option value="pending" {{ $currentStatus == 'pending' ? 'selected' : '' }}>Pending</option>
-                                {{-- <option value="assign_requested" {{ $currentStatus == 'assign_requested' ? 'selected' : '' }}>Assign Requested</option> --}}
-                                <option value="assigned" {{ $currentStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                                {{-- <option value="assign_not_accepted" {{ $currentStatus == 'assign_not_accepted' ? 'selected' : '' }}>Assign Not Accepted</option> --}}
-                                <option value="in_progress" {{ $currentStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                <option value="completed" {{ $currentStatus == 'completed' ? 'selected' : '' }}>Completed</option>
-                                {{-- <option value="cancel_requested" {{ $currentStatus == 'cancel_requested' ? 'selected' : '' }}>Cancel Requested</option> --}}
-                                <option value="cancelled" {{ $currentStatus == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                <option value="pending" {{ $currentStatus == 'pending' ? 'selected' : '' }}>Pending
+                                </option>
+                                {{-- <option value="assign_requested" {{ $currentStatus=='assign_requested' ? 'selected'
+                                    : '' }}>Assign Requested</option> --}}
+                                <option value="assigned" {{ $currentStatus == 'assigned' ? 'selected' : '' }}>Assigned
+                                </option>
+                                {{-- <option value="assign_not_accepted" {{ $currentStatus=='assign_not_accepted'
+                                    ? 'selected' : '' }}>Assign Not Accepted</option> --}}
+                                <option value="in_progress" {{ $currentStatus == 'in_progress' ? 'selected' : '' }}>In
+                                    Progress</option>
+                                <option value="completed" {{ $currentStatus == 'completed' ? 'selected' : '' }}>Completed
+                                </option>
+                                {{-- <option value="cancel_requested" {{ $currentStatus=='cancel_requested' ? 'selected'
+                                    : '' }}>Cancel Requested</option> --}}
+                                <option value="cancelled" {{ $currentStatus == 'cancelled' ? 'selected' : '' }}>Cancelled
+                                </option>
                                 <option value="refund" {{ $currentStatus == 'refund' ? 'selected' : '' }}>Refund</option>
                             </select>
                             @error('status')
@@ -531,8 +571,10 @@
 
                     <div class="col-md-12" id="cancel_reason_section" style="display: none;">
                         <div class="mb-3">
-                            <label class="form-label" for="cancel_reason">Cancel Reason <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="cancel_reason" id="cancel_reason" rows="3" placeholder="Cancel Reason">{{ old('cancel_reason', $task->cancel_reason ?? '') }}</textarea>
+                            <label class="form-label" for="cancel_reason">Cancel Reason <span
+                                    class="text-danger">*</span></label>
+                            <textarea class="form-control" name="cancel_reason" id="cancel_reason" rows="3"
+                                placeholder="Cancel Reason">{{ old('cancel_reason', $task->cancel_reason ?? '') }}</textarea>
                             @error('cancel_reason')
                                 <span class="text-danger small">{{ $message }}</span>
                             @enderror
@@ -541,11 +583,15 @@
 
                     <div class="col-md-12">
                         <div class="mb-3">
-                            <label class="form-label" for="description">Description <span class="text-danger">*</span></label>
+                            <label class="form-label" for="description">Description <span
+                                    class="text-danger">*</span></label>
 
-                            <input type="hidden" name="description" id="description" value="{{ old('description', $task->description ?? '') }}">
+                            <input type="hidden" name="description" id="description"
+                                value="{{ old('description', $task->description ?? '') }}">
 
-                            <div id="quill-editor" style="height: 200px;">{!! old('description', $task->description ?? '') !!}</div>
+                            <div id="quill-editor" style="height: 200px;">
+                                {!! old('description', $task->description ?? '') !!}
+                            </div>
 
                             @error('description')
                                 <span class="text-danger small mt-1 d-block">{{ $message }}</span>
@@ -564,15 +610,42 @@
             </form>
         </div>
 
-        <div class="task-custom-field tabHide" id="task-custom-field" style="display: {{ $tab != 'task-custom-field' ? 'none' : '' }}">
-
+        <div class="task-custom-field tabHide" id="task-custom-field"
+            style="display: {{ $tab != 'task-custom-field' ? 'none' : '' }}">
+            <div class="row">
+                @if(isset($customfields) && count($customfields) > 0)
+                    @foreach($customfields as $field)
+                        @php
+                            $params = is_string($field->params) ? json_decode($field->params, true) : $field->params;
+                            $inputType = $field->fieldType->key ?? 'text';
+                        @endphp
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">{{ $field->name }}</label>
+                                @if($inputType == 'textarea')
+                                    <textarea class="form-control" placeholder="{{ $params['placeholder'] ?? '' }}"
+                                        disabled>{{ $params['default_value'] ?? '' }}</textarea>
+                                @else
+                                    <input type="{{ $inputType == 'number' ? 'number' : 'text' }}" class="form-control"
+                                        placeholder="{{ $params['placeholder'] ?? '' }}"
+                                        value="{{ $params['default_value'] ?? '' }}" disabled>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="col-md-12">
+                        <p class="text-muted mb-0">No custom fields found.</p>
+                    </div>
+                @endif
+            </div>
         </div>
 
     </x-form-wrapper>
 
     @push('scripts')
         <script>
-            $(document).ready(function() {
+            $(document).ready(function () {
 
                 Quill.register("modules/htmlEditButton", htmlEditButton);
                 var toolbarOptions = [
@@ -596,7 +669,7 @@
                     }
                 });
 
-                quillTicketEdit.on('text-change', function() {
+                quillTicketEdit.on('text-change', function () {
                     var html = quillTicketEdit.root.innerHTML;
                     $('#reply-description-input').val(html);
                 });
@@ -609,12 +682,12 @@
                     }
                 });
 
-                quillInternalNoteEdit.on('text-change', function() {
+                quillInternalNoteEdit.on('text-change', function () {
                     var html = quillInternalNoteEdit.root.innerHTML;
                     $('#reply-internal-note-input').val(html);
                 });
 
-                $(document).on('click', '.custom-nav-link', function(e) {
+                $(document).on('click', '.custom-nav-link', function (e) {
                     e.preventDefault();
                     var tab = $(this).data('tab');
                     var url = new URL(window.location.href);
@@ -626,7 +699,7 @@
                     $(`#${tab}`).show();
                 });
 
-                $(document).on('click', '.custom-nav-link-edit', function(e) {
+                $(document).on('click', '.custom-nav-link-edit', function (e) {
                     e.preventDefault();
                     var tab = $(this).data('tab');
                     $('.custom-nav-link-edit').removeClass('active');
@@ -662,7 +735,7 @@
 
                 applyTypeSelection();
 
-                $('#toggle_type').click(function() {
+                $('#toggle_type').click(function () {
                     var Type = $(this).data('type');
 
                     if (Type == 'service') {
@@ -713,16 +786,16 @@
                 $('#product_id').select2({ placeholder: 'Select a product', allowClear: true });
                 $('#service_id').select2({ placeholder: 'Select a service', allowClear: true });
 
-                $('#status').on('change', function() {
+                $('#status').on('change', function () {
                     toggleCancelReason();
                     $(this).valid();
                 });
 
-                $('#user_id, #developer_id').on('change', function() {
+                $('#user_id, #developer_id').on('change', function () {
                     $(this).valid();
                 });
 
-                $('#service_id').on('change', function() {
+                $('#service_id').on('change', function () {
                     let serviceId = $(this).val();
                     let variantSelect = $('#service_variant_id');
                     let variantSection = $('#service_variant_section');
@@ -743,13 +816,13 @@
                                 service_id: serviceId,
                                 // variant_id: variantId
                             },
-                            success: function(response) {
+                            success: function (response) {
                                 if (response.success === 1 && response.variants.length > 0) {
                                     $('input[name="is_variant"]').val(1);
                                     let options = '<option value="">Select Variant...</option>';
 
                                     // Loop through returned variants and append to options string
-                                    $.each(response.variants, function(index, variant) {
+                                    $.each(response.variants, function (index, variant) {
                                         // Assuming your variants table has 'id' and 'name' columns.
                                         // Adjust 'variant.name' if your column is called something else (e.g., 'title')
                                         var selected = variantId == variant.id ? 'selected' : '';
@@ -764,7 +837,7 @@
                                     variantSelect.html('<option value="">No variants found</option>');
                                 }
                             },
-                            error: function(xhr) {
+                            error: function (xhr) {
                                 console.error("An error occurred while fetching variants.");
                                 variantSelect.html('<option value="">Error loading variants</option>');
                             }
@@ -790,17 +863,17 @@
                             maxlength: 255
                         },
                         product_id: {
-                            required: function(element) {
+                            required: function (element) {
                                 return $('input[name="product_type"]').val() === 'product';
                             }
                         },
                         service_id: {
-                            required: function(element) {
+                            required: function (element) {
                                 return $('input[name="product_type"]').val() === 'service';
                             }
                         },
                         service_variant_id: {
-                            required: function(element) {
+                            required: function (element) {
                                 return $('input[name="is_variant"]').val() == 1 ? true : false;
                             }
                         },
@@ -811,7 +884,7 @@
                             required: true
                         },
                         cancel_reason: {
-                            required: function(element) {
+                            required: function (element) {
                                 let st = $('#status').val();
                                 return (st === 'cancelled' || st === 'cancel_requested');
                             }
@@ -829,19 +902,19 @@
                     errorClass: 'text-danger small mt-1',
                     errorElement: 'span',
                     ignore: ":hidden:not(.select2-hidden-accessible, #description)",
-                    highlight: function(element) {
+                    highlight: function (element) {
                         $(element).addClass('is-invalid');
                         if ($(element).hasClass("select2-hidden-accessible")) {
                             $(element).next('.select2-container').find('.select2-selection').addClass('border-danger');
                         }
                     },
-                    unhighlight: function(element) {
+                    unhighlight: function (element) {
                         $(element).removeClass('is-invalid');
                         if ($(element).hasClass("select2-hidden-accessible")) {
                             $(element).next('.select2-container').find('.select2-selection').removeClass('border-danger');
                         }
                     },
-                    errorPlacement: function(error, element) {
+                    errorPlacement: function (error, element) {
                         if (element.hasClass('select2-hidden-accessible')) {
                             error.insertAfter(element.next('.select2-container'));
                         } else if (element.attr('id') === 'description') {
@@ -866,10 +939,10 @@
                     ['bold', 'italic', 'underline', 'strike'],
                     [{ 'color': [] }, { 'background': [] }],
 
-                    [{ 'script': 'sub'}, { 'script': 'super' }],
+                    [{ 'script': 'sub' }, { 'script': 'super' }],
 
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
-                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+                    [{ 'indent': '-1' }, { 'indent': '+1' }],
                     [{ 'align': [] }],
                     [{ 'direction': 'rtl' }],
 
@@ -897,7 +970,7 @@
                     }
                 });
 
-                quill.on('text-change', function() {
+                quill.on('text-change', function () {
                     var html = quill.root.innerHTML;
                     if (quill.getText().trim().length === 0) {
                         html = '';
@@ -918,16 +991,16 @@
                     },
                     errorClass: 'text-danger small mt-1',
                     errorElement: 'span',
-                    highlight: function(element) {
+                    highlight: function (element) {
                         $(element).addClass('is-invalid');
                     },
-                    unhighlight: function(element) {
+                    unhighlight: function (element) {
                         $(element).removeClass('is-invalid');
                     },
-                    errorPlacement: function(error, element) {
+                    errorPlacement: function (error, element) {
                         error.insertAfter(element.closest('.mb-3'));
                     },
-                    submitHandler: function(form) {
+                    submitHandler: function (form) {
                         var html = quillTicketEdit.root.innerHTML;
                         if (quillTicketEdit.getText().trim().length === 0) {
                             html = '';
@@ -948,16 +1021,16 @@
                     },
                     errorClass: 'text-danger small mt-1',
                     errorElement: 'span',
-                    highlight: function(element) {
+                    highlight: function (element) {
                         $(element).addClass('is-invalid');
                     },
-                    unhighlight: function(element) {
+                    unhighlight: function (element) {
                         $(element).removeClass('is-invalid');
                     },
-                    errorPlacement: function(error, element) {
+                    errorPlacement: function (error, element) {
                         error.insertAfter(element.closest('.mb-3'));
                     },
-                    submitHandler: function(form) {
+                    submitHandler: function (form) {
                         var html = quillInternalNoteEdit.root.innerHTML;
                         if (quillInternalNoteEdit.getText().trim().length === 0) {
                             html = '';
