@@ -14,7 +14,8 @@
 
             <!-- Logo Small -->
             <a href="{{ route('admin.dashboard') }}" class="logo-small">
-                <img src="{{ asset('assets/img/cropped-Ginosys-Digital-32x32.png') }}" width="40" height="30" alt="Logo">
+                <img src="{{ asset('assets/img/cropped-Ginosys-Digital-32x32.png') }}" width="40" height="30"
+                    alt="Logo">
             </a>
 
             <!-- Logo Dark -->
@@ -40,164 +41,164 @@
                 {{-- <li class="menu-title"><span>Main Menu</span></li> --}}
                 <li>
                     <ul>
-                        <li class="{{ request()->routeIs('admin.dashboard*') ? 'active' : '' }}">
-                            <a href="{{ route('admin.dashboard') }}">
-                                <i class="ti ti-dashboard"></i>
-                                <span>Dashboard</span>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"
+                                class="{{ request()->routeIs('admin.dashboard*') ? 'active subdrop' : '' }}">
+                                <i class="ti ti-dashboard"></i><span>Dashboard</span><span class="menu-arrow"></span>
                             </a>
+                            <ul style="display: {{ request()->routeIs('admin.dashboard*') ? 'block' : 'none' }};">
+                                <li>
+                                    <a href="{{ route('admin.dashboard') }}"
+                                        class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard</a>
+                                </li>
+                            </ul>
                         </li>
+
+                        @canany(['view.users', 'view.roles'])
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ request()->routeIs(['admin.users.*', 'admin.roles.*']) ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-users"></i><span>User Management</span><span class="menu-arrow"></span>
+                                </a>
+                                <ul style="display: {{ request()->routeIs(['admin.users.*', 'admin.roles.*']) ? 'block' : 'none' }};">
+                                    @can('view.users')
+                                        <li>
+                                            <a href="{{ route('admin.users.index') }}"
+                                                class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">Manage Users</a>
+                                        </li>
+                                    @endcan
+                                    @can('view.roles')
+                                        <li>
+                                            <a href="{{ route('admin.roles.index') }}"
+                                                class="{{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">Roles & Permissions</a>
+                                        </li>
+                                    @endcan
+                                </ul>
+                            </li>
+                        @endcanany
+
+                        @canany(['view.categories', 'view.departments'])
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ request()->routeIs(['admin.categories.*', 'admin.departments.*']) ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-category"></i><span>Category Management</span><span class="menu-arrow"></span>
+                                </a>
+                                <ul style="display: {{ request()->routeIs(['admin.categories.*', 'admin.departments.*']) ? 'block' : 'none' }};">
+                                    @can('view.categories')
+                                        <li>
+                                            <a href="{{ route('admin.categories.index') }}"
+                                                class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">Categories</a>
+                                        </li>
+                                    @endcan
+                                    @can('view.departments')
+                                        <li>
+                                            <a href="{{ route('admin.departments.index') }}"
+                                                class="{{ request()->routeIs('admin.departments.*') ? 'active' : '' }}">Departments</a>
+                                        </li>
+                                    @endcan
+                                </ul>
+                            </li>
+                        @endcanany
+
+                        @canany(['view.digital.products', 'view.digital.services'])
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ request()->routeIs(['admin.digital.products.*', 'admin.digital.services.*']) ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-box"></i><span>Products & Services</span><span class="menu-arrow"></span>
+                                </a>
+                                <ul style="display: {{ request()->routeIs(['admin.digital.products.*', 'admin.digital.services.*']) ? 'block' : 'none' }};">
+                                    @can('view.digital.products')
+                                        <li>
+                                            <a href="{{ route('admin.digital.products.index') }}"
+                                                class="{{ request()->routeIs('admin.digital.products.*') ? 'active' : '' }}">Digital Products</a>
+                                        </li>
+                                    @endcan
+                                    @can('view.digital.services')
+                                        <li>
+                                            <a href="{{ route('admin.digital.services.index') }}"
+                                                class="{{ request()->routeIs('admin.digital.services.*') ? 'active' : '' }}">Digital Services</a>
+                                        </li>
+                                    @endcan
+                                </ul>
+                            </li>
+                        @endcanany
+
+                        @can('view.blogs')
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ request()->routeIs('admin.blogs.*') ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-article"></i><span>Blog Management</span><span class="menu-arrow"></span>
+                                </a>
+                                <ul style="display: {{ request()->routeIs('admin.blogs.*') ? 'block' : 'none' }};">
+                                    <li>
+                                        <a href="{{ route('admin.blogs.index') }}"
+                                            class="{{ request()->routeIs('admin.blogs.*') ? 'active' : '' }}">Blogs</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endcan
+
+                        @can('view.wallets')
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ request()->routeIs('admin.wallets.*') ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-wallet"></i><span>Wallet Management</span><span class="menu-arrow"></span>
+                                </a>
+                                <ul style="display: {{ request()->routeIs('admin.wallets.*') ? 'block' : 'none' }};">
+                                    <li>
+                                        <a href="{{ route('admin.wallets.index') }}"
+                                            class="{{ request()->routeIs('admin.wallets.*') ? 'active' : '' }}">Wallets</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endcan
+
+                        @can('view.orders')
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ request()->routeIs('admin.orders.*') ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-shopping-cart"></i><span>Order Management</span><span class="menu-arrow"></span>
+                                </a>
+                                <ul style="display: {{ request()->routeIs('admin.orders.*') ? 'block' : 'none' }};">
+                                    <li>
+                                        <a href="{{ route('admin.orders.index') }}"
+                                            class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">Orders</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endcan
+
+                        @can('view.tickets')
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ request()->routeIs('admin.tickets.*') ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-ticket"></i><span>Ticket Management</span><span class="menu-arrow"></span>
+                                </a>
+                                <ul style="display: {{ request()->routeIs('admin.tickets.*') ? 'block' : 'none' }};">
+                                    <li>
+                                        <a href="{{ route('admin.tickets.index') }}"
+                                            class="{{ request()->routeIs('admin.tickets.*') ? 'active' : '' }}">Tickets</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endcan
+
+                        @can('view.tasks')
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ request()->routeIs('admin.tasks.*') ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-clipboard-list"></i><span>Task Management</span><span class="menu-arrow"></span>
+                                </a>
+                                <ul style="display: {{ request()->routeIs('admin.tasks.*') ? 'block' : 'none' }};">
+                                    <li>
+                                        <a href="{{ route('admin.tasks.index') }}"
+                                            class="{{ request()->routeIs('admin.tasks.*') ? 'active' : '' }}">Task</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endcan
                     </ul>
                 </li>
-
-                @canany(['view.users','view.roles'])
-                    <li class="menu-title"><span>User Management</span></li>
-                    <li>
-                        <ul>
-                            @can('view.users')
-                                <li class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                                    <a href="{{ route('admin.users.index') }}">
-                                        <i class="ti ti-users"></i>
-                                        <span>Manage Users</span>
-                                    </a>
-                                </li>
-                            @endcan
-
-                            @can('view.roles')
-                                <li class="{{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
-                                    <a href="{{ route('admin.roles.index') }}">
-                                        <i class="ti ti-user-shield"></i>
-                                        <span>Roles & Permissions</span>
-                                    </a>
-                                </li>
-                            @endcan
-
-                        </ul>
-                    </li>
-                @endcanany
-
-                @can('view.categories')
-                    <li class="menu-title"><span>Category Management</span></li>
-                    <li>
-                        <ul>
-                            <li class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
-                                <a href="{{ route('admin.categories.index') }}">
-                                    <i class="ti ti-category"></i>
-                                    <span>Categories</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endcan
-
-                @can('view.departments')
-                    <li class="menu-title"><span>Category Management</span></li>
-                    <li>
-                        <ul>
-                            <li class="{{ request()->routeIs('admin.departments.*') ? 'active' : '' }}">
-                                <a href="{{ route('admin.departments.index') }}">
-                                    <i class="ti ti-category"></i>
-                                    <span>Departments</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endcan
-
-                @canany(['view.digital.products','view.digital.services'])
-                    <li class="menu-title"><span>Products & Services</span></li>
-                    <li>
-                        <ul>
-                            @can('view.digital.products')
-                                <li class="{{ request()->routeIs('admin.digital.products.*') ? 'active' : '' }}">
-                                    <a href="{{ route('admin.digital.products.index') }}">
-                                        <i class="ti ti-category"></i>
-                                        <span>Digital Products</span>
-                                    </a>
-                                </li>
-                            @endcan
-
-                            @can('view.digital.services')
-                                <li class="{{ request()->routeIs('admin.digital.services.*') ? 'active' : '' }}">
-                                    <a href="{{ route('admin.digital.services.index') }}">
-                                        <i class="ti ti-category"></i>
-                                        <span>Digital Services</span>
-                                    </a>
-                                </li>
-                            @endcan
-                        </ul>
-                    </li>
-                @endcanany
-
-                @can('view.blogs')
-                    <li class="menu-title"><span>Blog Management</span></li>
-                    <li>
-                        <ul>
-                            <li class="{{ request()->routeIs('admin.blogs.*') ? 'active' : '' }}">
-                                <a href="{{ route('admin.blogs.index') }}">
-                                    <i class="ti ti-category"></i>
-                                    <span>Blogs</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endcan
-
-                @can('view.wallets')
-                    <li class="menu-title"><span>Wallet Management</span></li>
-                    <li>
-                        <ul>
-                            <li class="{{ request()->routeIs('admin.wallets.*') ? 'active' : '' }}">
-                                <a href="{{ route('admin.wallets.index') }}">
-                                    <i class="ti ti-category"></i>
-                                    <span>Wallets</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endcan
-
-                @can('view.orders')
-                    <li class="menu-title"><span>Order Management</span></li>
-                    <li>
-                        <ul>
-                            <li class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-                                <a href="{{ route('admin.orders.index') }}">
-                                    <i class="ti ti-category"></i>
-                                    <span>Orders</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endcan
-
-                @can('view.tickets')
-                    <li class="menu-title"><span>Ticket Management</span></li>
-                    <li>
-                        <ul>
-                            <li class="{{ request()->routeIs('admin.tickets.*') ? 'active' : '' }}">
-                                <a href="{{ route('admin.tickets.index') }}">
-                                    <i class="ti ti-category"></i>
-                                    <span>Tickets</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endcan
-
-                @can('view.tasks')
-                    <li class="menu-title"><span>Task Management</span></li>
-                    <li>
-                        <ul>
-                            <li class="{{ request()->routeIs('admin.tasks.*') ? 'active' : '' }}">
-                                <a href="{{ route('admin.tasks.index') }}">
-                                    <i class="ti ti-category"></i>
-                                    <span>Task</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endcan
-
             </ul>
         </div>
     </div>
