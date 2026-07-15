@@ -715,14 +715,41 @@ class TicketController extends Controller
     public function updateStatus(Request $request)
     {
         try {
-            $user = User::withTrashed()->findOrFail(decrypt($request->id));
-            $user->update([
-                'status' => $request->status,
-            ]);
+            $ticket = Ticket::withTrashed()->findOrFail(decrypt($request->id));
+
+            if ($request->status == 'assigned' && $request->assign_id) {
+                $ticket->assign_id = $request->assign_id;
+            }
+
+            if (in_array($request->status, ['completed', 'cancel_requested', 'cancelled', 'refund'])) {
+                $incompleteTasks = \App\Models\Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
+                if ($incompleteTasks > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cannot change status to completed/cancelled. All tasks must be completed first.'
+                    ]);
+                }
+            }
+
+            $oldStatus = $ticket->status;
+            $ticket->status = $request->status;
+            $ticket->update();
+
+            if ($oldStatus != $ticket->status) {
+                Note::create([
+                    'ref_id' => $ticket->id,
+                    'ref_type' => 'internal_note',
+                    'title' => 'Status Updated',
+                    'datetime' => now(),
+                    'text' => 'Ticket status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $ticket->status)),
+                    'user_id' => Auth::id(),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => $user->status == 1 ? 'User activated successfully.' : 'User deactivated successfully.'
+                'message' => 'Ticket status updated successfully!',
+                'data' => $ticket
             ]);
         } catch (\Exception $e) {
             Log::error('Ticket Status Update Error', [
@@ -1146,7 +1173,7 @@ class TicketController extends Controller
             'chat_id' => 'required|exists:chats,id'
         ]);
 
-        $chat = Chat::find($request->chat_id);
+        $chat = Chat::findOrFail($request->chat_id);
 
         if ($chat->user_id == auth()->id()) {
             $chat->delete();
@@ -1163,7 +1190,7 @@ class TicketController extends Controller
             'text' => 'required|string',
         ]);
 
-        $chat = Chat::find($request->chat_id);
+        $chat = Chat::findOrFail($request->chat_id);
 
         // Auth check jethi koi biju user aa message edit na kari shake
         if ($chat->user_id == auth()->id()) {
@@ -1368,8 +1395,8 @@ class TicketController extends Controller
                         ->where('id', $product_id)
                         ->where('status', 1)
                         ->first();
-            $product_name = $products->name ?? '';
-            $product_price = $products->price ?? 0;
+            $product_name = $products?->name ?? '';
+            $product_price = $products?->price ?? 0;
         } else if ($product_type == 'service') {
             $services = \App\Models\DigitalService::query()
                         ->where('id', $service_id)
@@ -1380,10 +1407,10 @@ class TicketController extends Controller
                         }])
                         ->where('status', 1)
                         ->first();
-            $product_name = $services->name ?? '';
-            $product_price = $services->price ?? 0;
+            $product_name = $services?->name ?? '';
+            $product_price = $services?->price ?? 0;
 
-            if (!empty($services->variants[0])) {
+            if ($services && !empty($services->variants[0])) {
                 $variant_id = $services->variants[0]->id;
                 $variant_name = $services->variants[0]->name;
                 $product_price = $services->variants[0]->price;
@@ -1486,8 +1513,8 @@ class TicketController extends Controller
                         ->where('id', $product_id)
                         ->where('status', 1)
                         ->first();
-            $product_name = $products->name ?? '';
-            $product_price = $products->price ?? 0;
+            $product_name = $products?->name ?? '';
+            $product_price = $products?->price ?? 0;
         } else if ($product_type == 'service') {
             $services = \App\Models\DigitalService::query()
                         ->where('id', $service_id)
@@ -1498,10 +1525,10 @@ class TicketController extends Controller
                         }])
                         ->where('status', 1)
                         ->first();
-            $product_name = $services->name ?? '';
-            $product_price = $services->price ?? 0;
+            $product_name = $services?->name ?? '';
+            $product_price = $services?->price ?? 0;
 
-            if (!empty($services->variants[0])) {
+            if ($services && !empty($services->variants[0])) {
                 $variant_id = $services->variants[0]->id;
                 $variant_name = $services->variants[0]->name;
                 $product_price = $services->variants[0]->price;
