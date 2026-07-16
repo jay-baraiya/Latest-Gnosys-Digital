@@ -10,6 +10,7 @@ class CustomField extends Model
         'module_type',
         'custom_field_type_id',
         'recode_id',
+        'department_id',
         'name',
         'slug',
         'status',

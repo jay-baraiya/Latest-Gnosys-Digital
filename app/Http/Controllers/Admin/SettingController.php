@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
 class SettingController extends Controller
@@ -129,6 +131,49 @@ class SettingController extends Controller
         }
     }
 
+    public function store(Request $request)
+    {
+        $tab = $request->input('tab', 'theme-settings');
+
+        try {
+            $setting = Setting::query()->first() ?? new Setting();
+
+            if ($tab === 'theme-settings') {
+                $setting->theme_mode = $request->theme_mode;
+                $setting->layout_size = $request->layout_size;
+                $setting->sidebar_color = $request->sidebar_color;
+                $setting->topbar_color = $request->topbar_color;
+                $setting->primary_color = $request->primary_color;
+            } elseif ($tab === 'email-setting') {
+                $setting->mail_mailer = $request->mail_mailer;
+                $setting->mail_host = $request->mail_host;
+                $setting->mail_port = $request->mail_port;
+                $setting->mail_username = $request->mail_username;
+                $setting->mail_password = $request->mail_password;
+                $setting->mail_encryption = $request->mail_encryption;
+                $setting->mail_from_address = $request->mail_from_address;
+                $setting->mail_from_name = $request->mail_from_name;
+            }
+
+            $setting->save();
+            Cache::forget('app_settings');
+
+            return redirect()->route('admin.settings.index', ['tab' => $tab])
+                ->with('success', 'Settings updated successfully.');
+
+        } catch (\Exception $e) {
+            Log::error('Settings Update Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return redirect()->route('admin.settings.index', ['tab' => $tab])
+                ->withInput()
+                ->with('error', 'Failed to update settings. Please try again later.');
+        }
+    }
+
     public function storeWebsiteSetting(Request $request)
     {
 
@@ -210,5 +255,31 @@ class SettingController extends Controller
         print_r('test');
         echo '</pre>';
         exit;
+    }
+
+    public function testEmail(Request $request)
+    {
+        $request->validate([
+            'test_email' => 'required|email'
+        ]);
+
+        try {
+            Mail::raw('This is a test email to verify your SMTP settings in the Gnosys Digital ERP system. If you received this, your email configuration is working perfectly!', function ($message) use ($request) {
+                $message->to($request->test_email)
+                        ->subject('Test Email - SMTP Configuration Verification');
+            });
+
+            return redirect()->route('admin.settings.index', ['tab' => 'email-settings'])
+                ->with('success', 'Test email sent successfully to ' . $request->test_email);
+        } catch (\Exception $e) {
+            Log::error('Test Email Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return redirect()->route('admin.settings.index', ['tab' => 'email-settings'])
+                ->with('error', 'Failed to send test email. Error: ' . $e->getMessage());
+        }
     }
 }

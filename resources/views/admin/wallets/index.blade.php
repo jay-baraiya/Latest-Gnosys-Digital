@@ -35,11 +35,11 @@
                     <span class="input-icon-addon text-dark"><i class="ti ti-search"></i></span>
                     <input type="text" class="form-control" placeholder="Search" id="dataTable-search">
                 </div>
-                @can('create.'.strtolower($moduleName))
-                <a href="#" class="btn btn-primary addBalanceInWallet">
-                    <i class="ti ti-square-rounded-plus-filled me-1"></i>
-                    Add Balance
-                </a>    
+                @can('create.' . strtolower($moduleName))
+                    <a href="#" class="btn btn-primary addBalanceInWallet">
+                        <i class="ti ti-square-rounded-plus-filled me-1"></i>
+                        Add Balance
+                    </a>
                 @endcan
             </x-slot:header>
 
@@ -72,7 +72,8 @@
 
     </div>
 
-    <div id="addBalanceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addBalance-modalLabel" aria-hidden="true">
+    <div id="addBalanceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addBalance-modalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <form id="walletAddBalanceForm">
                 <div class="modal-content">
@@ -83,13 +84,14 @@
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-lg-12 mb-2">
-                                <label for="buyer_id" class="form-label">Buyers <span class="text-danger">*</span> </label>
+                                <label for="buyer_id" class="form-label">Buyers <span class="text-danger">*</span>
+                                </label>
                                 <select name="buyer_id" id="buyer_id" class="form-control">
                                     <option value="">Select Buyer</option>
                                     @if (isset($buyers))
-                                    @foreach ($buyers as $key => $buyer)
-                                    <option value="{{ $key }}">{{ $buyer }}</option>
-                                    @endforeach
+                                        @foreach ($buyers as $key => $buyer)
+                                            <option value="{{ $key }}">{{ $buyer }}</option>
+                                        @endforeach
                                     @endif
                                 </select>
                             </div>
@@ -101,7 +103,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-soft-light" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Save changes</button>
                     </div>
                 </div>
@@ -110,7 +112,8 @@
     </div>
 
     <!-- Standard modal content -->
-    <div id="walletModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="wallet-modalLabel" aria-hidden="true">
+    <div id="walletModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="wallet-modalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -124,91 +127,91 @@
     </div>
 
     @push('scripts')
-    <script>
-        $(document).ready(function() {
+        <script>
+            $(document).ready(function () {
 
-            $(document).on('click', '.addBalanceInWallet', function() {
-                let form = $('#walletAddBalanceForm');
-                form[0].reset();
-                form.validate().resetForm();
-                form.find('.is-invalid').removeClass('is-invalid');
+                $(document).on('click', '.addBalanceInWallet', function () {
+                    let form = $('#walletAddBalanceForm');
+                    form[0].reset();
+                    form.validate().resetForm();
+                    form.find('.is-invalid').removeClass('is-invalid');
 
-                $('#addBalanceModal').modal('show');
-            });
+                    $('#addBalanceModal').modal('show');
+                });
 
-            $(document).on('click', '.showWalletHistory', function(e) {
-                e.preventDefault();
-                $('#walletModal').modal('show');
+                $(document).on('click', '.showWalletHistory', function (e) {
+                    e.preventDefault();
+                    $('#walletModal').modal('show');
 
-                var url = $(this).attr('href');
-                var modal = $('#walletModal');
+                    var url = $(this).attr('href');
+                    var modal = $('#walletModal');
 
-                if (url) {
+                    if (url) {
 
-                    $.ajax({
-                        url: url,
-                        type: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}'
+                        $.ajax({
+                            url: url,
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+
+                            beforeSend: function () {
+                                $('.historyData').html('Loading...');
+                            },
+
+                            success: function (response) {
+
+                                $('.historyData').html('');
+                                $('.historyData').html(response.html);
+
+                                modal.modal('show');
+                            },
+
+                            error: function (xhr) {
+                                $('.historyData').html('<center><p>History not found!</p></center>');
+                                console.log(xhr.responseText);
+                            }
+                        });
+                    }
+                });
+
+                if ($('#manage-module-list').length > 0) {
+                    var table = $('#manage-module-list').DataTable({
+                        "bFilter": true,
+                        "sDom": 'Btlpi',
+                        "ordering": true,
+                        "autoWidth": false,
+                        "responsive": true,
+                        "processing": true,
+                        "serverSide": true,
+                        "ajax": {
+                            "url": "{{ route('admin.wallets.getData') }}",
+                            "type": "POST",
+                            data: function (d) {
+                                d.is_deleted = $('#is_deleted').val();
+                                d.is_buyer = $('.buyerRecode').attr('data-buyer-value');
+                            }
                         },
-
-                        beforeSend: function() {
-                            $('.historyData').html('Loading...');
+                        "language": {
+                            search: ' ',
+                            sLengthMenu: '_MENU_',
+                            searchPlaceholder: "Search",
+                            info: "_START_ - _END_ of _TOTAL_ items",
+                            "lengthMenu": "Show _MENU_ entries",
+                            paginate: {
+                                next: '<i class="ti ti-chevron-right"></i> ',
+                                previous: '<i class="ti ti-chevron-left"></i> '
+                            },
                         },
-
-                        success: function(response) {
-
-                            $('.historyData').html('');
-                            $('.historyData').html(response.html);
-
-                            modal.modal('show');
+                        initComplete: (settings, json) => {
+                            $('.dataTables_paginate').appendTo('.datatable-paginate');
+                            $('.dataTables_length').appendTo('.datatable-length');
                         },
-
-                        error: function(xhr) {
-                            $('.historyData').html('<center><p>History not found!</p></center>');
-                            console.log(xhr.responseText);
-                        }
-                    });
-                }
-            });
-
-            if ($('#manage-module-list').length > 0) {
-                var table = $('#manage-module-list').DataTable({
-                    "bFilter": true,
-                    "sDom": 'Btlpi',
-                    "ordering": true,
-                    "autoWidth": false,
-                    "responsive": true,
-                    "processing": true,
-                    "serverSide": true,
-                    "ajax": {
-                        "url": "{{ route('admin.wallets.getData') }}",
-                        "type": "POST",
-                        data: function(d) {
-                            d.is_deleted = $('#is_deleted').val();
-                            d.is_buyer = $('.buyerRecode').attr('data-buyer-value');
-                        }
-                    },
-                    "language": {
-                        search: ' ',
-                        sLengthMenu: '_MENU_',
-                        searchPlaceholder: "Search",
-                        info: "_START_ - _END_ of _TOTAL_ items",
-                        "lengthMenu": "Show _MENU_ entries",
-                        paginate: {
-                            next: '<i class="ti ti-chevron-right"></i> ',
-                            previous: '<i class="ti ti-chevron-left"></i> '
+                        drawCallback: function (settings) {
+                            var api = this.api();
+                            $('.record-count').text(api.ajax.json().total_users ?? 0);
                         },
-                    },
-                    initComplete: (settings, json) => {
-                        $('.dataTables_paginate').appendTo('.datatable-paginate');
-                        $('.dataTables_length').appendTo('.datatable-length');
-                    },
-                    drawCallback: function(settings) {
-                        var api = this.api();
-                        $('.record-count').text(api.ajax.json().total_users ?? 0);
-                    },
-                    "columns": [{
+                        "columns": [{
                             "data": "DT_RowIndex",
                             "name": "DT_RowIndex",
                             "orderable": false,
@@ -236,100 +239,100 @@
                             "orderable": false,
                             "searchable": false
                         }
-                    ]
-                });
+                        ]
+                    });
 
-                let timeout;
+                    let timeout;
 
-                $('#dataTable-search').on('keyup', function() {
-                    clearTimeout(timeout);
-                    let value = this.value;
+                    $('#dataTable-search').on('keyup', function () {
+                        clearTimeout(timeout);
+                        let value = this.value;
 
-                    timeout = setTimeout(function() {
-                        table.search(value).draw();
-                    }, 500);
-                });
-            }
-
-            $('#walletAddBalanceForm').validate({
-                rules: {
-                    buyer_id: {
-                        required: true
-                    },
-                    amount: {
-                        required: true,
-                        number: true,
-                        min: 1,
-                        max: 50000
-                    }
-                },
-                messages: {
-                    buyer_id: "Please select a buyer.",
-                    amount: {
-                        required: "Please enter wallet amount.",
-                        number: "Amount must be a valid number.",
-                        min: "Minimum amount is $1.",
-                        max: "Maximum amount is $50,000."
-                    }
-                },
-                errorElement: 'span',
-                errorPlacement: function(error, element) {
-                    error.addClass('invalid-feedback text-danger');
-                    element.closest('.col-lg-12').append(error);
-                },
-                highlight: function(element) {
-                    $(element).addClass('is-invalid');
-                },
-                unhighlight: function(element) {
-                    $(element).removeClass('is-invalid');
-                },
-                submitHandler: function(form, event) {
-                    event.preventDefault(); // Stop default form submit
-
-                    let formData = $(form).serialize();
-                    let submitBtn = $(form).find('button[type="submit"]');
-
-                    $.ajax({
-                        url: "{{ route('admin.wallets.store') }}", // Ensure this route is correct
-                        type: "POST",
-                        data: formData,
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Laravel CSRF token
-                        },
-                        beforeSend: function() {
-                            submitBtn.prop('disabled', true).text('Processing...');
-                        },
-                        success: function(response) {
-                            submitBtn.prop('disabled', false).text('Save changes');
-
-                            if (response.success) {
-                                $('#addBalanceModal').modal('hide');
-                                showToast(response.message, 'success');
-                                reloadDataTabale();
-                            }
-                        },
-                        error: function(xhr) {
-                            submitBtn.prop('disabled', false).text('Save changes');
-
-                            if (xhr.status === 422) {
-                                let errors = xhr.responseJSON.errors;
-                                let errorMessage = '';
-                                $.each(errors, function(key, value) {
-                                    errorMessage += value[0] + '\n';
-                                    showToast(errorMessage, 'error');
-                                });
-                                reloadDataTabale();
-                                // alert('Validation Error:\n' + errorMessage);
-                            } else {
-                                // Handle 500 Server Errors
-                                showToast('Something went wrong! Please check server logs.', 'error');
-                                // alert('Something went wrong! Please check server logs.');
-                            }
-                        }
+                        timeout = setTimeout(function () {
+                            table.search(value).draw();
+                        }, 500);
                     });
                 }
+
+                $('#walletAddBalanceForm').validate({
+                    rules: {
+                        buyer_id: {
+                            required: true
+                        },
+                        amount: {
+                            required: true,
+                            number: true,
+                            min: 1,
+                            max: 50000
+                        }
+                    },
+                    messages: {
+                        buyer_id: "Please select a buyer.",
+                        amount: {
+                            required: "Please enter wallet amount.",
+                            number: "Amount must be a valid number.",
+                            min: "Minimum amount is $1.",
+                            max: "Maximum amount is $50,000."
+                        }
+                    },
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback text-danger');
+                        element.closest('.col-lg-12').append(error);
+                    },
+                    highlight: function (element) {
+                        $(element).addClass('is-invalid');
+                    },
+                    unhighlight: function (element) {
+                        $(element).removeClass('is-invalid');
+                    },
+                    submitHandler: function (form, event) {
+                        event.preventDefault(); // Stop default form submit
+
+                        let formData = $(form).serialize();
+                        let submitBtn = $(form).find('button[type="submit"]');
+
+                        $.ajax({
+                            url: "{{ route('admin.wallets.store') }}", // Ensure this route is correct
+                            type: "POST",
+                            data: formData,
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Laravel CSRF token
+                            },
+                            beforeSend: function () {
+                                submitBtn.prop('disabled', true).text('Processing...');
+                            },
+                            success: function (response) {
+                                submitBtn.prop('disabled', false).text('Save changes');
+
+                                if (response.success) {
+                                    $('#addBalanceModal').modal('hide');
+                                    showToast(response.message, 'success');
+                                    reloadDataTabale();
+                                }
+                            },
+                            error: function (xhr) {
+                                submitBtn.prop('disabled', false).text('Save changes');
+
+                                if (xhr.status === 422) {
+                                    let errors = xhr.responseJSON.errors;
+                                    let errorMessage = '';
+                                    $.each(errors, function (key, value) {
+                                        errorMessage += value[0] + '\n';
+                                        showToast(errorMessage, 'error');
+                                    });
+                                    reloadDataTabale();
+                                    // alert('Validation Error:\n' + errorMessage);
+                                } else {
+                                    // Handle 500 Server Errors
+                                    showToast('Something went wrong! Please check server logs.', 'error');
+                                    // alert('Something went wrong! Please check server logs.');
+                                }
+                            }
+                        });
+                    }
+                });
             });
-        });
-    </script>
+        </script>
     @endpush
 </x-master-layout>

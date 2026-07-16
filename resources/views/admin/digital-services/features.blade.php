@@ -9,20 +9,20 @@
 
         @if ($features->isNotEmpty())
             @foreach ($features as $key => $feature)
-                <input {{ $is_disabled }} type="hidden" name="features[{{ $key }}][feature_id]" class="form-control" value="{{ $feature->id }}">
+                <input {{ $is_disabled }} type="hidden" name="features[{{ $key }}][feature_id]" class="form-control"
+                    value="{{ $feature->id }}">
                 <div class="feature-item d-flex align-items-center gap-2">
                     <div class="flex-grow-1">
-                        <input {{ $is_disabled }} type="text"
-                            name="features[{{ $key }}][name]"
-                            class="form-control"
+                        <input {{ $is_disabled }} type="text" name="features[{{ $key }}][name]" class="form-control"
                             placeholder="Feature 1" value="{{ $feature->name }}">
                     </div>
 
-                    <button {{ $is_disabled }} type="button" class="btn btn-success add-feature-btn" title="Add Feature">
+                    <button {{ $is_disabled }} type="button" class="btn btn-primary add-feature-btn" title="Add Feature">
                         <i class="ti ti-plus"></i>
                     </button>
 
-                    <button {{ $is_disabled }} type="button" class="btn btn-danger remove-feature-btn" title="Remove Feature">
+                    <button {{ $is_disabled }} type="button" class="btn btn-soft-light remove-feature-btn"
+                        title="Remove Feature">
                         <i class="ti ti-minus"></i>
                     </button>
                 </div>
@@ -30,17 +30,16 @@
         @else
             <div class="feature-item d-flex align-items-center gap-2">
                 <div class="flex-grow-1">
-                    <input {{ $is_disabled }} type="text"
-                        name="features[0][name]"
-                        class="form-control"
+                    <input {{ $is_disabled }} type="text" name="features[0][name]" class="form-control"
                         placeholder="Feature 1">
                 </div>
 
-                <button {{ $is_disabled }} type="button" class="btn btn-success add-feature-btn" title="Add Feature">
+                <button {{ $is_disabled }} type="button" class="btn btn-primary add-feature-btn" title="Add Feature">
                     <i class="ti ti-plus"></i>
                 </button>
 
-                <button {{ $is_disabled }} type="button" class="btn btn-danger remove-feature-btn" style="display: none;" title="Remove Feature">
+                <button {{ $is_disabled }} type="button" class="btn btn-soft-light remove-feature-btn"
+                    style="display: none;" title="Remove Feature">
                     <i class="ti ti-minus"></i>
                 </button>
             </div>
@@ -50,44 +49,44 @@
 </div>
 
 @push('scripts')
-<script>
-    $(document).ready(function() {
+    <script>
+        $(document).ready(function () {
 
-        function updateFeatureIndexes() {
-            let totalItems = $('#features-wrapper .feature-item').length;
+            function updateFeatureIndexes() {
+                let totalItems = $('#features-wrapper .feature-item').length;
 
-            $('#features-wrapper .feature-item').each(function(index) {
-                $(this).find('input').attr('name', `features[${index}][name]`);
+                $('#features-wrapper .feature-item').each(function (index) {
+                    $(this).find('input').attr('name', `features[${index}][name]`);
 
-                $(this).find('input').attr('placeholder', `Feature ${index + 1}`);
+                    $(this).find('input').attr('placeholder', `Feature ${index + 1}`);
 
-                if (totalItems > 1) {
-                    $(this).find('.remove-feature-btn').show();
-                } else {
-                    $(this).find('.remove-feature-btn').hide();
+                    if (totalItems > 1) {
+                        $(this).find('.remove-feature-btn').show();
+                    } else {
+                        $(this).find('.remove-feature-btn').hide();
+                    }
+                });
+            }
+
+            $('#features-wrapper').on('click', '.add-feature-btn', function () {
+                let newItem = $('#features-wrapper .feature-item:first').clone();
+
+                newItem.find('input').val('');
+
+                $('#features-wrapper').append(newItem);
+
+                updateFeatureIndexes();
+            });
+
+            $('#features-wrapper').on('click', '.remove-feature-btn', function () {
+                if ($('#features-wrapper .feature-item').length > 1) {
+                    $(this).closest('.feature-item').remove();
+
+                    updateFeatureIndexes();
                 }
             });
-        }
-
-        $('#features-wrapper').on('click', '.add-feature-btn', function() {
-            let newItem = $('#features-wrapper .feature-item:first').clone();
-
-            newItem.find('input').val('');
-
-            $('#features-wrapper').append(newItem);
 
             updateFeatureIndexes();
         });
-
-        $('#features-wrapper').on('click', '.remove-feature-btn', function() {
-            if ($('#features-wrapper .feature-item').length > 1) {
-                $(this).closest('.feature-item').remove();
-
-                updateFeatureIndexes();
-            }
-        });
-
-        updateFeatureIndexes();
-    });
-</script>
+    </script>
 @endpush

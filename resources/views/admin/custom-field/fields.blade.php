@@ -9,28 +9,49 @@
             <div class="field-row border p-3 mb-4 rounded" data-row-index="{{ $key }}">
                 <input {{ $disabled }} type="hidden" name="custom_field[field_id][{{ $key }}]" value="{{ $field->id }}">
                 <div class="row mb-5">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <label class="form-label">Field Name</label>
-                        <input {{ $disabled }} type="text" class="form-control" name="custom_field[fields][{{ $key }}][name]" placeholder="Field name" value="{{ $field->name }}">
+                        <input {{ $disabled }} type="text" class="form-control" name="custom_field[fields][{{ $key }}][name]"
+                            placeholder="Field name" value="{{ $field->name }}">
                     </div>
 
-                    <div class="col-md-5">
+                    <div class="col-md-3">
                         <label class="form-label">Field Type</label>
-                        <select {{ $disabled }} name="custom_field[fields][{{ $key }}][custom_field_type_id]" class="form-control custom-field-type">
+                        <select {{ $disabled }} name="custom_field[fields][{{ $key }}][custom_field_type_id]"
+                            class="form-select custom-field-type">
                             <option value="">Select Field Type</option>
                             @if (isset($customfieldtyeps) && $customfieldtyeps->isNotEmpty())
                                 @foreach ($customfieldtyeps as $type)
-                                    <option value="{{ $type->id }}" {{ $field?->fieldType?->id == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
+                                    <option value="{{ $type->id }}" {{ $field?->fieldType?->id == $type->id ? 'selected' : '' }}>
+                                        {{ $type->name }}
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Department</label>
+                        <select {{ $disabled }} name="custom_field[fields][{{ $key }}][department_id]" class="form-select">
+                            <option value="">Select department</option>
+                            @php
+                                $departments = \App\Helpers\Helper::getDapartment();
+                            @endphp
+                            @if (isset($departments) && $departments->isNotEmpty())
+                                @foreach ($departments as $dep)
+                                    <option value="{{ $dep->id }}" {{ $field->department_id == $dep->id ? 'selected' : '' }}>
+                                        {{ $dep->name }}
+                                    </option>
                                 @endforeach
                             @endif
                         </select>
                     </div>
 
                     <div class="col-md-2 d-flex align-items-end gap-2">
-                        <button {{ $disabled }} type="button" class="btn btn-success add-field-btn">
+                        <button {{ $disabled }} type="button" class="btn btn-primary add-field-btn">
                             <i class="ti ti-plus"></i>
                         </button>
-                        <button {{ $disabled }} type="button" class="btn btn-danger remove-field-btn">
+                        <button {{ $disabled }} type="button" class="btn btn-soft-light remove-field-btn">
                             <i class="ti ti-minus"></i>
                         </button>
                     </div>
@@ -42,14 +63,16 @@
     @else
         <div class="field-row border p-3 mb-4 rounded" data-row-index="0">
             <div class="row mb-5">
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <label class="form-label">Field Name</label>
-                    <input {{ $disabled }} type="text" class="form-control" name="custom_field[fields][0][name]" placeholder="Field name" value="">
+                    <input {{ $disabled }} type="text" class="form-control" name="custom_field[fields][0][name]"
+                        placeholder="Field name" value="">
                 </div>
 
-                <div class="col-md-5">
+                <div class="col-md-3">
                     <label class="form-label">Field Type</label>
-                    <select {{ $disabled }} name="custom_field[fields][0][custom_field_type_id]" class="form-control custom-field-type">
+                    <select {{ $disabled }} name="custom_field[fields][0][custom_field_type_id]"
+                        class="form-select custom-field-type">
                         <option value="">Select Field Type</option>
                         @if ($customfieldtyeps->isNotEmpty())
                             @foreach ($customfieldtyeps as $type)
@@ -59,11 +82,28 @@
                     </select>
                 </div>
 
+                <div class="col-md-3">
+                    <label class="form-label">Department</label>
+                    <select {{ $disabled }} name="custom_field[fields][0][department_id]" class="form-select">
+                        <option value="">Select department</option>
+                        @php
+                            $departments = \App\Helpers\Helper::getDapartment();
+                        @endphp
+                        @if (isset($departments) && $departments->isNotEmpty())
+                            @foreach ($departments as $department)
+                                <option value="{{ $department->id }}">
+                                    {{ $department->name }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+
                 <div class="col-md-2 d-flex align-items-end gap-2">
-                    <button {{ $disabled }} type="button" class="btn btn-success add-field-btn">
+                    <button {{ $disabled }} type="button" class="btn btn-primary add-field-btn">
                         <i class="ti ti-plus"></i>
                     </button>
-                    <button {{ $disabled }} type="button" class="btn btn-danger remove-field-btn">
+                    <button {{ $disabled }} type="button" class="btn btn-soft-light remove-field-btn">
                         <i class="ti ti-minus"></i>
                     </button>
                 </div>
@@ -77,10 +117,10 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             var customfields = @json($customfields);
 
-            $(document).on('change', '.custom-field-type', function() {
+            $(document).on('change', '.custom-field-type', function () {
                 var typeId = $(this).val();
 
                 var mainDiv = $(this).closest('.field-row');
@@ -102,17 +142,17 @@
                             field_id: fieldId,
                             is_disabled: '{{ $disabled }}'
                         },
-                        beforeSend: function() {
+                        beforeSend: function () {
                             settingsContainer.html('<div class="mt-3 text-muted">Loading settings...</div>');
                         },
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success) {
                                 settingsContainer.fadeOut(200, function () {
                                     $(this).html(response.html).fadeIn(200);
                                 });
                             }
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             console.error(xhr.responseText);
                             settingsContainer.html('<div class="mt-3 text-danger">Error loading field settings.</div>');
                         }
@@ -124,12 +164,12 @@
 
             let fieldIndex = 0;
             if ($('.field-row').length > 0) {
-                fieldIndex = Math.max(...$('.field-row').map(function() {
+                fieldIndex = Math.max(...$('.field-row').map(function () {
                     return $(this).data('row-index');
                 }).get());
             }
 
-            $(document).on('click', '.add-field-btn', function() {
+            $(document).on('click', '.add-field-btn', function () {
                 fieldIndex++;
 
                 let $clonedRow = $('.dynamic-fields-wrapper .field-row:first').clone();
@@ -139,7 +179,7 @@
 
                 $clonedRow.find('.dynamic-field-settings').empty();
 
-                $clonedRow.find('input, select').each(function() {
+                $clonedRow.find('input, select').each(function () {
                     let currentName = $(this).attr('name');
                     if (currentName) {
                         let newName = currentName.replace(/\[\d+\]/, '[' + fieldIndex + ']');
@@ -154,7 +194,7 @@
                 $('.dynamic-fields-wrapper').append($clonedRow);
             });
 
-            $(document).on('click', '.remove-field-btn', function() {
+            $(document).on('click', '.remove-field-btn', function () {
                 if ($('.field-row').length > 1) {
                     $(this).closest('.field-row').remove();
                 } else {
@@ -162,13 +202,13 @@
                 }
             });
 
-            $('.custom-field-type').each(function() {
+            $('.custom-field-type').each(function () {
                 if ($(this).val()) {
                     $(this).trigger('change');
                 }
             });
 
-            $('.custom-field-type').each(function() {
+            $('.custom-field-type').each(function () {
                 if ($(this).val()) {
                     $(this).trigger('change');
                 }

@@ -27,6 +27,12 @@
                             <i class="ti ti-list me-2"></i>Tasks
                         </a>
                     </li>
+                    <li class="nav-item me-3">
+                        <a href="{{ $url }}?tab=ticket-custom-field" data-tab="ticket-custom-field"
+                            class="nav-link custom-nav-link p-2 {{ $tab == 'ticket-custom-field' ? 'active' : '' }}">
+                            <i class="ti ti-list me-2"></i>Custom Field
+                        </a>
+                    </li>
                     @if (!empty($ticket->id) && !empty($ticket->user_id))
                     {{-- <li class="nav-item me-3">
                         <a href="{{ $url }}?tab=chats-form" data-tab="chats-form"
@@ -519,6 +525,40 @@
                                 @endif
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row tabHide" id="ticket-custom-field" style="display: {{ $tab == 'ticket-custom-field' ? 'block' : 'none' }}">
+            <div class="card border-0 shadow-none">
+                <div class="card-body">
+                    <div class="row">
+                        @if(isset($customfields) && count($customfields) > 0)
+                            @foreach($customfields as $field)
+                                @php
+                                    $params = is_string($field->params) ? json_decode($field->params, true) : $field->params;
+                                    $inputType = $field->fieldType->key ?? 'text';
+                                @endphp
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ $field->name }}</label>
+                                        @if($inputType == 'textarea')
+                                            <textarea class="form-control" placeholder="{{ $params['placeholder'] ?? '' }}"
+                                                disabled>{{ $params['default_value'] ?? '' }}</textarea>
+                                        @else
+                                            <input type="{{ $inputType == 'number' ? 'number' : 'text' }}" class="form-control"
+                                                placeholder="{{ $params['placeholder'] ?? '' }}"
+                                                value="{{ $params['default_value'] ?? '' }}" disabled>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="col-md-12">
+                                <p class="text-muted mb-0">No custom fields found for this department.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

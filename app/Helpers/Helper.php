@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Models\Department;
 use App\Models\UserRolePermission;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -68,5 +69,23 @@ class Helper
         app()->instance('permissions', $permissions);
 
         return $permissions;
+    }
+
+    public static function customCreatedFieldType()
+    {
+        $ccft_array = [
+            ['id' => 1, 'type' => 'Seo'],
+            ['id' => 2, 'type' => 'Developer'],
+            ['id' => 3, 'type' => 'Sales'],
+        ];
+
+        return $ccft_array;
+    }
+
+    public static function getDapartment()
+    {
+        $get_department = Department::select(['id','name'])->where('status',1)->get();
+
+        return $get_department;
     }
 }

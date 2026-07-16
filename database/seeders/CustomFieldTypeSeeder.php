@@ -21,6 +21,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'has_options' => false,
                 'status' => 1,
                 'params' => [
+                    'is_visible' => false,
                     'is_required' => false,
                     'placeholder' => null,
                     'default_value' => null,
@@ -34,6 +35,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'status' => 1,
                 'params' => [
                     'is_required' => false,
+                    'is_visible' => false,
                     'placeholder' => null,
                     'default_value' => null,
                     'rows' => 4,
@@ -47,6 +49,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'status' => 1,
                 'params' => [
                     'is_required' => false,
+                    'is_visible' => false,
                     'placeholder' => null,
                     'default_value' => null,
                     'min' => null,
@@ -61,6 +64,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'status' => 1,
                 'params' => [
                     'is_required' => false,
+                    'is_visible' => false,
                     'is_email' => true,
                     'placeholder' => null,
                     'default_value' => null,
@@ -74,6 +78,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'status' => 1,
                 'params' => [
                     'is_required' => false,
+                    'is_visible' => false,
                     'multiple' => false,
                 ],
             ],
@@ -85,6 +90,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'status' => 1,
                 'params' => [
                     'is_required' => false,
+                    'is_visible' => false,
                 ],
             ],
             [
@@ -95,6 +101,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'status' => 1,
                 'params' => [
                     'is_required' => false,
+                    'is_visible' => false,
                 ],
             ],
         ];

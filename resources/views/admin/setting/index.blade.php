@@ -19,13 +19,27 @@
             <div class="card-body pb-0 pt-0 px-2">
                 <ul class="nav nav-tabs nav-bordered nav-bordered-primary">
                     <li class="nav-item me-3">
-                        <a href="{{ route('admin.settings.index') }}?tab=general-settings" data-tab="general-settings" class="nav-link p-2 {{ $tab == 'general-settings' ? 'active' : '' }}">
+                        <a href="{{ route('admin.settings.index') }}?tab=general-settings" data-tab="general-settings"
+                            class="nav-link p-2 {{ $tab == 'general-settings' ? 'active' : '' }}">
                             <i class="ti ti-settings-cog me-2"></i>General Settings
                         </a>
                     </li>
                     <li class="nav-item me-3">
-                        <a href="{{ route('admin.settings.index') }}?tab=website-settings" data-tab="website-settings" class="nav-link p-2 {{ $tab == 'website-settings' ? 'active' : '' }}">
+                        <a href="{{ route('admin.settings.index') }}?tab=website-settings" data-tab="website-settings"
+                            class="nav-link p-2 {{ $tab == 'website-settings' ? 'active' : '' }}">
                             <i class="ti ti-world-cog me-2"></i>Website Settings
+                        </a>
+                    </li>
+                    <li class="nav-item me-3">
+                        <a href="{{ route('admin.settings.index') }}?tab=email-settings" data-tab="email-settings"
+                            class="nav-link p-2 {{ $tab == 'email-settings' ? 'active' : '' }}">
+                            <i class="ti ti-mail me-2"></i>Email Settings
+                        </a>
+                    </li>
+                    <li class="nav-item me-3">
+                        <a href="{{ route('admin.settings.index') }}?tab=theme-settings" data-tab="theme-settings"
+                            class="nav-link p-2 {{ $tab == 'theme-settings' ? 'active' : '' }}">
+                            <i class="ti ti-palette me-2"></i>Theme Settings
                         </a>
                     </li>
                 </ul>
@@ -35,14 +49,17 @@
         <!-- start row -->
         <div class="row">
 
-            <div class="col-xl-12 col-lg-12 tabHide" id="general-settings" style="display: {{ $tab != 'general-settings' ? 'none' : '' }};">
+            <div class="col-xl-12 col-lg-12 tabHide" id="general-settings"
+                style="display: {{ $tab != 'general-settings' ? 'none' : '' }};">
 
                 <div class="card mb-0">
                     <div class="card-body">
                         <div class="border-bottom mb-3 pb-3">
                             <h5 class="mb-0 fs-17">Profile</h5>
                         </div>
-                        <form method="POST" action="{{ route('admin.settings.update', ['setting' => encrypt($user->id)]) }}?tab=general-settings" enctype="multipart/form-data" id="userForm">
+                        <form method="POST"
+                            action="{{ route('admin.settings.update', ['setting' => encrypt($user->id)]) }}?tab=general-settings"
+                            enctype="multipart/form-data" id="userForm">
 
                             @csrf
                             @if (isset($user))
@@ -59,8 +76,9 @@
                                     <div
                                         class="profile-upload-img avatar avatar-xxl border border-dashed rounded position-relative flex-shrink-0">
                                         <span><i class="ti ti-photo"></i></span>
-                                        <img id="ImgPreview" src="{{ !empty($user->image) ? asset($user->image) : asset("assets/img/profiles/default.jpg") }}" alt="img"
-                                            class="preview1">
+                                        <img id="ImgPreview"
+                                            src="{{ !empty($user->image) ? asset($user->image) : asset("assets/img/profiles/default.jpg") }}"
+                                            alt="img" class="preview1">
                                         <a href="javascript:void(0);" id="removeImage1" class="profile-remove">
                                             <i class="ti ti-x"></i>
                                         </a>
@@ -81,10 +99,11 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label" for="name">Name <span class="text-danger">*</span></label>
+                                            <label class="form-label" for="name">Name <span
+                                                    class="text-danger">*</span></label>
                                             <div class="input-group mb-1">
-                                                <input type="text" class="form-control" name="name" id="name" placeholder="Name"
-                                                    value="{{ old('name', $user->name ?? '') }}">
+                                                <input type="text" class="form-control" name="name" id="name"
+                                                    placeholder="Name" value="{{ old('name', $user->name ?? '') }}">
                                             </div>
                                             @error('name')
                                                 <span class="text-danger small">{{ $message }}</span>
@@ -94,10 +113,11 @@
 
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label" for="email">Email <span class="text-danger">*</span></label>
+                                            <label class="form-label" for="email">Email <span
+                                                    class="text-danger">*</span></label>
                                             <div class="input-group mb-1">
-                                                <input type="email" class="form-control" name="email" id="email" placeholder="Email"
-                                                    value="{{ old('email', $user->email ?? '') }}">
+                                                <input type="email" class="form-control" name="email" id="email"
+                                                    placeholder="Email" value="{{ old('email', $user->email ?? '') }}">
                                             </div>
                                             @error('email')
                                                 <span class="text-danger small">{{ $message }}</span>
@@ -107,10 +127,11 @@
 
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label" for="phone">Phone <span class="text-danger">*</span></label>
+                                            <label class="form-label" for="phone">Phone <span
+                                                    class="text-danger">*</span></label>
                                             <div class="input-group mb-1">
-                                                <input type="text" class="form-control" name="phone" id="phone" placeholder="Phone"
-                                                    value="{{ old('phone', $user->phone ?? '') }}">
+                                                <input type="text" class="form-control" name="phone" id="phone"
+                                                    placeholder="Phone" value="{{ old('phone', $user->phone ?? '') }}">
                                             </div>
                                             @error('phone')
                                                 <span class="text-danger small">{{ $message }}</span>
@@ -121,13 +142,14 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label" for="password">Password @if (!isset($user))
-                                                    <span class="text-danger">*</span>
-                                                @endif
+                                                <span class="text-danger">*</span>
+                                            @endif
                                             </label>
                                             <div class="input-group input-group-flat pass-group mb-1">
                                                 <input type="password"
-                                                    class="form-control pass-input @error('password') is-invalid @enderror" name="password"
-                                                    id="password" placeholder="Password" autocomplete="new-password">
+                                                    class="form-control pass-input @error('password') is-invalid @enderror"
+                                                    name="password" id="password" placeholder="Password"
+                                                    autocomplete="new-password">
                                                 <span class="input-group-text toggle-password">
                                                     <i class="ti ti-eye-off"></i>
                                                 </span>
@@ -143,15 +165,16 @@
 
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label class="form-label" for="password_confirmation">Confirm Password @if (!isset($user))
+                                            <label class="form-label" for="password_confirmation">Confirm Password
+                                                @if (!isset($user))
                                                     <span class="text-danger">*</span>
                                                 @endif
                                             </label>
                                             <div class="input-group input-group-flat pass-group mb-1">
                                                 <input type="password"
                                                     class="form-control pass-input @error('password_confirmation') is-invalid @enderror"
-                                                    name="password_confirmation" id="password_confirmation" placeholder="Confirm Password"
-                                                    autocomplete="new-password">
+                                                    name="password_confirmation" id="password_confirmation"
+                                                    placeholder="Confirm Password" autocomplete="new-password">
                                                 <span class="input-group-text toggle-password">
                                                     <i class="ti ti-eye-off"></i>
                                                 </span>
@@ -161,13 +184,14 @@
 
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label class="form-label" for="designation_id">Designation <span class="text-danger">*</span></label>
-                                            <select disabled class="form-select select2" name="designation_id" id="designation_id">
+                                            <label class="form-label" for="designation_id">Designation <span
+                                                    class="text-danger">*</span></label>
+                                            <select disabled class="form-select select2" name="designation_id"
+                                                id="designation_id">
                                                 <option value="">Select Designation</option>
                                                 @if (isset($designations) && count($designations) > 0)
                                                     @foreach ($designations as $designation)
-                                                        <option value="{{ $designation->id }}"
-                                                            {{ old('designation_id', $user->designation_id ?? '') == $designation->id ? 'selected' : '' }}>
+                                                        <option value="{{ $designation->id }}" {{ old('designation_id', $user->designation_id ?? '') == $designation->id ? 'selected' : '' }}>
                                                             {{ $designation->name }}
                                                         </option>
                                                     @endforeach
@@ -181,13 +205,13 @@
 
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label class="form-label" for="role_id">Role <span class="text-danger">*</span></label>
+                                            <label class="form-label" for="role_id">Role <span
+                                                    class="text-danger">*</span></label>
                                             <select disabled class="form-select select2" name="role_id" id="role_id">
                                                 <option value="">Select Role</option>
                                                 @if (isset($roles))
                                                     @foreach ($roles as $role)
-                                                        <option value="{{ $role->id }}"
-                                                            {{ old('role_id', $user?->role?->id ?? '') == $role->id ? 'selected' : '' }}>
+                                                        <option value="{{ $role->id }}" {{ old('role_id', $user?->role?->id ?? '') == $role->id ? 'selected' : '' }}>
                                                             {{ $role->name }}
                                                         </option>
                                                     @endforeach
@@ -214,7 +238,8 @@
 
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label class="form-label" for="country_id">Country <span class="text-danger">*</span></label>
+                                            <label class="form-label" for="country_id">Country <span
+                                                    class="text-danger">*</span></label>
                                             <select class="form-select select2" name="country_id" id="country_id">
                                                 <option value="">Select Country</option>
                                             </select>
@@ -226,7 +251,8 @@
 
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label class="form-label" for="state_id">State <span class="text-danger">*</span></label>
+                                            <label class="form-label" for="state_id">State <span
+                                                    class="text-danger">*</span></label>
                                             <select class="form-select select2" name="state_id" id="state_id">
                                                 <option value="">Select State</option>
                                             </select>
@@ -238,7 +264,8 @@
 
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label class="form-label" for="city_id">City <span class="text-danger">*</span></label>
+                                            <label class="form-label" for="city_id">City <span
+                                                    class="text-danger">*</span></label>
                                             <select class="form-select select2" name="city_id" id="city_id">
                                                 <option value="">Select City</option>
                                             </select>
@@ -252,8 +279,8 @@
                                         <div class="mb-3">
                                             <label class="form-label" for="zip">Zip</label>
                                             <div class="input-group mb-1">
-                                                <input type="text" class="form-control" name="zip" id="zip" placeholder="Zip"
-                                                    value="{{ old('zip', $user->zip ?? '') }}">
+                                                <input type="text" class="form-control" name="zip" id="zip"
+                                                    placeholder="Zip" value="{{ old('zip', $user->zip ?? '') }}">
                                             </div>
                                             @error('zip')
                                                 <span class="text-danger small">{{ $message }}</span>
@@ -264,7 +291,8 @@
                                     <div class="col-md-12">
                                         <div class="mb-3">
                                             <label class="form-label" for="address">Address</label>
-                                            <textarea class="form-control" name="address" id="address" rows="3" placeholder="Address">{{ old('address', $user->address ?? '') }}</textarea>
+                                            <textarea class="form-control" name="address" id="address" rows="3"
+                                                placeholder="Address">{{ old('address', $user->address ?? '') }}</textarea>
                                             @error('address')
                                                 <span class="text-danger small">{{ $message }}</span>
                                             @enderror
@@ -285,16 +313,20 @@
 
             </div>
 
-            <div class="col-xl-12 col-lg-12 tabHide" id="website-settings" style="display: {{ $tab != 'website-settings' ? 'none' : '' }};">
+            <div class="col-xl-12 col-lg-12 tabHide" id="website-settings"
+                style="display: {{ $tab != 'website-settings' ? 'none' : '' }};">
 
                 <div class="card mb-0">
                     <div class="card-body">
                         <div class="border-bottom mb-3 pb-3">
                             <h6 class="mb-1">Website Settings</h6>
-                            <p class="mb-0">Manage your website's general configurations, logos, and SEO settings below.</p>
+                            <p class="mb-0">Manage your website's general configurations, logos, and SEO settings below.
+                            </p>
                         </div>
 
-                        <form method="POST" action="{{ route('admin.settings.storeWebsiteSetting') }}?tab=website-settings" enctype="multipart/form-data">
+                        <form method="POST"
+                            action="{{ route('admin.settings.storeWebsiteSetting') }}?tab=website-settings"
+                            enctype="multipart/form-data">
 
                             @csrf
 
@@ -305,24 +337,33 @@
 
                                     <!-- Favicon -->
                                     <div class="col-md-4 mb-3">
-                                        <label class="form-label">Favicon <span class="text-muted small">(e.g., 32x32)</span></label>
+                                        <label class="form-label">Favicon <span class="text-muted small">(e.g.,
+                                                32x32)</span></label>
                                         <!-- Field-specific hidden input for removal -->
                                         <input type="hidden" name="remove_favicon" class="remove-flag" value="0">
                                         <div class="profile-upload d-flex align-items-center">
-                                            <div class="profile-upload-img avatar avatar-xl border border-dashed rounded position-relative flex-shrink-0">
+                                            <div
+                                                class="profile-upload-img avatar avatar-xl border border-dashed rounded position-relative flex-shrink-0">
                                                 <span><i class="ti ti-photo"></i></span>
-                                                <img id="previewFavicon" src="{{ !empty($settings->favicon) ? asset($settings->favicon) : asset('assets/img/empty-image.webp') }}" alt="Favicon" class="setting-preview-img">
+                                                <img id="previewFavicon"
+                                                    src="{{ !empty($settings->favicon) ? asset($settings->favicon) : asset('assets/img/empty-image.webp') }}"
+                                                    alt="Favicon" class="setting-preview-img">
                                                 <!-- Added data-default to restore default image on remove -->
-                                                <a href="javascript:void(0);" id="removeFavicon" class="profile-remove setting-remove-btn" data-default="{{ asset('assets/img/empty-image.webp') }}">
+                                                <a href="javascript:void(0);" id="removeFavicon"
+                                                    class="profile-remove setting-remove-btn"
+                                                    data-default="{{ asset('assets/img/empty-image.webp') }}">
                                                     <i class="ti ti-x"></i>
                                                 </a>
                                             </div>
                                             <div class="profile-upload-content ms-3">
-                                                <label class="d-inline-flex align-items-center position-relative btn btn-primary btn-sm mb-2">
+                                                <label
+                                                    class="d-inline-flex align-items-center position-relative btn btn-primary btn-sm mb-2">
                                                     <i class="ti ti-upload me-1"></i>Upload
-                                                    <input type="file" id="imgFavicon" name="favicon" class="input-img position-absolute w-100 h-100 opacity-0 top-0 end-0 setting-img-input">
+                                                    <input type="file" id="imgFavicon" name="favicon"
+                                                        class="input-img position-absolute w-100 h-100 opacity-0 top-0 end-0 setting-img-input">
                                                 </label>
-                                                @error('favicon') <div class="text-danger small">{{ $message }}</div> @enderror
+                                                @error('favicon') <div class="text-danger small">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                         </div>
                                     </div>
@@ -332,19 +373,27 @@
                                         <label class="form-label">Header Logo</label>
                                         <input type="hidden" name="remove_header_logo" class="remove-flag" value="0">
                                         <div class="profile-upload d-flex align-items-center">
-                                            <div class="profile-upload-img avatar avatar-xl border border-dashed rounded position-relative flex-shrink-0">
+                                            <div
+                                                class="profile-upload-img avatar avatar-xl border border-dashed rounded position-relative flex-shrink-0">
                                                 <span><i class="ti ti-photo"></i></span>
-                                                <img id="previewHeaderLogo" src="{{ !empty($settings->header_logo) ? asset($settings->header_logo) : asset('assets/img/empty-image.webp') }}" alt="Header Logo" class="setting-preview-img">
-                                                <a href="javascript:void(0);" id="removeHeaderLogo" class="profile-remove setting-remove-btn" data-default="{{ asset('assets/img/empty-image.webp') }}">
+                                                <img id="previewHeaderLogo"
+                                                    src="{{ !empty($settings->header_logo) ? asset($settings->header_logo) : asset('assets/img/empty-image.webp') }}"
+                                                    alt="Header Logo" class="setting-preview-img">
+                                                <a href="javascript:void(0);" id="removeHeaderLogo"
+                                                    class="profile-remove setting-remove-btn"
+                                                    data-default="{{ asset('assets/img/empty-image.webp') }}">
                                                     <i class="ti ti-x"></i>
                                                 </a>
                                             </div>
                                             <div class="profile-upload-content ms-3">
-                                                <label class="d-inline-flex align-items-center position-relative btn btn-primary btn-sm mb-2">
+                                                <label
+                                                    class="d-inline-flex align-items-center position-relative btn btn-primary btn-sm mb-2">
                                                     <i class="ti ti-upload me-1"></i>Upload
-                                                    <input type="file" id="imgHeaderLogo" name="header_logo" class="input-img position-absolute w-100 h-100 opacity-0 top-0 end-0 setting-img-input">
+                                                    <input type="file" id="imgHeaderLogo" name="header_logo"
+                                                        class="input-img position-absolute w-100 h-100 opacity-0 top-0 end-0 setting-img-input">
                                                 </label>
-                                                @error('header_logo') <div class="text-danger small">{{ $message }}</div> @enderror
+                                                @error('header_logo') <div class="text-danger small">{{ $message }}
+                                                </div> @enderror
                                             </div>
                                         </div>
                                     </div>
@@ -354,19 +403,27 @@
                                         <label class="form-label">Footer Logo</label>
                                         <input type="hidden" name="remove_footer_logo" class="remove-flag" value="0">
                                         <div class="profile-upload d-flex align-items-center">
-                                            <div class="profile-upload-img avatar avatar-xl border border-dashed rounded position-relative flex-shrink-0">
+                                            <div
+                                                class="profile-upload-img avatar avatar-xl border border-dashed rounded position-relative flex-shrink-0">
                                                 <span><i class="ti ti-photo"></i></span>
-                                                <img id="previewFooterLogo" src="{{ !empty($settings->footer_logo) ? asset($settings->footer_logo) : asset('assets/img/empty-image.webp') }}" alt="Footer Logo" class="setting-preview-img">
-                                                <a href="javascript:void(0);" id="removeFooterLogo" class="profile-remove setting-remove-btn" data-default="{{ asset('assets/img/empty-image.webp') }}">
+                                                <img id="previewFooterLogo"
+                                                    src="{{ !empty($settings->footer_logo) ? asset($settings->footer_logo) : asset('assets/img/empty-image.webp') }}"
+                                                    alt="Footer Logo" class="setting-preview-img">
+                                                <a href="javascript:void(0);" id="removeFooterLogo"
+                                                    class="profile-remove setting-remove-btn"
+                                                    data-default="{{ asset('assets/img/empty-image.webp') }}">
                                                     <i class="ti ti-x"></i>
                                                 </a>
                                             </div>
                                             <div class="profile-upload-content ms-3">
-                                                <label class="d-inline-flex align-items-center position-relative btn btn-primary btn-sm mb-2">
+                                                <label
+                                                    class="d-inline-flex align-items-center position-relative btn btn-primary btn-sm mb-2">
                                                     <i class="ti ti-upload me-1"></i>Upload
-                                                    <input type="file" id="imgFooterLogo" name="footer_logo" class="input-img position-absolute w-100 h-100 opacity-0 top-0 end-0 setting-img-input">
+                                                    <input type="file" id="imgFooterLogo" name="footer_logo"
+                                                        class="input-img position-absolute w-100 h-100 opacity-0 top-0 end-0 setting-img-input">
                                                 </label>
-                                                @error('footer_logo') <div class="text-danger small">{{ $message }}</div> @enderror
+                                                @error('footer_logo') <div class="text-danger small">{{ $message }}
+                                                </div> @enderror
                                             </div>
                                         </div>
                                     </div>
@@ -374,21 +431,31 @@
                                     <!-- Mobile Header Icon -->
                                     <div class="col-md-4 mb-3">
                                         <label class="form-label">Mobile Header Logo</label>
-                                        <input type="hidden" name="remove_mobile_header_logo" class="remove-flag" value="0">
+                                        <input type="hidden" name="remove_mobile_header_logo" class="remove-flag"
+                                            value="0">
                                         <div class="profile-upload d-flex align-items-center">
-                                            <div class="profile-upload-img avatar avatar-xl border border-dashed rounded position-relative flex-shrink-0">
+                                            <div
+                                                class="profile-upload-img avatar avatar-xl border border-dashed rounded position-relative flex-shrink-0">
                                                 <span><i class="ti ti-photo"></i></span>
-                                                <img id="previewMobileHeader" src="{{ !empty($settings->mobile_header_logo) ? asset($settings->mobile_header_logo) : asset('assets/img/empty-image.webp') }}" alt="Mobile Header Logo" class="setting-preview-img">
-                                                <a href="javascript:void(0);" id="removeMobileHeader" class="profile-remove setting-remove-btn" data-default="{{ asset('assets/img/empty-image.webp') }}">
+                                                <img id="previewMobileHeader"
+                                                    src="{{ !empty($settings->mobile_header_logo) ? asset($settings->mobile_header_logo) : asset('assets/img/empty-image.webp') }}"
+                                                    alt="Mobile Header Logo" class="setting-preview-img">
+                                                <a href="javascript:void(0);" id="removeMobileHeader"
+                                                    class="profile-remove setting-remove-btn"
+                                                    data-default="{{ asset('assets/img/empty-image.webp') }}">
                                                     <i class="ti ti-x"></i>
                                                 </a>
                                             </div>
                                             <div class="profile-upload-content ms-3">
-                                                <label class="d-inline-flex align-items-center position-relative btn btn-primary btn-sm mb-2">
+                                                <label
+                                                    class="d-inline-flex align-items-center position-relative btn btn-primary btn-sm mb-2">
                                                     <i class="ti ti-upload me-1"></i>Upload
-                                                    <input type="file" id="imgMobileHeader" name="mobile_header_logo" class="input-img position-absolute w-100 h-100 opacity-0 top-0 end-0 setting-img-input">
+                                                    <input type="file" id="imgMobileHeader" name="mobile_header_logo"
+                                                        class="input-img position-absolute w-100 h-100 opacity-0 top-0 end-0 setting-img-input">
                                                 </label>
-                                                @error('mobile_header_logo') <div class="text-danger small">{{ $message }}</div> @enderror
+                                                @error('mobile_header_logo') <div class="text-danger small">
+                                                    {{ $message }}
+                                                </div> @enderror
                                             </div>
                                         </div>
                                     </div>
@@ -396,21 +463,31 @@
                                     <!-- Mobile Footer Icon -->
                                     <div class="col-md-4 mb-3">
                                         <label class="form-label">Mobile Footer Logo</label>
-                                        <input type="hidden" name="remove_mobile_footer_logo" class="remove-flag" value="0">
+                                        <input type="hidden" name="remove_mobile_footer_logo" class="remove-flag"
+                                            value="0">
                                         <div class="profile-upload d-flex align-items-center">
-                                            <div class="profile-upload-img avatar avatar-xl border border-dashed rounded position-relative flex-shrink-0">
+                                            <div
+                                                class="profile-upload-img avatar avatar-xl border border-dashed rounded position-relative flex-shrink-0">
                                                 <span><i class="ti ti-photo"></i></span>
-                                                <img id="previewMobileFooter" src="{{ !empty($settings->mobile_footer_logo) ? asset($settings->mobile_footer_logo) : asset('assets/img/empty-image.webp') }}" alt="Mobile Footer Logo" class="setting-preview-img">
-                                                <a href="javascript:void(0);" id="removeMobileFooter" class="profile-remove setting-remove-btn" data-default="{{ asset('assets/img/empty-image.webp') }}">
+                                                <img id="previewMobileFooter"
+                                                    src="{{ !empty($settings->mobile_footer_logo) ? asset($settings->mobile_footer_logo) : asset('assets/img/empty-image.webp') }}"
+                                                    alt="Mobile Footer Logo" class="setting-preview-img">
+                                                <a href="javascript:void(0);" id="removeMobileFooter"
+                                                    class="profile-remove setting-remove-btn"
+                                                    data-default="{{ asset('assets/img/empty-image.webp') }}">
                                                     <i class="ti ti-x"></i>
                                                 </a>
                                             </div>
                                             <div class="profile-upload-content ms-3">
-                                                <label class="d-inline-flex align-items-center position-relative btn btn-primary btn-sm mb-2">
+                                                <label
+                                                    class="d-inline-flex align-items-center position-relative btn btn-primary btn-sm mb-2">
                                                     <i class="ti ti-upload me-1"></i>Upload
-                                                    <input type="file" id="imgMobileFooter" name="mobile_footer_logo" class="input-img position-absolute w-100 h-100 opacity-0 top-0 end-0 setting-img-input">
+                                                    <input type="file" id="imgMobileFooter" name="mobile_footer_logo"
+                                                        class="input-img position-absolute w-100 h-100 opacity-0 top-0 end-0 setting-img-input">
                                                 </label>
-                                                @error('mobile_footer_logo') <div class="text-danger small">{{ $message }}</div> @enderror
+                                                @error('mobile_footer_logo') <div class="text-danger small">
+                                                    {{ $message }}
+                                                </div> @enderror
                                             </div>
                                         </div>
                                     </div>
@@ -424,41 +501,55 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label" for="site_name">Site Name <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" name="site_name" id="site_name" placeholder="Website Name" value="{{ old('site_name', $settings->site_name ?? '') }}">
-                                            @error('site_name') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            <label class="form-label" for="site_name">Site Name <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" name="site_name" id="site_name"
+                                                placeholder="Website Name"
+                                                value="{{ old('site_name', $settings->site_name ?? '') }}">
+                                            @error('site_name') <span class="text-danger small">{{ $message }}</span>
+                                            @enderror
                                         </div>
                                     </div>
 
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label class="form-label" for="contact_email">Contact Email</label>
-                                            <input type="email" class="form-control" name="contact_email" id="contact_email" placeholder="support@example.com" value="{{ old('contact_email', $settings->contact_email ?? '') }}">
-                                            @error('contact_email') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            <input type="email" class="form-control" name="contact_email"
+                                                id="contact_email" placeholder="support@example.com"
+                                                value="{{ old('contact_email', $settings->contact_email ?? '') }}">
+                                            @error('contact_email') <span
+                                            class="text-danger small">{{ $message }}</span> @enderror
                                         </div>
                                     </div>
 
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label class="form-label" for="contact_phone">Contact Phone</label>
-                                            <input type="text" class="form-control" name="contact_phone" id="contact_phone" placeholder="+1 234 567 890" value="{{ old('contact_phone', $settings->contact_phone ?? '') }}">
-                                            @error('contact_phone') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            <input type="text" class="form-control" name="contact_phone"
+                                                id="contact_phone" placeholder="+1 234 567 890"
+                                                value="{{ old('contact_phone', $settings->contact_phone ?? '') }}">
+                                            @error('contact_phone') <span
+                                            class="text-danger small">{{ $message }}</span> @enderror
                                         </div>
                                     </div>
 
                                     <div class="col-md-12">
                                         <div class="mb-3">
                                             <label class="form-label" for="address-1">Address</label>
-                                            <textarea class="form-control" name="address_one" id="address-1" rows="2" placeholder="Physical or Office Address">{{ old('address_one', $settings->address_one ?? '') }}</textarea>
-                                            @error('address_one') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            <textarea class="form-control" name="address_one" id="address-1" rows="2"
+                                                placeholder="Physical or Office Address">{{ old('address_one', $settings->address_one ?? '') }}</textarea>
+                                            @error('address_one') <span class="text-danger small">{{ $message }}</span>
+                                            @enderror
                                         </div>
                                     </div>
 
                                     <div class="col-md-12">
                                         <div class="mb-3">
                                             <label class="form-label" for="address-2">Address 2</label>
-                                            <textarea class="form-control" name="address_two" id="address-2" rows="2" placeholder="Physical or Office Address 2">{{ old('address_two', $settings->address_two ?? '') }}</textarea>
-                                            @error('address_two') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            <textarea class="form-control" name="address_two" id="address-2" rows="2"
+                                                placeholder="Physical or Office Address 2">{{ old('address_two', $settings->address_two ?? '') }}</textarea>
+                                            @error('address_two') <span class="text-danger small">{{ $message }}</span>
+                                            @enderror
                                         </div>
                                     </div>
                                 </div>
@@ -470,25 +561,35 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label class="form-label" for="meta_title">Home Page Meta Title <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" name="meta_title" id="meta_title" placeholder="SEO Title" value="{{ old('meta_title', $settings->meta_title ?? '') }}">
-                                            @error('meta_title') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            <label class="form-label" for="meta_title">Home Page Meta Title <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" name="meta_title" id="meta_title"
+                                                placeholder="SEO Title"
+                                                value="{{ old('meta_title', $settings->meta_title ?? '') }}">
+                                            @error('meta_title') <span class="text-danger small">{{ $message }}</span>
+                                            @enderror
                                         </div>
                                     </div>
 
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label" for="meta_keywords">Meta Keywords</label>
-                                            <input type="text" class="form-control" name="meta_keywords" id="meta_keywords" placeholder="keyword1, keyword2, keyword3" value="{{ old('meta_keywords', $settings->meta_keywords ?? '') }}">
-                                            @error('meta_keywords') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            <input type="text" class="form-control" name="meta_keywords"
+                                                id="meta_keywords" placeholder="keyword1, keyword2, keyword3"
+                                                value="{{ old('meta_keywords', $settings->meta_keywords ?? '') }}">
+                                            @error('meta_keywords') <span
+                                            class="text-danger small">{{ $message }}</span> @enderror
                                         </div>
                                     </div>
 
                                     <div class="col-md-12">
                                         <div class="mb-3">
                                             <label class="form-label" for="meta_description">Meta Description</label>
-                                            <textarea class="form-control" name="meta_description" id="meta_description" rows="3" placeholder="Enter SEO meta description here...">{{ old('meta_description', $settings->meta_description ?? '') }}</textarea>
-                                            @error('meta_description') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            <textarea class="form-control" name="meta_description" id="meta_description"
+                                                rows="3"
+                                                placeholder="Enter SEO meta description here...">{{ old('meta_description', $settings->meta_description ?? '') }}</textarea>
+                                            @error('meta_description') <span
+                                            class="text-danger small">{{ $message }}</span> @enderror
                                         </div>
                                     </div>
                                 </div>
@@ -501,35 +602,45 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label" for="facebook_url">Facebook URL</label>
-                                            <input type="url" class="form-control" name="facebook_url" id="facebook_url" placeholder="https://facebook.com/..." value="{{ old('facebook_url', $settings->facebook_url ?? '') }}">
+                                            <input type="url" class="form-control" name="facebook_url" id="facebook_url"
+                                                placeholder="https://facebook.com/..."
+                                                value="{{ old('facebook_url', $settings->facebook_url ?? '') }}">
                                         </div>
                                     </div>
 
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label" for="instagram_url">Instagram URL</label>
-                                            <input type="url" class="form-control" name="instagram_url" id="instagram_url" placeholder="https://instagram.com/..." value="{{ old('instagram_url', $settings->instagram_url ?? '') }}">
+                                            <input type="url" class="form-control" name="instagram_url"
+                                                id="instagram_url" placeholder="https://instagram.com/..."
+                                                value="{{ old('instagram_url', $settings->instagram_url ?? '') }}">
                                         </div>
                                     </div>
 
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label" for="twitter_url">Twitter/X URL</label>
-                                            <input type="url" class="form-control" name="twitter_url" id="twitter_url" placeholder="https://twitter.com/..." value="{{ old('twitter_url', $settings->twitter_url ?? '') }}">
+                                            <input type="url" class="form-control" name="twitter_url" id="twitter_url"
+                                                placeholder="https://twitter.com/..."
+                                                value="{{ old('twitter_url', $settings->twitter_url ?? '') }}">
                                         </div>
                                     </div>
 
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label" for="linkedin_url">LinkedIn URL</label>
-                                            <input type="url" class="form-control" name="linkedin_url" id="linkedin_url" placeholder="https://linkedin.com/..." value="{{ old('linkedin_url', $settings->linkedin_url ?? '') }}">
+                                            <input type="url" class="form-control" name="linkedin_url" id="linkedin_url"
+                                                placeholder="https://linkedin.com/..."
+                                                value="{{ old('linkedin_url', $settings->linkedin_url ?? '') }}">
                                         </div>
                                     </div>
 
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label" for="pinterest_url">Pinterest URL</label>
-                                            <input type="url" class="form-control" name="pinterest_url" id="pinterest_url" placeholder="https://pinterest.com/..." value="{{ old('pinterest_url', $settings->pinterest_url ?? '') }}">
+                                            <input type="url" class="form-control" name="pinterest_url"
+                                                id="pinterest_url" placeholder="https://pinterest.com/..."
+                                                value="{{ old('pinterest_url', $settings->pinterest_url ?? '') }}">
                                         </div>
                                     </div>
                                 </div>
@@ -548,121 +659,255 @@
         </div>
         <!-- end row -->
 
+        <div class="row mt-3">
+            <div class="col-xl-12 col-lg-12 tabHide" id="email-settings"
+                style="display: {{ $tab != 'email-settings' ? 'none' : '' }};">
+                <div class="card mb-0">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6 class="mb-1">Email Settings (SMTP)</h6>
+                            <p class="mb-0">Configure the email settings to send emails from your system.</p>
+                        </div>
+
+                        <div class="border-top border-bottom mt-4 pt-4 mb-4 pb-4">
+                            <h6 class="mb-1">Test Email Configuration</h6>
+                            <p class="mb-3 text-muted">Enter an email address to send a test email. Make sure to save
+                                your SMTP settings first.</p>
+                            <form method="POST" action="{{ route('admin.settings.testEmail') }}"
+                                class="d-flex align-items-center gap-2">
+                                @csrf
+                                <input type="email" class="form-control" style="max-width: 300px;" name="test_email"
+                                    placeholder="Enter test email address" required>
+                                <button type="submit" class="btn btn-sm btn-primary text-white">
+                                    <i class="ti ti-mail-forward me-1"></i> Send Test Email
+                                </button>
+                            </form>
+                        </div>
+
+                        <form method="POST" action="{{ route('admin.settings.store') }}">
+                            @csrf
+                            <input type="hidden" name="tab" value="email-settings">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mail Mailer</label>
+                                        <input type="text" class="form-control" name="mail_mailer"
+                                            value="{{ old('mail_mailer', $settings->mail_mailer ?? 'smtp') }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mail Host</label>
+                                        <input type="text" class="form-control" name="mail_host"
+                                            value="{{ old('mail_host', $settings->mail_host ?? '') }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mail Port</label>
+                                        <input type="number" class="form-control" name="mail_port"
+                                            value="{{ old('mail_port', $settings->mail_port ?? 587) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mail Username</label>
+                                        <input type="text" class="form-control" name="mail_username"
+                                            value="{{ old('mail_username', $settings->mail_username ?? '') }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mail Password</label>
+                                        <input type="password" class="form-control" name="mail_password"
+                                            value="{{ old('mail_password', $settings->mail_password ?? '') }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mail Encryption</label>
+                                        <select class="form-select addSelect2" name="mail_encryption">
+                                            <option value="tls" {{ (old('mail_encryption', $settings->mail_encryption ?? '') == 'tls') ? 'selected' : '' }}>TLS</option>
+                                            <option value="ssl" {{ (old('mail_encryption', $settings->mail_encryption ?? '') == 'ssl') ? 'selected' : '' }}>SSL</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mail From Address</label>
+                                        <input type="email" class="form-control" name="mail_from_address"
+                                            value="{{ old('mail_from_address', $settings->mail_from_address ?? '') }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mail From Name</label>
+                                        <input type="text" class="form-control" name="mail_from_name"
+                                            value="{{ old('mail_from_name', $settings->mail_from_name ?? '') }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-end flex-wrap gap-2">
+                                <button type="submit" class="btn btn-sm btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-12 col-lg-12 tabHide" id="theme-settings"
+                style="display: {{ $tab != 'theme-settings' ? 'none' : '' }};">
+                <div class="card mb-0">
+                    <div class=" card-body">
+                        <div class="border-bottom mb-3 pb-3">
+                            <h6 class="mb-1">Theme Settings</h6>
+                            <p class="mb-0">Customize your workspace look and feel.</p>
+                        </div>
+                        <form method="POST" action="{{ route('admin.settings.store') }}">
+                            @csrf
+                            <input type="hidden" name="tab" value="theme-settings">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Theme Mode</label>
+                                        <select class="form-select addSelect2" name="theme_mode">
+                                            <option value="light" {{ (old('theme_mode', $settings->theme_mode ?? 'light') == 'light') ? 'selected' : '' }}>Light</option>
+                                            <option value="dark" {{ (old('theme_mode', $settings->theme_mode ?? '') == 'dark') ? 'selected' : '' }}>Dark</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Layout Size</label>
+                                        <select class="form-select addSelect2" name="layout_size">
+                                            <option value="default" {{ (old('layout_size', $settings->layout_size ?? 'default') == 'default') ? 'selected' : '' }}>Default</option>
+                                            <option value="mini" {{ (old('layout_size', $settings->layout_size ?? '') == 'mini') ? 'selected' : '' }}>Mini Sidebar</option>
+                                            <option value="hoverview" {{ (old('layout_size', $settings->layout_size ?? '') == 'hoverview') ? 'selected' : '' }}>Hover View</option>
+                                            <option value=" hidden" {{ (old('layout_size', $settings->layout_size ?? '') == 'hidden') ? 'selected' : '' }}>Hidden</option>
+                                            <option value="full-width" {{ (old('layout_size', $settings->layout_size ?? '') == 'full-width') ? 'selected' : '' }}>Full Width</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class=" col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Sidebar Color</label>
+                                        <select class="form-select addSelect2" name="sidebar_color">
+                                            <option value="light" {{ (old('sidebar_color', $settings->sidebar_color ?? 'light') == 'light') ? 'selected' : '' }}>Light
+                                            </option>
+                                            <option value="sidebar2" {{ (old('sidebar_color', $settings->sidebar_color ?? '') == 'sidebar2') ? 'selected' : '' }}>Sidebar 2 (Light)</option>
+                                            <option value=" sidebar3" {{ (old('sidebar_color', $settings->sidebar_color ?? '') == 'sidebar3') ? 'selected' : '' }}>Sidebar 3 (Dark)
+                                            </option>
+                                            <option value="sidebar4" {{ (old('sidebar_color', $settings->sidebar_color ?? '') == 'sidebar4') ? 'selected' : '' }}>Sidebar 4 (Primary)</option>
+                                            <option value="sidebar5" {{ (old('sidebar_color', $settings->sidebar_color ?? '') == 'sidebar5') ? 'selected' : '' }}>Sidebar 5 (Secondary)</option>
+                                            <option value="sidebar6" {{ (old('sidebar_color', $settings->sidebar_color ?? '') == 'sidebar6') ? 'selected' : '' }}>Sidebar 6 (Info)</option>
+                                            <option value="sidebar7" {{ (old('sidebar_color', $settings->sidebar_color ?? '') == 'sidebar7') ? 'selected' : '' }}>Sidebar 7 (Indigo)</option>
+                                            <option value="gradientsidebar1" {{ (old('sidebar_color', $settings->sidebar_color ?? '') == 'gradientsidebar1') ? 'selected' : '' }}>Gradient 1 (Indigo)</option>
+                                            <option value=" gradientsidebar2" {{ (old('sidebar_color', $settings->sidebar_color ?? '') == 'gradientsidebar2') ? 'selected' : '' }}>Gradient 2 (Primary)</option>
+                                            <option value="gradientsidebar3" {{ (old('sidebar_color', $settings->sidebar_color ?? '') == 'gradientsidebar3') ? 'selected' : '' }}>Gradient 3 (Secondary)</option>
+                                            <option value="gradientsidebar4" {{ (old('sidebar_color', $settings->sidebar_color ?? '') == 'gradientsidebar4') ? 'selected' : '' }}>Gradient 4 (Dark)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Top Bar Color</label>
+                                        <select class="form-select addSelect2" name="topbar_color">
+                                            <option value="white" {{ (old('topbar_color', $settings->topbar_color ?? 'white') == 'white') ? 'selected' : '' }}>White</option>
+                                            <option value="topbar1" {{ (old('topbar_color', $settings->topbar_color ?? '') == 'topbar1') ? 'selected' : '' }}>Topbar 1 (Light)</option>
+                                            <option value=" topbar2" {{ (old('topbar_color', $settings->topbar_color ?? '') == 'topbar2') ? 'selected' : '' }}>Topbar 2 (Dark)</option>
+                                            <option value="topbar3" {{ (old('topbar_color', $settings->topbar_color ?? '') == 'topbar3') ? 'selected' : '' }}>Topbar 3 (Primary)</option>
+                                            <option value="topbar4" {{ (old('topbar_color', $settings->topbar_color ?? '') == 'topbar4') ? 'selected' : '' }}>Topbar 4 (Secondary)</option>
+                                            <option value="gradienttopbar1" {{ (old('topbar_color', $settings->topbar_color ?? '') == 'gradienttopbar1') ? 'selected' : '' }}>
+                                                Gradient 1 (Indigo)</option>
+                                            <option value=" gradienttopbar2" {{ (old('topbar_color', $settings->topbar_color ?? '') == 'gradienttopbar2') ? 'selected' : '' }}>
+                                                Gradient 2 (Primary)</option>
+                                            <option value="gradienttopbar3" {{ (old('topbar_color', $settings->topbar_color ?? '') == 'gradienttopbar3') ? 'selected' : '' }}>
+                                                Gradient 3 (Secondary)</option>
+                                            <option value="gradienttopbar4" {{ (old('topbar_color', $settings->topbar_color ?? '') == 'gradienttopbar4') ? 'selected' : '' }}>
+                                                Gradient 4 (Dark)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Primary Color</label>
+                                        <input type="color" class="form-control form-control-color border-0 p-1 w-100"
+                                            style="height: 38px; cursor: pointer;" name="primary_color"
+                                            value="{{ old('primary_color', $settings->primary_color ?? '#E41F07') }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-end flex-wrap gap-2">
+                                <button type="submit" class="btn btn-sm btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     @push('scripts')
-        <script>
-            $(document).ready(function() {
-
-                $(document).on('click', '.nav-link', function(e) {
+        <script> $(document).ready(function () {
+                $(document).on('click', '.nav-link', function (e) {
                     e.preventDefault();
-
-                    var tab = $(this).data('tab');
-
-                    var url = new URL(window.location.href);
-                    url.searchParams.set('tab', tab);
-
-                    window.history.replaceState({}, '', url);
-
-
-                    $('.nav-link').removeClass('active');
-                    $(this).addClass('active');
-
-                    $('.tabHide').hide();
-                    $(`#${tab}`).show();
-                });
-
-                $('#designation_id').select2({
-                    placeholder: 'Select a designation',
-                    allowClear: true,
-                });
-
-                $('#role_id').select2({
-                    placeholder: 'Select a role',
-                    allowClear: true,
-                });
-
-                var Img = '{{ !empty($user->image) ? asset($user->image) : "assets/img/profiles/avatar-02.jpg" }}';
-
-                function readURL(input, imgControlName) {
+                    var tab = $(this).data('tab'); var url = new URL(window.location.href); url.searchParams.set('tab', tab);
+                    window.history.replaceState({}, '', url); $('.nav-link').removeClass('active'); $(this).addClass('active');
+                    $('.tabHide').hide(); $(`#${tab}`).show();
+                }); $('#designation_id').select2({
+                    placeholder: 'Select a designation', allowClear: true,
+                }); $('#role_id').select2({
+                    placeholder: 'Select a role'
+                    , allowClear: true,
+                }); var
+                    Img = '{{ !empty($user->image) ? asset($user->image) : "assets/img/profiles/avatar-02.jpg" }}'; function
+                    readURL(input, imgControlName) {
                     if (input.files && input.files[0]) {
                         var reader = new FileReader();
-                        reader.onload = function(e) {
-                            $(imgControlName).attr('src', e.target.result);
-                        }
+                        reader.onload = function (e) { $(imgControlName).attr('src', e.target.result); }
                         reader.readAsDataURL(input.files[0]);
                     }
-                }
-
-                $(".input-img").on('change', function() {
-                    var imgControlName = ".preview1";
-                    readURL(this, imgControlName);
+                } $(".input-img").on('change', function () {
+                    var
+                        imgControlName = ".preview1"; readURL(this, imgControlName);
                     $(this).closest('.profile-upload').find('.preview1').addClass('it');
                     $(this).closest('.profile-upload').find('.profile-remove').addClass('profile-remove-btn');
                 });
-
-                $(".profile-remove").on('click', function(e) {
+                $(".profile-remove").on('click', function (e) {
                     e.preventDefault();
                     $(this).closest('.profile-upload').find(".input-img").val("");
                     $(this).closest('.profile-upload').find(".preview1").attr("src", "");
                     $(this).closest('.profile-upload').find('.preview1').removeClass('it');
                     $(this).closest('.profile-upload').find('.profile-remove').removeClass('profile-remove-btn');
-                    $('input[name="remove_existing_image"]').val(1);
-                });
-
-                function readSettingsURL(input, previewElement) {
-                    if (input.files && input.files[0]) {
-                        var reader = new FileReader();
-                        reader.onload = function(e) {
+                    $('input[name="remove_existing_image" ]').val(1);
+                }); function readSettingsURL(input, previewElement) {
+                    if
+                        (input.files && input.files[0]) {
+                        var reader = new FileReader(); reader.onload = function (e) {
                             previewElement.attr('src', e.target.result);
-                        }
-                        reader.readAsDataURL(input.files[0]);
+                        } reader.readAsDataURL(input.files[0]);
                     }
                 }
-
-                $(".setting-img-input").on('change', function() {
-                    var container = $(this).closest('.col-md-4');
-                    var previewImg = container.find('.setting-preview-img');
-                    var removeBtn = container.find('.setting-remove-btn');
-                    var removeFlag = container.find('.remove-flag');
-
-                    readSettingsURL(this, previewImg);
-
-                    previewImg.addClass('it');
-                    removeBtn.addClass('profile-remove-btn');
-
-                    removeFlag.val("0");
-                });
-
-                // Triggered when the remove cross is clicked
-                $(".setting-remove-btn").on('click', function(e) {
-                    e.preventDefault();
-
-                    // Find the specific container for the clicked remove button
-                    var container = $(this).closest('.col-md-4');
-                    var fileInput = container.find(".setting-img-input");
-                    var previewImg = container.find(".setting-preview-img");
-                    var removeFlag = container.find('.remove-flag');
-
-                    // Clear the file input
-                    fileInput.val("");
-
-                    // Reset image src to the default path stored in data-default attribute
-                    var defaultSrc = $(this).data('default') || "";
-                    previewImg.attr("src", defaultSrc);
-
-                    // Remove display classes
-                    previewImg.removeClass('it');
-                    $(this).removeClass('profile-remove-btn');
-
-                    // Set this specific field's remove flag to 1 for backend logic
+                $(".setting-img-input").on('change', function () {
+                    var container = $(this).closest('.col-md-4'); var
+                        previewImg = container.find('.setting-preview-img'); var removeBtn = container.find('.setting-remove-btn'); var
+                            removeFlag = container.find('.remove-flag'); readSettingsURL(this, previewImg); previewImg.addClass('it');
+                    removeBtn.addClass('profile-remove-btn'); removeFlag.val("0");
+                }); // Triggered when the remove cross is clicked
+                $(".setting-remove-btn").on('click', function (e) {
+                    e.preventDefault(); // Find the specific container for the
+                                clicked remove button var container = $(this).closest('.col-md-4'); var
+                        fileInput = container.find(".setting-img-input"); var previewImg = container.find(".setting-preview-img"); var
+                            removeFlag = container.find('.remove-flag'); // Clear the file input fileInput.val(""); // Reset image src to the
+                                default path stored in data -default attribute var defaultSrc = $(this).data('default') || "";
+                    previewImg.attr("src", defaultSrc); // Remove display classes previewImg.removeClass('it');
+                    $(this).removeClass('profile-remove-btn'); // Set this specific field's remove flag to 1 for backend logic
                     removeFlag.val("1");
-                });
-
-                $(".input-img").trigger('change');
-
-                function isImageRequired() {
-                    let hasExistingImage = $('#currentImageContainer').length > 0 && !$('#currentImageContainer').hasClass('d-none');
+                }); $(".input-img").trigger('change'); function isImageRequired() {
+                    let
+                        hasExistingImage = $('#currentImageContainer').length > 0 && !$('#currentImageContainer').hasClass('d-none');
                     let markedForRemoval = $('#remove_existing_image').val() === "1";
 
                     return !hasExistingImage || markedForRemoval;
@@ -670,159 +915,75 @@
 
                 let isEdit = @json(isset($user));
 
-                $.validator.addMethod('filesize', function(value, element, param) {
+                $.validator.addMethod('filesize', function (value, element, param) {
                     return this.optional(element) || (element.files[0].size <= param);
                 }, 'File size must be less than 1 MB.');
-
                 $('#userForm').validate({
                     rules: {
-                        name: {
-                            required: true,
-                            maxlength: 255
-                        },
-                        email: {
-                            required: true,
-                            email: true,
-                            maxlength: 255,
-                            remote: {
-                                url: "{{ route('admin.users.check.email') }}",
-                                type: "post",
-                                data: {
-                                    email: function() {
-                                        return $("#email").val();
-                                    },
-                                    user_id: function() {
-                                        return '{{ isset($user) ? $user->id : '' }}';
-                                    },
+                        name: { required: true, maxlength: 255 }, email: {
+                            required: true, email:
+                                true, maxlength: 255, remote: {
+                                    url: "{{ route('admin.users.check.email') }}", type: "post", data: {
+                                        email:
+                                            function () { return $("#email").val(); }, user_id: function () {
+                                                return '{{ isset($user) ? $user->id : '' }}';
+                                            },
+                                    }
+                                }
+                        }, password: { required: !isEdit, minlength: 8 },
+                        password_confirmation: { required: !isEdit, equalTo: "#password" }, phone: {
+                            required: true, maxlength: 15,
+                            digits: true, remote: {
+                                url: "{{ route('admin.users.check.phone') }}", type: "post", data: {
+                                    phone:
+                                        function () { return $("#phone").val(); }, user_id: function () {
+                                            return '{{ isset($user) ? $user->id : '' }}';
+                                        },
                                 }
                             }
-                        },
-                        password: {
-                            required: !isEdit,
-                            minlength: 8
-                        },
-                        password_confirmation: {
-                            required: !isEdit,
-                            equalTo: "#password"
-                        },
-                        phone: {
-                            required: true,
-                            maxlength: 15,
-                            digits: true,
-                            remote: {
-                                url: "{{ route('admin.users.check.phone') }}",
-                                type: "post",
-                                data: {
-                                    phone: function() {
-                                        return $("#phone").val();
-                                    },
-                                    user_id: function() {
-                                        return '{{ isset($user) ? $user->id : '' }}';
-                                    },
-                                }
-                            }
-                        },
-                        zip: {
-                            maxlength: 6,
-                            digits: true
-                        },
-                        country_id: {
+                        }, zip: { maxlength: 6, digits: true }, country_id: {
                             required: true
-                        },
-                        state_id: {
-                            required: true
-                        },
-                        city_id: {
-                            required: true
-                        },
-                        image: {
-                            required: function(element) {
-                                return /*isImageRequired()*/ false;
-                            },
-                            extension: "jpg|jpeg|png|webp",
-                            filesize: 1048576
+                        }, state_id: { required: true }, city_id: { required: true }, image: {
+                            required: function
+                                (element) { return /*isImageRequired()*/ false; }, extension: "jpg|jpeg|png|webp", filesize: 1048576
                         },
                     },
                     messages: {
-                        name: {
-                            required: "Please enter a name."
-                        },
-                        email: {
+                        name: { required: "Please enter a name." }, email: {
                             required: "Please enter a valid email.",
-                            email: "Enter a valid email structure.",
-                            remote: "This email is already registered."
-                        },
-                        password: {
-                            required: "Please provide a password.",
-                            minlength: "Minimum 8 characters."
-                        },
-                        password_confirmation: {
-                            required: "Please confirm password.",
-                            equalTo: "Passwords do not match."
-                        },
-                        role_id: {
+                            email: "Enter a valid email structure.", remote: "This email is already registered."
+                        }, password: {
+                            required: "Please provide a password.", minlength: "Minimum 8 characters."
+                        }, password_confirmation: {
+                            required: "Please confirm password.", equalTo: "Passwords do not match."
+                        }, role_id: {
                             required: "Please select a role."
-                        },
-                        designation_id: {
-                            required: "Please select a designation."
-                        },
-                        image: {
-                            extension: "Only JPG, JPEG, PNG and WEBP files are allowed.",
-                            filesize: "File size must not exceed 1 MB."
-                        },
-                        phone: {
-                            remote: "This phone number is already in use."
-                        }
-                    },
-                    errorClass: 'text-danger small mt-1',
-                    errorElement: 'span',
-                    ignore: ":hidden:not(.select2-hidden-accessible)",
-                    highlight: function(element) {
+                        }, designation_id: { required: "Please select a designation." }, image: {
+                            extension: "Only JPG, JPEG, PNG and WEBP files are allowed.", filesize: "File size must not exceed 1 MB."
+                        }, phone: { remote: "This phone number is already in use." }
+                    }, errorClass: 'text-danger small mt-1',
+                    errorElement: 'span', ignore: ":hidden:not(.select2-hidden-accessible)", highlight: function (element) {
                         $(element).addClass('is-invalid');
-                    },
-                    unhighlight: function(element) {
+                    }, unhighlight: function (element) {
                         $(element).removeClass('is-invalid');
-                    },
-                    errorPlacement: function(error, element) {
-                        if (element.hasClass('select2-hidden-accessible')) {
-                            error.insertAfter(element.next('.select2-container'));
-                        } else if (element.parent('.input-group').length) {
-                            error.insertAfter(element.parent());
-                        } else if (element.prop('type') === 'radio') {
-                            error.insertAfter(element.closest('.d-flex'));
-                        } else {
+                    }, errorPlacement: function (error, element) {
+                        if
+                            (element.hasClass('select2-hidden-accessible')) { error.insertAfter(element.next('.select2-container')); }
+                        else if (element.parent('.input-group').length) { error.insertAfter(element.parent()); } else if
+                            (element.prop('type') === 'radio') { error.insertAfter(element.closest('.d-flex')); } else {
                             error.insertAfter(element);
                         }
                     }
-                });
-
-                async function loadEditData() {
-                    const countryId = "{{ isset($user->country_id) ? $user->country_id : '' }}";
-                    const countryName = "{{ isset($user->country->name) ? $user->country->name : '' }}";
-
-                    const stateId = "{{ isset($user->state_id) ? $user->state_id : '' }}";
-                    const stateName = "{{ isset($user->state->name) ? $user->state->name : '' }}";
-
-                    const cityId = "{{ isset($user->city_id) ? $user->city_id : '' }}";
-                    const cityName = "{{ isset($user->city->name) ? $user->city->name : '' }}";
-
-                    $('#state_id').prop('disabled', true);
-                    $('#city_id').prop('disabled', true);
-
-                    await setSelect2Value('#country_id', countryId, countryName);
-
-                    $('#state_id').prop('disabled', false);
-
-                    await setSelect2Value('#state_id', stateId, stateName);
-
-                    $('#city_id').prop('disabled', false);
-
-                    await setSelect2Value('#city_id', cityId, cityName);
-                }
-
-                loadEditData();
-            });
-        </script>
+                }); async function loadEditData() {
+                    const
+                        countryId = "{{ isset($user->country_id) ? $user->country_id : '' }}"; const countryName = "{{ isset($user->country->name) ? $user->country->name : '' }}"; const
+                            stateId = "{{ isset($user->state_id) ? $user->state_id : '' }}"; const stateName = "{{ isset($user->state->name) ? $user->state->name : '' }}"; const
+                                cityId = "{{ isset($user->city_id) ? $user->city_id : '' }}"; const cityName = "{{ isset($user->city->name) ? $user->city->name : '' }}"; $('#state_id').prop('disabled', true); $('#city_id').prop('disabled', true);
+                    await setSelect2Value('#country_id', countryId, countryName); $('#state_id').prop('disabled', false); await
+                        setSelect2Value('#state_id', stateId, stateName); $('#city_id').prop('disabled', false); await
+                            setSelect2Value('#city_id', cityId, cityName);
+                } loadEditData();
+            }); </script>
     @endpush
 
 </x-master-layout>

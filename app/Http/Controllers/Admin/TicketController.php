@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Chat;
+use App\Models\CustomField;
 use App\Models\Department;
 use App\Models\Designation;
 use App\Models\DigitalProduct;
@@ -492,7 +493,20 @@ class TicketController extends Controller
 
         $chats = Chat::query()->where('ticket_id', decrypt($id))->get();
 
-        return view('admin.ticket.edit', compact('tab', 'tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments', 'roles'));
+        $isAdmin = $this->authUser?->role?->id === User::SUPERADMIN_ROLE_ID;
+        $user_department = $this->authUser?->department_id;
+
+        $customfields = CustomField::with(['fieldType'])
+                        ->where('module_type', 'department')
+                        ->when(!$isAdmin, function($q) use ($user_department) {
+                            $q->where('recode_id', $user_department);
+                        })
+                        ->when($isAdmin, function($q) use ($ticket) {
+                            $q->where('recode_id', $ticket->department_id);
+                        })
+                        ->get();
+
+        return view('admin.ticket.edit', compact('tab', 'tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments', 'roles', 'customfields'));
     }
 
     /**

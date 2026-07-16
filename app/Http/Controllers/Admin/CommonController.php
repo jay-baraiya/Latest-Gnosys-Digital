@@ -98,7 +98,7 @@ class CommonController extends Controller
     public static function storeCustomFields(Request $request)
     {
         $customFieldData = $request->input('custom_field');
-
+       
         if (!is_array($customFieldData) || !isset($customFieldData['fields']) || !is_array($customFieldData['fields'])) {
             return [];
         }
@@ -144,7 +144,7 @@ class CommonController extends Controller
         try {
 
             if (!empty($diff_id)) {
-                CustomField::whereIn('id', $diff_id)->delete();
+                CustomField::query()->whereIn('id', $diff_id)->delete();
             }
 
             foreach ($fields as $index => $field) {
@@ -165,6 +165,7 @@ class CommonController extends Controller
                     'id' => isset($field_id[$index]) ? $field_id[$index] : null,
                     'recode_id' => $recode_id
                 ],[
+                    'department_id'        => !empty($field['department_id']) ? $field['department_id'] : null,
                     'module_type'          => $module_type,
                     'name'                 => $field['name'],
                     'slug'                 => $slug,

@@ -72,6 +72,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
 
     Route::resource('settings', SettingController::class)->names('settings');
     Route::post('settings/store-website-settings', [SettingController::class, 'storeWebsiteSetting'])->name('settings.storeWebsiteSetting');
+    Route::post('settings/test-email', [SettingController::class, 'testEmail'])->name('settings.testEmail');
 
     /* users */
     Route::resource('users', UserController::class)->names('users');
