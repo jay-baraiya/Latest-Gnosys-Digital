@@ -38,8 +38,8 @@ class FetchEmails extends Command
             // POP3 only supports INBOX. For IMAP, you could iterate over folders, but INBOX is standard.
             $folder = $client->getFolder('INBOX');
 
-            // Fetch unread (unseen) messages
-            $messages = $folder->query()->unseen()->get();
+            // Fetch all messages (POP3 doesn't support 'unseen' flags)
+            $messages = $folder->query()->all()->get();
 
             $count = $messages->count();
             $this->info("Found {$count} unread email(s).");
@@ -94,10 +94,10 @@ class FetchEmails extends Command
                 */
 
                 // ---------------------------------------------------------
-                // 3) Mark message as seen / read (Optional)
+                // 3) Delete message (Optional for POP3)
                 // ---------------------------------------------------------
-                // Uncomment if you want to mark it as read so it isn't fetched again:
-                $message->setFlag(['Seen']);
+                // Uncomment if you want to delete it from the server so it isn't fetched again:
+                // $message->delete();
                 
                 $this->line("Logged email: {$subject} from {$from}");
             }
