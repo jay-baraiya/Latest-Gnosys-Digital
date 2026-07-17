@@ -390,6 +390,23 @@
                     </div>
                 </div>
 
+                <hr>
+                
+                <div class="row mb-2 align-items-center">
+                    <label class="col-md-2 col-form-label fw-bold text-dark">Generate Invoice:</label>
+                    <div class="col-md-6">
+                        <input class="form-control" type="text" name="invoice_subject" id="invoice_subject" value="" placeholder="Invoice subject">
+                    </div>
+                    <div class="col-lg-2">
+                        <input class="form-control" type="number" name="invoice_amount" id="invoice_amount" value="" placeholder="Invoice Amount" min="1">
+                    </div>
+                    <div class="col-lg-2">
+                        <button type="button" class="btn btn-primary" id="generate_custom_invoice_btn">Generate Invoice</button>
+                    </div>
+                </div>
+
+                <hr>
+
                 <div class="row mb-2 align-items-center">
                     <label class="col-md-2 col-form-label fw-bold text-dark">Signature:</label>
                     <div class="col-md-10">
@@ -792,6 +809,39 @@
                         syntax: false
                     }
                 }
+            });
+
+            $(document).on('click', '#generate_custom_invoice_btn', function() {
+                let subject = $('#invoice_subject').val();
+                let amount = $('#invoice_amount').val();
+
+                if (!subject || !amount) {
+                    alert("Please enter both invoice subject and amount.");
+                    return;
+                }
+
+                let url = "{{ route('admin.tickets.generate_custom_invoice', encrypt($ticket->id)) }}";
+                let form = $('<form></form>', {
+                    action: url,
+                    method: 'POST',
+                    target: '_blank'
+                }).append($('<input>', {
+                    type: 'hidden',
+                    name: '_token',
+                    value: '{{ csrf_token() }}'
+                })).append($('<input>', {
+                    type: 'hidden',
+                    name: 'invoice_subject',
+                    value: subject
+                })).append($('<input>', {
+                    type: 'hidden',
+                    name: 'invoice_amount',
+                    value: amount
+                }));
+
+                $('body').append(form);
+                form.submit();
+                form.remove();
             });
 
             quillBody.on('text-change', function() {

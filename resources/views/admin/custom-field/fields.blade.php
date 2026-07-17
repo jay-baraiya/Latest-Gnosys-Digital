@@ -9,13 +9,13 @@
             <div class="field-row border p-3 mb-4 rounded" data-row-index="{{ $key }}">
                 <input {{ $disabled }} type="hidden" name="custom_field[field_id][{{ $key }}]" value="{{ $field->id }}">
                 <div class="row mb-5">
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <label class="form-label">Field Name</label>
                         <input {{ $disabled }} type="text" class="form-control" name="custom_field[fields][{{ $key }}][name]"
                             placeholder="Field name" value="{{ $field->name }}">
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label">Field Type</label>
                         <select {{ $disabled }} name="custom_field[fields][{{ $key }}][custom_field_type_id]"
                             class="form-select custom-field-type">
@@ -30,22 +30,29 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-1">
+                        <label class="form-label">Sort Order</label>
+                        <input {{ $disabled }} type="number" class="form-control"
+                            name="custom_field[fields][{{ $key }}][sort_order]" placeholder="0" value="{{ $field->sort_order }}"
+                            min="0">
+                    </div>
+
+                    {{-- <div class="col-md-3">
                         <label class="form-label">Department</label>
                         <select {{ $disabled }} name="custom_field[fields][{{ $key }}][department_id]" class="form-select">
                             <option value="">Select department</option>
                             @php
-                                $departments = \App\Helpers\Helper::getDapartment();
+                            $departments = \App\Helpers\Helper::getDapartment();
                             @endphp
                             @if (isset($departments) && $departments->isNotEmpty())
-                                @foreach ($departments as $dep)
-                                    <option value="{{ $dep->id }}" {{ $field->department_id == $dep->id ? 'selected' : '' }}>
-                                        {{ $dep->name }}
-                                    </option>
-                                @endforeach
+                            @foreach ($departments as $dep)
+                            <option value="{{ $dep->id }}" {{ $field->department_id == $dep->id ? 'selected' : '' }}>
+                                {{ $dep->name }}
+                            </option>
+                            @endforeach
                             @endif
                         </select>
-                    </div>
+                    </div> --}}
 
                     <div class="col-md-2 d-flex align-items-end gap-2">
                         <button {{ $disabled }} type="button" class="btn btn-primary add-field-btn">
@@ -63,13 +70,13 @@
     @else
         <div class="field-row border p-3 mb-4 rounded" data-row-index="0">
             <div class="row mb-5">
-                <div class="col-md-4">
+                <div class="col-md-5">
                     <label class="form-label">Field Name</label>
                     <input {{ $disabled }} type="text" class="form-control" name="custom_field[fields][0][name]"
                         placeholder="Field name" value="">
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">Field Type</label>
                     <select {{ $disabled }} name="custom_field[fields][0][custom_field_type_id]"
                         class="form-select custom-field-type">
@@ -82,22 +89,28 @@
                     </select>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-1">
+                    <label class="form-label">Sort Order</label>
+                    <input {{ $disabled }} type="number" class="form-control" name="custom_field[fields][0][sort_order]"
+                        placeholder="0" value="" min="0">
+                </div>
+
+                {{-- <div class="col-md-3">
                     <label class="form-label">Department</label>
                     <select {{ $disabled }} name="custom_field[fields][0][department_id]" class="form-select">
                         <option value="">Select department</option>
                         @php
-                            $departments = \App\Helpers\Helper::getDapartment();
+                        $departments = \App\Helpers\Helper::getDapartment();
                         @endphp
                         @if (isset($departments) && $departments->isNotEmpty())
-                            @foreach ($departments as $department)
-                                <option value="{{ $department->id }}">
-                                    {{ $department->name }}
-                                </option>
-                            @endforeach
+                        @foreach ($departments as $department)
+                        <option value="{{ $department->id }}">
+                            {{ $department->name }}
+                        </option>
+                        @endforeach
                         @endif
                     </select>
-                </div>
+                </div> --}}
 
                 <div class="col-md-2 d-flex align-items-end gap-2">
                     <button {{ $disabled }} type="button" class="btn btn-primary add-field-btn">
@@ -175,6 +188,7 @@
                 let $clonedRow = $('.dynamic-fields-wrapper .field-row:first').clone();
 
                 $clonedRow.find('input[type="text"]').val('');
+                $clonedRow.find('input[type="number"]').val('');
                 $clonedRow.find('select').prop('selectedIndex', 0);
 
                 $clonedRow.find('.dynamic-field-settings').empty();

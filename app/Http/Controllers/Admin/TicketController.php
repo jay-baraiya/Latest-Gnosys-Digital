@@ -170,12 +170,74 @@ class TicketController extends Controller
                         'edit'           => route('admin.tickets.edit', encrypt($row->id)),
                         // 'show'           => route('admin.tickets.show', encrypt($row->id)),
                         'delete'         => route('admin.tickets.destroy', encrypt($row->id)),
+                        'invoice'        => route('admin.tickets.generate_invoice', encrypt($row->id)),
                         'id'             => encrypt($row->id),
                         'current_status' => $row->status,
                     ])->render();
                 })
                 ->rawColumns(['ticket_number', 'client_info', 'priority', 'status', 'actions'])
                 ->make(true);
+        }
+    }
+
+    public function generateInvoice(Request $request, string $id)
+    {
+        try {
+            $ticket = Ticket::with(['user', 'department'])->findOrFail(decrypt($id));
+            $tasks = Task::query()->where('ticket_id', $ticket->id)->get();
+            $ticket->setRelation('tasks', $tasks);
+
+            $fileName = 'exports/invoice_' . $ticket->ticket_number . '_' . time() . '.pdf';
+
+            // Dispatch the job to the queue
+            \App\Jobs\GenerateTicketInvoice::dispatch($ticket, $fileName, Auth::id());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Invoice generation is processing...',
+                'filename' => $fileName,
+                'status' => 'processing'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Invoice Generation Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate invoice.'
+            ]);
+        }
+    }
+
+    public function generateCustomInvoice(Request $request, string $id)
+    {
+        $request->validate([
+            'invoice_subject' => 'required|string',
+            'invoice_amount'  => 'required|numeric|min:1',
+        ]);
+
+        try {
+            $ticket = Ticket::with(['user', 'department'])->findOrFail(decrypt($id));
+
+            $subject = $request->invoice_subject;
+            $amount = $request->invoice_amount;
+
+            $fileName = 'custom_invoice_' . $ticket->ticket_number . '_' . time() . '.pdf';
+
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.ticket.custom_invoice', compact('ticket', 'subject', 'amount'));
+
+            return $pdf->download($fileName);
+        } catch (\Exception $e) {
+            Log::error('Custom Invoice Generation Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return back()->with('error', 'Failed to generate custom invoice.');
         }
     }
 
@@ -494,16 +556,17 @@ class TicketController extends Controller
         $chats = Chat::query()->where('ticket_id', decrypt($id))->get();
 
         $isAdmin = $this->authUser?->role?->id === User::SUPERADMIN_ROLE_ID;
-        $user_department = $this->authUser?->department_id;
 
         $customfields = CustomField::with(['fieldType'])
                         ->where('module_type', 'department')
-                        ->when(!$isAdmin, function($q) use ($user_department) {
-                            $q->where('recode_id', $user_department);
+                        ->when(!$isAdmin, function($q) use ($ticket) {
+                            $q->where('recode_id', $ticket->department_id)
+                            ->where('params->only_admin', 0);
                         })
                         ->when($isAdmin, function($q) use ($ticket) {
                             $q->where('recode_id', $ticket->department_id);
                         })
+                        ->orderBy('sort_order', 'ASC')
                         ->get();
 
         return view('admin.ticket.edit', compact('tab', 'tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments', 'roles', 'customfields'));

@@ -536,6 +536,40 @@
                         }
                     });
                 });
+                $(document).on('click', '.generate-invoice-btn', function (e) {
+                    e.preventDefault();
+                    let url = $(this).data('url');
+
+                    Swal.fire({
+                        title: 'Generating Invoice',
+                        text: 'Please wait...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: url,
+                        type: 'GET',
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.close();
+                                showToast(response.message, 'success');
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function (xhr) {
+                            let errorMessage = 'Failed to generate invoice!';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            }
+                            Swal.fire('Error', errorMessage, 'error');
+                        }
+                    });
+                });
+
             });
         </script>
     @endpush

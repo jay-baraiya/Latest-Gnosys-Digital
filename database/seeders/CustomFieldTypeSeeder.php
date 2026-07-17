@@ -22,6 +22,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'status' => 1,
                 'params' => [
                     'is_visible' => false,
+                    'only_admin' => false,
                     'is_required' => false,
                     'placeholder' => null,
                     'default_value' => null,
@@ -35,6 +36,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'status' => 1,
                 'params' => [
                     'is_required' => false,
+                    'only_admin' => false,
                     'is_visible' => false,
                     'placeholder' => null,
                     'default_value' => null,
@@ -49,6 +51,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'status' => 1,
                 'params' => [
                     'is_required' => false,
+                    'only_admin' => false,
                     'is_visible' => false,
                     'placeholder' => null,
                     'default_value' => null,
@@ -65,6 +68,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'params' => [
                     'is_required' => false,
                     'is_visible' => false,
+                    'only_admin' => false,
                     'is_email' => true,
                     'placeholder' => null,
                     'default_value' => null,
@@ -79,6 +83,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'params' => [
                     'is_required' => false,
                     'is_visible' => false,
+                    'only_admin' => false,
                     'multiple' => false,
                 ],
             ],
@@ -91,6 +96,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'params' => [
                     'is_required' => false,
                     'is_visible' => false,
+                    'only_admin' => false,
                 ],
             ],
             [
@@ -102,6 +108,7 @@ class CustomFieldTypeSeeder extends Seeder
                 'params' => [
                     'is_required' => false,
                     'is_visible' => false,
+                    'only_admin' => false,
                 ],
             ],
         ];

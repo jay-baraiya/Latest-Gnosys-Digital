@@ -15,7 +15,8 @@ class CustomField extends Model
         'slug',
         'status',
         'options',
-        'params'
+        'params',
+        'sort_order'
     ];
 
 

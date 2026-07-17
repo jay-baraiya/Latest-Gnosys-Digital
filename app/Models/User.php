@@ -115,4 +115,9 @@ class User extends Authenticatable
     {
         return Setting::query()->first();
     }
+
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return 'App.Models.User.'.$this->id;
+    }
 }

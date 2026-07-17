@@ -129,7 +129,7 @@ class DepartmentController extends Controller
         view()->share('action', 'View');
         $department = Department::findOrFail(decrypt($id));
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
-        $customfields = CustomField::with(['fieldType'])->where('module_type', 'department')->where('recode_id', decrypt($id))->get();
+        $customfields = CustomField::with(['fieldType'])->where('module_type', 'department')->where('recode_id', decrypt($id))->orderBy('sort_order', 'ASC')->get();
 
         return view('admin.department.show', compact('department','customfieldtyeps','customfields'));
     }
@@ -142,7 +142,7 @@ class DepartmentController extends Controller
         view()->share('action', 'Edit');
         $department = Department::findOrFail(decrypt($id));
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
-        $customfields = CustomField::with(['fieldType'])->where('module_type', 'department')->where('recode_id', decrypt($id))->get();
+        $customfields = CustomField::with(['fieldType'])->where('module_type', 'department')->where('recode_id', decrypt($id))->orderBy('sort_order', 'ASC')->get();
 
         return view('admin.department.form', compact('department','customfieldtyeps','customfields'));
     }

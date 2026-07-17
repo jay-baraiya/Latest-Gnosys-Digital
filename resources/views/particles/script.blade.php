@@ -98,8 +98,8 @@
         }
     }
 
-    $(document).ready(function() {
-        $(document).on('click', '#statusUpdate', function(e) {
+    $(document).ready(function () {
+        $(document).on('click', '#statusUpdate', function (e) {
             e.preventDefault();
 
             let url = $(this).attr('href');
@@ -118,14 +118,14 @@
                 confirmButtonText: "Yes, update it!",
                 buttonsStyling: false,
                 showCloseButton: true,
-            }).then(function(result) {
+            }).then(function (result) {
 
                 if (result.isConfirmed) {
 
                     $.ajax({
                         url: url,
                         type: 'POST',
-                        success: function(response) {
+                        success: function (response) {
 
                             if (response.success) {
                                 showToast(response.message, 'success');
@@ -135,7 +135,7 @@
 
                             reloadDataTabale();
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             showToast('Something went wrong!', 'error');
                         }
                     });
@@ -144,7 +144,7 @@
             });
         });
 
-        $(document).on('click', '#delete_action', function(e) {
+        $(document).on('click', '#delete_action', function (e) {
             e.preventDefault();
 
             let url = $(this).attr('href');
@@ -163,14 +163,14 @@
                 confirmButtonText: "Yes, delete it!",
                 buttonsStyling: false,
                 showCloseButton: true,
-            }).then(function(result) {
+            }).then(function (result) {
 
                 if (result.isConfirmed) {
 
                     $.ajax({
                         url: url,
                         type: 'DELETE',
-                        success: function(response) {
+                        success: function (response) {
 
                             if (response.success) {
                                 showToast(response.message, 'success');
@@ -180,7 +180,7 @@
 
                             reloadDataTabale();
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             showToast('Something went wrong!', 'error');
                         }
                     });
@@ -189,7 +189,7 @@
             });
         });
 
-        $(document).on('click', '#restore_action', function(e) {
+        $(document).on('click', '#restore_action', function (e) {
             e.preventDefault();
 
             let url = $(this).attr('href');
@@ -208,14 +208,14 @@
                 confirmButtonText: "Yes, restore it!",
                 buttonsStyling: false,
                 showCloseButton: true,
-            }).then(function(result) {
+            }).then(function (result) {
 
                 if (result.isConfirmed) {
 
                     $.ajax({
                         url: url,
                         type: 'POST',
-                        success: function(response) {
+                        success: function (response) {
 
                             if (response.success) {
                                 showToast(response.message, 'success');
@@ -225,7 +225,7 @@
 
                             reloadDataTabale();
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             showToast('Something went wrong!', 'error');
                         }
                     });
@@ -234,7 +234,7 @@
             });
         });
 
-        $(document).on('click', '.wallet-action-btn', function(e) {
+        $(document).on('click', '.wallet-action-btn', function (e) {
             e.preventDefault();
 
             let url = $(this).attr('href');
@@ -275,7 +275,7 @@
                 };
             }
 
-            Swal.fire(swalConfig).then(function(result) {
+            Swal.fire(swalConfig).then(function (result) {
                 if (result.isConfirmed) {
 
                     let requestData = {};
@@ -287,7 +287,7 @@
                         url: url,
                         type: 'GET',
                         data: requestData,
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success) {
                                 showToast(response.message, 'success');
                             } else {
@@ -295,7 +295,7 @@
                             }
                             reloadDataTabale();
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             showToast('Something went wrong!', 'error');
                         }
                     });
@@ -311,7 +311,7 @@
             reloadDataTabale();
         });
 
-        $(document).on('click', '.deletedRecode', function(e) {
+        $(document).on('click', '.deletedRecode', function (e) {
             e.preventDefault();
             var value = $(this).attr('data-value');
             $('#is_deleted').val(value);
@@ -319,21 +319,21 @@
             reloadDataTabale();
         });
 
-        $(document).on('click', '.buyerRecode', function(e) {
+        $(document).on('click', '.buyerRecode', function (e) {
             e.preventDefault();
             $(this).attr('data-buyer-value', 1);
             $('#is_deleted').val(0);
             reloadDataTabale();
         });
 
-        $(document).on('show.bs.dropdown', '.dropdown', function() {
+        $(document).on('show.bs.dropdown', '.dropdown', function () {
             if ($(this).closest('.modal').length) {
                 return;
             }
             $(this).find('.dropdown-menu').appendTo('body');
         });
 
-        $(document).on('hide.bs.dropdown', '.dropdown', function() {
+        $(document).on('hide.bs.dropdown', '.dropdown', function () {
             if ($(this).closest('.modal').length) {
                 return;
             }
@@ -349,12 +349,12 @@
                 dataType: 'json',
                 delay: 250,
                 method: 'POST',
-                data: function(params) {
+                data: function (params) {
                     return {
                         q: params.term
                     };
                 },
-                processResults: function(data) {
+                processResults: function (data) {
                     $('#state_id').val(null).trigger('change');
                     $('#city_id').val(null).trigger('change');
                     return {
@@ -373,13 +373,13 @@
                 dataType: 'json',
                 delay: 250,
                 method: 'POST',
-                data: function(params) {
+                data: function (params) {
                     return {
                         q: params.term,
                         country_id: $('#country_id').val()
                     };
                 },
-                processResults: function(data) {
+                processResults: function (data) {
                     $('#city_id').val(null).trigger('change');
                     return {
                         results: data
@@ -397,13 +397,13 @@
                 dataType: 'json',
                 delay: 250,
                 method: 'POST',
-                data: function(params) {
+                data: function (params) {
                     return {
                         q: params.term,
                         state_id: $('#state_id').val()
                     };
                 },
-                processResults: function(data) {
+                processResults: function (data) {
                     return {
                         results: data
                     };
@@ -439,33 +439,189 @@
                 let userId = {{ auth()->user()->id ?? 'null' }};
                 if (userId) {
                     window.Echo.private(`App.Models.User.${userId}`)
+                        .subscribed(() => {
+                            // console.log(`Successfully subscribed to private-App.Models.User.${userId}`);
+                        })
+                        .error((error) => {
+                            console.error(`Echo Subscription Error for private-App.Models.User.${userId}:`, error);
+                        })
                         .notification((notification) => {
-                            console.log('New Notification:', notification.message);
+                            // console.log('New Notification:', notification);
 
-                            if (document.hidden && "Notification" in window && Notification
-                                .permission === "granted") {
-                                // If tab is hidden, show a Native Browser/Desktop Notification
-                                // new Notification("New Notification", {
-                                //     body: notification.message,
-                                // });
+                            let data = notification.data || notification;
+                            let message = data.message || 'You have a new notification';
+                            let title = data.title || 'Notification';
+                            let downloadUrl = data.download_url ? `{{ url('admin/notifications') }}/${notification.id}/read` : '#';
+
+                            if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+                                new Notification(title, {
+                                    body: message,
+                                });
                             } else {
-                                // If they are currently on this tab, show the non-blocking Toast message
                                 if (typeof showToast === 'function') {
-                                    // showToast(notification.message, 'info');
-                                } else {
-                                    // alert(notification.message);
+                                    showToast(message, 'info');
                                 }
                             }
+
+                            // Update Notification badge in header
+                            let bellIcon = $('.ti-bell-check');
+                            let badge = bellIcon.next('span');
+                            let count = parseInt(badge.text()) || 0;
+                            badge.text(count + 1).addClass('badge rounded-pill bg-danger');
+                            bellIcon.addClass('animate-ring');
+
+                            // Fetch and replace notification body with the blade view
+                            $.ajax({
+                                url: "{{ route('admin.notifications.dropdown') }}",
+                                type: 'GET',
+                                success: function (response) {
+                                    $('.notification-body').html(response);
+                                }
+                            });
                         });
                 }
             } else {
                 setTimeout(initEcho, 100);
             }
         };
-        // initEcho();
+
+        initEcho();
+
+        // Test Notification via Switch in Header
+        $('#notify').on('change', function () {
+            if ($(this).is(':checked')) {
+                // Keep the switch visually off for demonstration, or let it turn on and then off.
+                // We'll turn it off immediately so it can be pressed again, like a button.
+                // $(this).prop('checked', false);
+
+                if (typeof showToast === 'function') {
+                    // showToast('Sending test notification...', 'info');
+                }
+
+                $.ajax({
+                    url: "{{ route('admin.notifications.test') }}",
+                    type: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            console.log("Test notification dispatched.");
+                        } else {
+                            if (typeof showToast === 'function') {
+                                showToast(response.message, 'error');
+                            }
+                        }
+                    },
+                    error: function (xhr) {
+                        if (typeof showToast === 'function') {
+                            showToast('Failed to dispatch test notification.', 'error');
+                        }
+                    }
+                });
+            }
+        });
+
+        $(document).on('click', '.mark-as-read-btn', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            let btn = $(this);
+            let notifId = btn.data('id');
+
+            $.ajax({
+                url: "{{ url('admin/notifications') }}/" + notifId + "/mark-read",
+                type: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('#notification-' + notifId).fadeOut(300, function () {
+                            $(this).remove();
+                            // Update badge count
+                            let bellIcon = $('.ti-bell-check');
+                            let badge = bellIcon.next('span');
+                            let count = parseInt(badge.text()) || 0;
+
+                            // Stop ringing once they interact with any notification
+                            bellIcon.removeClass('animate-ring');
+
+                            if (count > 1) {
+                                badge.text(count - 1);
+                            } else {
+                                badge.text('').removeClass('badge rounded-pill bg-danger');
+                            }
+                        });
+                    }
+                }
+            });
+        });
+        $(document).on('click', '#mark-all-read', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $.ajax({
+                url: "{{ route('admin.notifications.mark-all-read') }}",
+                type: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function (response) {
+                    if (response.success) {
+                        // Clear the badge count
+                        let bellIcon = $('.ti-bell-check');
+                        let badge = bellIcon.next('span');
+                        badge.text('').removeClass('badge rounded-pill bg-danger');
+                        bellIcon.removeClass('animate-ring');
+
+                        // Refresh dropdown content
+                        $.ajax({
+                            url: "{{ route('admin.notifications.dropdown') }}",
+                            type: 'GET',
+                            success: function (html) {
+                                $('.notification-body').html(html);
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
+
+        $(document).on('click', '.download-btn', function (e) {
+            let btn = $(this);
+            let notifId = btn.data('id');
+            let href = btn.attr('href');
+
+            if (href === 'javascript:void(0);' || href === '#') {
+                return;
+            }
+
+            // Remove it from the UI after a short delay to allow the download redirect to process. 
+            // The backend route will mark it as read in the DB.
+            setTimeout(() => {
+                $('#notification-' + notifId).fadeOut(300, function () {
+                    $(this).remove();
+                    // Update badge count
+                    let bellIcon = $('.ti-bell-check');
+                    let badge = bellIcon.next('span');
+                    let count = parseInt(badge.text()) || 0;
+
+                    // Stop ringing once they interact with any notification
+                    bellIcon.removeClass('animate-ring');
+
+                    if (count > 1) {
+                        badge.text(count - 1);
+                    } else {
+                        badge.text('').removeClass('badge rounded-pill bg-danger');
+                    }
+                });
+            }, 500);
+        });
     });
 
-    $(document).ready(function(){
+    $(document).ready(function () {
         if ($('#category_id').length > 0) {
             $('#category_id').select2({
                 placeholder: 'Select a category',
@@ -496,7 +652,7 @@
             });
         }
 
-        $(document).on('click', '.clearFilter', function() {
+        $(document).on('click', '.clearFilter', function () {
             if ($('#category_id').length > 0) {
                 $('#category_id').val(null).trigger('change');
             }
@@ -504,11 +660,11 @@
             reloadDataTabale();
         });
 
-        $(document).on('change', '#category_id, #filter-order-number, #filter-ticket-number', function() {
+        $(document).on('change', '#category_id, #filter-order-number, #filter-ticket-number', function () {
             reloadDataTabale();
         });
 
-        $(document).on('click', '#clear-filters', function() {
+        $(document).on('click', '#clear-filters', function () {
 
             if ($('#filter-order-number').length > 0) {
                 $('#filter-order-number').val('').trigger('change');

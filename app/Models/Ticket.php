@@ -47,6 +47,11 @@ class Ticket extends Model
         return $this->hasMany(Note::class, 'ref_id');
     }
 
+    public function tasks()
+    {
+        return $this->hasMany(Task::class, 'ticket_id');
+    }
+
     public function descriptionNote()
     {
         return $this->hasOne(Note::class, 'ref_id')->where('ref_type', 'description');

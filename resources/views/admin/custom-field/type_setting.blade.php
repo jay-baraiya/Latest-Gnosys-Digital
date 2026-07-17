@@ -91,12 +91,23 @@
                 </label>
             </div>
         @endif
+
         @if(is_array($field_type_params) && array_key_exists('is_visible', $field_type_params))
             <div class="form-check mt-2">
                 <input {{ $disabled }} class="form-check-input" type="checkbox"
                     name="custom_field[params][{{ $indexKey }}][is_visible]" value="1" {{ !empty($params['is_visible']) ? 'checked' : '' }} id="is_visible_check_{{ $indexKey }}">
                 <label class="form-check-label" for="is_visible_check_{{ $indexKey }}">
                     Is this field visible?
+                </label>
+            </div>
+        @endif
+
+        @if(is_array($field_type_params) && array_key_exists('only_admin', $field_type_params))
+            <div class="form-check mt-2">
+                <input {{ $disabled }} class="form-check-input" type="checkbox"
+                    name="custom_field[params][{{ $indexKey }}][only_admin]" value="1" {{ !empty($params['only_admin']) ? 'checked' : '' }} id="only_admin_check_{{ $indexKey }}">
+                <label class="form-check-label" for="only_admin_check_{{ $indexKey }}">
+                    Only visible to admin?
                 </label>
             </div>
         @endif

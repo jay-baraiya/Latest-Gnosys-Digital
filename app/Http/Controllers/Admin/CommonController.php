@@ -168,6 +168,7 @@ class CommonController extends Controller
                     'department_id'        => !empty($field['department_id']) ? $field['department_id'] : null,
                     'module_type'          => $module_type,
                     'name'                 => $field['name'],
+                    'sort_order'           => $field['sort_order'],
                     'slug'                 => $slug,
                     'custom_field_type_id' => $field['custom_field_type_id'],
                     'status'               => $request->input('status', 1),

@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\DigitalProductController;
 use App\Http\Controllers\Admin\DigitalServiceController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SettingController;
@@ -159,6 +160,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('tickets/get-data', [TicketController::class, 'getData'])->name('tickets.getData');
     Route::post('tickets/restore/{id}', [TicketController::class, 'restore'])->name('tickets.restore');
     Route::post('tickets/update-status', [TicketController::class, 'updateStatus'])->name('tickets.updateStatus');
+    Route::get('tickets/{id}/generate-invoice', [TicketController::class, 'generateInvoice'])->name('tickets.generate_invoice');
+    Route::post('tickets/{id}/generate-custom-invoice', [TicketController::class, 'generateCustomInvoice'])->name('tickets.generate_custom_invoice');
     Route::post('tickets/order-ticket-listing', [TicketController::class, 'getOrderTickets'])->name('tickets.order.ticket.listing');
     Route::post('tickets/dev-user', [TicketController::class, 'getDevUser'])->name('tickets.dev.user');
     Route::post('tickets/assign-dev-user', [TicketController::class, 'assignDevUser'])->name('tickets.assign.dev.user');
@@ -190,6 +193,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('tasks/check-phone', [TaskController::class, 'checkPhone'])->name('tasks.check.phone');
     Route::post('tasks/{id}/store-reply', [TaskController::class, 'storeReply'])->name('tasks.storeReply');
     Route::post('tasks/{id}/store-internal-note', [TaskController::class, 'storeInternalNote'])->name('tasks.storeInternalNote');
+
+    // Notifications
+    Route::get('/notifications/dropdown', [NotificationController::class, 'dropdown'])->name('notifications.dropdown');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+    Route::post('/notifications/{id}/mark-read', [NotificationController::class, 'markRead'])->name('notifications.mark-read');
+    Route::get('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/test', [NotificationController::class, 'testNotification'])->name('notifications.test');
 
 });
 
