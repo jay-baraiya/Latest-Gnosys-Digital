@@ -392,7 +392,12 @@
 
                 <hr>
                 
-                <div class="row mb-2 align-items-center">
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        <button type="button" class="btn btn-info btn-sm text-white" id="toggle_invoice_form_btn">Immediately Invoice</button>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center" id="invoice_form_container" style="display: none;">
                     <label class="col-md-2 col-form-label fw-bold text-dark">Generate Invoice:</label>
                     <div class="col-md-6">
                         <input class="form-control" type="text" name="invoice_subject" id="invoice_subject" value="" placeholder="Invoice subject">
@@ -809,6 +814,10 @@
                         syntax: false
                     }
                 }
+            });
+
+            $(document).on('click', '#toggle_invoice_form_btn', function() {
+                $('#invoice_form_container').toggle();
             });
 
             $(document).on('click', '#generate_custom_invoice_btn', function() {

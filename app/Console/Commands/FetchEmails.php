@@ -78,20 +78,43 @@ class FetchEmails extends Command
                 ]);
 
                 // ---------------------------------------------------------
-                // 2) Future functionality: Store in Database
+                // 2) Create Ticket in Database
                 // ---------------------------------------------------------
-                // To easily store this in the database later, you can uncomment 
-                // and modify the code below once you have an Email model and table.
+                $user = \App\Models\User::where('email', $from)->first();
                 
-                /*
-                \App\Models\Email::create([
-                    'message_id'  => $messageId,
-                    'sender'      => $from,
-                    'subject'     => $subject,
-                    'body'        => $body,
-                    'received_at' => $date,
+                if (!$user) {
+                    $newName = ($fromAddresses->count() > 0 && !empty($fromAddresses[0]->personal)) ? $fromAddresses[0]->personal : 'Unknown Sender';
+                    
+                    $user = \App\Models\User::create([
+                        'name'     => $newName,
+                        'email'    => $from,
+                        'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(10)),
+                        'status'   => '1',
+                    ]);
+
+                    if ($user) {
+                        \App\Models\UserRole::create([
+                            'user_id' => $user->id,
+                            'role_id' => \App\Models\User::IS_BUYER,
+                        ]);
+                    }
+                }
+
+                $userId = $user ? $user->id : null;
+                $name = $user ? $user->name : 'Unknown Sender';
+
+                \App\Models\Ticket::create([
+                    'ticket_number'    => 'TCK-' . strtoupper(\Illuminate\Support\Str::random(6)),
+                    'datetime'         => now(),
+                    'user_id'          => $userId,
+                    'name'             => $name,
+                    'email'            => $from,
+                    'subject'          => $subject,
+                    'body'             => $body,
+                    'ticket_source'    => 'email',
+                    'status'           => 'pending',
+                    'ticket_status'    => 'open',
                 ]);
-                */
 
                 // ---------------------------------------------------------
                 // 3) Delete message (Optional for POP3)
