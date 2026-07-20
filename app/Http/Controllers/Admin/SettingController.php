@@ -144,7 +144,7 @@ class SettingController extends Controller
                 $setting->sidebar_color = $request->sidebar_color;
                 $setting->topbar_color = $request->topbar_color;
                 $setting->primary_color = $request->primary_color;
-            } elseif ($tab === 'email-setting') {
+            } elseif ($tab === 'email-setting' || $tab === 'email-settings') {
                 $setting->mail_mailer = $request->mail_mailer;
                 $setting->mail_host = $request->mail_host;
                 $setting->mail_port = $request->mail_port;
@@ -153,6 +153,13 @@ class SettingController extends Controller
                 $setting->mail_encryption = $request->mail_encryption;
                 $setting->mail_from_address = $request->mail_from_address;
                 $setting->mail_from_name = $request->mail_from_name;
+                
+                $setting->imap_host = $request->imap_host;
+                $setting->imap_protocol = $request->imap_protocol;
+                $setting->imap_port = $request->imap_port;
+                $setting->imap_encryption = $request->imap_encryption;
+                $setting->imap_username = $request->imap_username;
+                $setting->imap_password = $request->imap_password;
             }
 
             $setting->save();

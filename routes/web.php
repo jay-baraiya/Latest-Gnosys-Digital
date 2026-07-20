@@ -156,6 +156,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('orders/user-billing-details', [AdminOrderController::class, 'getUserBillingDetails'])->name('orders.user.billing.details');
 
     /* Tickets */
+    Route::post('tickets/fetch-emails', [TicketController::class, 'fetchEmails'])->name('tickets.fetch_emails');
     Route::resource('tickets', TicketController::class)->names('tickets');
     Route::post('tickets/get-data', [TicketController::class, 'getData'])->name('tickets.getData');
     Route::post('tickets/restore/{id}', [TicketController::class, 'restore'])->name('tickets.restore');

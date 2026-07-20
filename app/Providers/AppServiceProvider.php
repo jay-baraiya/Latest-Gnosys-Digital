@@ -58,15 +58,43 @@ class AppServiceProvider extends ServiceProvider
                 View::share('appSettings', $appSettings);
                 View::share('settings', $appSettings);
 
-                if ($appSettings && $appSettings->mail_host) {
-                    Config::set('mail.default', $appSettings->mail_mailer ?? 'smtp');
-                    Config::set('mail.mailers.smtp.host', $appSettings->mail_host);
-                    Config::set('mail.mailers.smtp.port', $appSettings->mail_port);
-                    Config::set('mail.mailers.smtp.username', $appSettings->mail_username);
-                    Config::set('mail.mailers.smtp.password', $appSettings->mail_password);
-                    Config::set('mail.mailers.smtp.encryption', $appSettings->mail_encryption);
-                    Config::set('mail.from.address', $appSettings->mail_from_address);
-                    Config::set('mail.from.name', $appSettings->mail_from_name);
+                if ($appSettings) {
+                    if ($appSettings->mail_host) {
+                        Config::set('mail.default', $appSettings->mail_mailer ?? 'smtp');
+                        Config::set('mail.mailers.smtp.host', $appSettings->mail_host);
+                        Config::set('mail.mailers.smtp.port', $appSettings->mail_port);
+                        Config::set('mail.mailers.smtp.username', $appSettings->mail_username);
+                        Config::set('mail.mailers.smtp.password', $appSettings->mail_password);
+                        Config::set('mail.mailers.smtp.encryption', $appSettings->mail_encryption);
+                        Config::set('mail.from.address', $appSettings->mail_from_address);
+                        Config::set('mail.from.name', $appSettings->mail_from_name);
+                    }
+
+                    if ($appSettings->imap_host) {
+                        Config::set('imap.accounts.default.host', $appSettings->imap_host);
+                    }
+                    if ($appSettings->imap_protocol) {
+                        Config::set('imap.accounts.default.protocol', $appSettings->imap_protocol);
+                        if (!$appSettings->imap_port) {
+                            $defaultPort = ($appSettings->imap_protocol === 'pop3') ? 995 : 993;
+                            Config::set('imap.accounts.default.port', $defaultPort);
+                        }
+                        if (!$appSettings->imap_encryption) {
+                            Config::set('imap.accounts.default.encryption', 'ssl');
+                        }
+                    }
+                    if ($appSettings->imap_port) {
+                        Config::set('imap.accounts.default.port', $appSettings->imap_port);
+                    }
+                    if ($appSettings->imap_encryption) {
+                        Config::set('imap.accounts.default.encryption', $appSettings->imap_encryption);
+                    }
+                    if ($appSettings->imap_username) {
+                        Config::set('imap.accounts.default.username', $appSettings->imap_username);
+                    }
+                    if ($appSettings->imap_password) {
+                        Config::set('imap.accounts.default.password', $appSettings->imap_password);
+                    }
                 }
             }
         } catch (\Exception $e) {

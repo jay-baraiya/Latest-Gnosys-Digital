@@ -1678,4 +1678,127 @@ class TicketController extends Controller
             return redirect()->back()->with('error', 'Failed to delete Task. Please try again later.');
         }
     }
+
+    public function fetchEmails(Request $request)
+    {
+        $host = config('imap.accounts.default.host');
+        if (empty($host)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'IMAP/POP3 host is not configured. Please configure it in Settings.'
+            ], 400);
+        }
+
+        try {
+            // Connect to the default account defined in config/imap.php (and .env)
+            $client = \Webklex\IMAP\Facades\Client::account('default');
+            $client->connect();
+
+            // POP3 only supports INBOX. For IMAP, you could iterate over folders, but INBOX is standard.
+            $folder = $client->getFolder('INBOX');
+
+            // Fetch messages depending on protocol (POP3 doesn't support 'unseen' flags)
+            $protocol = config('imap.accounts.default.protocol');
+            if ($protocol === 'pop3') {
+                $messages = $folder->query()->all()->get();
+            } else {
+                $messages = $folder->query()->unseen()->get();
+            }
+
+            $count = $messages->count();
+            
+            if ($count === 0) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'No emails found to fetch.'
+                ]);
+            }
+
+            $fetchedCount = 0;
+
+            foreach ($messages as $message) {
+                // Safely get email properties
+                $subject = $message->getSubject();
+                
+                // getFrom() returns a Collection of address objects
+                $fromAddresses = $message->getFrom();
+                $from = $fromAddresses->count() > 0 ? $fromAddresses[0]->mail : 'Unknown Sender';
+                
+                // Get body (prefer text, fallback to html)
+                $body = $message->getTextBody();
+                if (empty($body)) {
+                    $body = $message->getHTMLBody();
+                }
+                
+                $messageId = $message->getMessageId();
+                $date = $message->getDate();
+
+                // 1) Log the email data to laravel.log
+                Log::info('--- New Unread Email Fetched via AJAX ---', [
+                    'message_id' => $messageId,
+                    'from'       => $from,
+                    'subject'    => $subject,
+                    'date'       => $date,
+                    'body'       => \Illuminate\Support\Str::limit($body, 1000) 
+                ]);
+
+                // 2) Create Ticket in Database
+                $user = \App\Models\User::where('email', $from)->first();
+                
+                if (!$user) {
+                    $newName = ($fromAddresses->count() > 0 && !empty($fromAddresses[0]->personal)) ? $fromAddresses[0]->personal : 'Unknown Sender';
+                    
+                    $user = \App\Models\User::create([
+                        'name'     => $newName,
+                        'email'    => $from,
+                        'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(10)),
+                        'status'   => '1',
+                    ]);
+
+                    if ($user) {
+                        \App\Models\UserRole::create([
+                            'user_id' => $user->id,
+                            'role_id' => \App\Models\User::IS_BUYER,
+                        ]);
+                    }
+                }
+
+                $userId = $user ? $user->id : null;
+                $name = $user ? $user->name : 'Unknown Sender';
+
+                \App\Models\Ticket::create([
+                    'ticket_number'    => 'TCK-' . strtoupper(\Illuminate\Support\Str::random(6)),
+                    'datetime'         => now(),
+                    'user_id'          => $userId,
+                    'name'             => $name,
+                    'email'            => $from,
+                    'subject'          => $subject,
+                    'body'             => $body,
+                    'ticket_source'    => 'email',
+                    'status'           => 'pending',
+                    'ticket_status'    => 'open',
+                ]);
+
+                // 3) Delete message from server
+                $message->delete();
+                $fetchedCount++;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully fetched {$fetchedCount} email(s) and generated tickets."
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('FetchEmails AJAX Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while fetching emails: ' . $e->getMessage()
+            ], 500);
+        } finally {
+            if (function_exists('imap_errors')) {
+                imap_errors();
+            }
+        }
+    }
 }

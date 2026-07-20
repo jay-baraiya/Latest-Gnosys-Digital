@@ -8,6 +8,9 @@
 
             <x-slot:actions>
                 <input type="hidden" name="is_deleted" id="is_deleted" value="0">
+                <a href="javascript:void(0);" class="btn btn-icon btn-outline-light shadow text-primary" data-bs-toggle="tooltip"
+                    data-bs-placement="top" aria-label="Fetch Emails" data-bs-original-title="Fetch Emails" id="fetch-emails-btn"><i
+                        class="ti ti-mail"></i></a>
                 <a href="javascript:void(0);" class="btn btn-icon btn-outline-light shadow" data-bs-toggle="tooltip"
                     data-bs-placement="top" aria-label="Refresh" data-bs-original-title="Refresh" id="refresh-table"><i
                         class="ti ti-refresh"></i></a>
@@ -566,6 +569,57 @@
                                 errorMessage = xhr.responseJSON.message;
                             }
                             Swal.fire('Error', errorMessage, 'error');
+                        }
+                    });
+                });
+
+                $(document).on('click', '#fetch-emails-btn', function (e) {
+                    e.preventDefault();
+
+                    Swal.fire({
+                        title: 'Fetching Emails',
+                        text: 'Connecting to mail server, fetching emails and generating tickets. Please wait...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: '{{ route('admin.tickets.fetch_emails') }}',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success',
+                                    text: response.message,
+                                    confirmButtonClass: 'btn btn-primary'
+                                });
+                                reloadDataTabale();
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.message,
+                                    confirmButtonClass: 'btn btn-primary'
+                                });
+                            }
+                        },
+                        error: function (xhr) {
+                            let errorMessage = 'Failed to fetch emails!';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            }
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: errorMessage,
+                                confirmButtonClass: 'btn btn-primary'
+                            });
                         }
                     });
                 });

@@ -746,6 +746,58 @@
                                             value="{{ old('mail_from_name', $settings->mail_from_name ?? '') }}">
                                     </div>
                                 </div>
+                                
+                                <div class="col-md-12 mt-3 mb-2">
+                                    <h6 class="mb-1 text-primary">IMAP Settings</h6>
+                                    <hr class="mt-1 mb-3">
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">IMAP Host</label>
+                                        <input type="text" class="form-control" name="imap_host"
+                                            value="{{ old('imap_host', $settings->imap_host ?? '') }}" placeholder="e.g. mail.gnosysdigital.com">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">IMAP Protocol</label>
+                                        <select class="form-select addSelect2" name="imap_protocol">
+                                            <option value="imap" {{ (old('imap_protocol', $settings->imap_protocol ?? 'imap') == 'imap') ? 'selected' : '' }}>IMAP</option>
+                                            <option value="pop3" {{ (old('imap_protocol', $settings->imap_protocol ?? '') == 'pop3') ? 'selected' : '' }}>POP3</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">IMAP Port</label>
+                                        <input type="number" class="form-control" name="imap_port"
+                                            value="{{ old('imap_port', $settings->imap_port ?? '') }}" placeholder="e.g. 993 or 995">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">IMAP Encryption</label>
+                                        <select class="form-select addSelect2" name="imap_encryption">
+                                            <option value="ssl" {{ (old('imap_encryption', $settings->imap_encryption ?? 'ssl') == 'ssl') ? 'selected' : '' }}>SSL</option>
+                                            <option value="tls" {{ (old('imap_encryption', $settings->imap_encryption ?? '') == 'tls') ? 'selected' : '' }}>TLS</option>
+                                            <option value="false" {{ (old('imap_encryption', $settings->imap_encryption ?? '') == 'false') ? 'selected' : '' }}>None</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">IMAP Username</label>
+                                        <input type="text" class="form-control" name="imap_username"
+                                            value="{{ old('imap_username', $settings->imap_username ?? '') }}" placeholder="e.g. test-mail@gnosysdigital.com">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">IMAP Password</label>
+                                        <input type="password" class="form-control" name="imap_password"
+                                            value="{{ old('imap_password', $settings->imap_password ?? '') }}" placeholder="Enter IMAP Password">
+                                    </div>
+                                </div>
                             </div>
                             <div class="d-flex align-items-center justify-content-end flex-wrap gap-2">
                                 <button type="submit" class="btn btn-sm btn-primary">Save Changes</button>

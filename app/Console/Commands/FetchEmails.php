@@ -28,7 +28,11 @@ class FetchEmails extends Command
      */
     public function handle()
     {
-        $this->info('Starting to fetch emails...');
+        $host = config('imap.accounts.default.host');
+        if (empty($host)) {
+            $this->warn('IMAP/POP3 host is not configured. Skipping email fetching.');
+            return Command::SUCCESS;
+        }
 
         try {
             // Connect to the default account defined in config/imap.php (and .env)
@@ -38,11 +42,16 @@ class FetchEmails extends Command
             // POP3 only supports INBOX. For IMAP, you could iterate over folders, but INBOX is standard.
             $folder = $client->getFolder('INBOX');
 
-            // Fetch all messages (POP3 doesn't support 'unseen' flags)
-            $messages = $folder->query()->all()->get();
+            // Fetch messages depending on protocol (POP3 doesn't support 'unseen' flags)
+            $protocol = config('imap.accounts.default.protocol');
+            if ($protocol === 'pop3') {
+                $messages = $folder->query()->all()->get();
+            } else {
+                $messages = $folder->query()->unseen()->get();
+            }
 
             $count = $messages->count();
-            $this->info("Found {$count} unread email(s).");
+            $this->info("Found {$count} email(s) to process.");
             
             if ($count === 0) {
                 return Command::SUCCESS;
@@ -120,7 +129,7 @@ class FetchEmails extends Command
                 // 3) Delete message (Optional for POP3)
                 // ---------------------------------------------------------
                 // Uncomment if you want to delete it from the server so it isn't fetched again:
-                // $message->delete();
+                $message->delete();
                 
                 $this->line("Logged email: {$subject} from {$from}");
             }
@@ -132,6 +141,10 @@ class FetchEmails extends Command
             Log::error('FetchEmails Command Error: ' . $e->getMessage());
             
             return Command::FAILURE;
+        } finally {
+            if (function_exists('imap_errors')) {
+                imap_errors();
+            }
         }
 
         return Command::SUCCESS;
