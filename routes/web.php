@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\CommonController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\EmailAccountController;
 use App\Http\Controllers\Admin\DigitalProductController;
 use App\Http\Controllers\Admin\DigitalServiceController;
 use App\Http\Controllers\Admin\NotificationController;
@@ -109,6 +110,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('departments/restore/{id}', [DepartmentController::class, 'restore'])->name('departments.restore');
     Route::post('departments/update-status', [DepartmentController::class, 'updateStatus'])->name('departments.updateStatus');
     Route::post('departments/check-departments', [DepartmentController::class, 'checkDepartment'])->name('validate.departments');
+
+    /* email accounts */
+    Route::resource('email-accounts', EmailAccountController::class)->names('email_accounts');
+    Route::post('email-accounts/get-data', [EmailAccountController::class, 'getData'])->name('email_accounts.getData');
+    Route::post('email-accounts/restore/{id}', [EmailAccountController::class, 'restore'])->name('email_accounts.restore');
+    Route::post('email-accounts/update-status', [EmailAccountController::class, 'updateStatus'])->name('email_accounts.updateStatus');
+    Route::post('email-accounts/check-email-accounts', [EmailAccountController::class, 'checkEmailAccount'])->name('validate.email_accounts');
 
     /* permissions */
     Route::resource('permissions', PermissionController::class)->names('permissions');

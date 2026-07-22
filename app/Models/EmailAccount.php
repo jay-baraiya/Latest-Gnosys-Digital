@@ -3,15 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Department extends Model
+class EmailAccount extends Model
 {
     use SoftDeletes;
     protected $guarded = [];
-
-    public function emailAccount()
-    {
-        return $this->belongsTo(EmailAccount::class, 'email_id');
-    }
 }

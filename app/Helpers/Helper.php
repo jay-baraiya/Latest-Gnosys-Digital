@@ -7,6 +7,9 @@ use App\Models\UserRolePermission;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Webklex\IMAP\ClientManager;
+use Webklex\IMAP\Facades\Client;
+use Illuminate\Support\Facades\Facade;
 
 class Helper
 {
@@ -87,5 +90,27 @@ class Helper
         $get_department = Department::select(['id','name'])->where('status',1)->get();
 
         return $get_department;
+    }
+
+    public static function setDynamicImapConfig($emailAccount, $accountName = 'default')
+    {
+        config([
+            "imap.accounts.{$accountName}" => [
+                'host'          => $emailAccount->host,
+                'port'          => $emailAccount->port,
+                'encryption'    => $emailAccount->encryption,
+                'validate_cert' => false,
+                'username'      => $emailAccount->username,
+                'password'      => $emailAccount->password,
+                'protocol'      => $emailAccount->protocol ?? 'imap',
+            ]
+        ]);
+        
+        // Clear cached instances in the manager so the new config takes effect
+        if (app()->bound(ClientManager::class)) {
+            app()->forgetInstance(ClientManager::class);
+            Client::clearResolvedInstance(ClientManager::class);
+            Facade::clearResolvedInstance('webklex.imap');
+        }
     }
 }

@@ -83,7 +83,7 @@
                                     class="{{ request()->routeIs(['admin.categories.*', 'admin.departments.*']) ? 'active subdrop' : '' }}">
                                     <i class="ti ti-category"></i><span>Category Management</span><span class="menu-arrow"></span>
                                 </a>
-                                <ul style="display: {{ request()->routeIs(['admin.categories.*', 'admin.departments.*']) ? 'block' : 'none' }};">
+                                <ul style="display: {{ request()->routeIs(['admin.categories.*', 'admin.departments.*', 'admin.email_accounts.*']) ? 'block' : 'none' }};">
                                     @can('view.categories')
                                         <li>
                                             <a href="{{ route('admin.categories.index') }}"
@@ -95,6 +95,12 @@
                                             <a href="{{ route('admin.departments.index') }}"
                                                 class="{{ request()->routeIs('admin.departments.*') ? 'active' : '' }}">Departments</a>
                                         </li>
+                                    @endcan
+                                    @can('view.email_accounts')
+                                    <li>
+                                        <a href="{{ route('admin.email_accounts.index') }}"
+                                            class="{{ request()->routeIs('admin.email_accounts.*') ? 'active' : '' }}">Email Accounts</a>
+                                    </li>
                                     @endcan
                                 </ul>
                             </li>

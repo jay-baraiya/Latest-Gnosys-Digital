@@ -11,7 +11,7 @@
             <input type="hidden" name="id" id="id" value="{{ isset($department->id) ? encrypt($department->id) : '' }}">
 
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label" for="name">Name <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
@@ -19,6 +19,23 @@
                                 value="{{ old('name', $department->name ?? '') }}">
                         </div>
                         @error('name')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label" for="email_id">Email Account</label>
+                        <select class="form-select addSelect2" name="email_id" id="email_id">
+                            <option value="">Select Email Account</option>
+                            @foreach ($emailAccounts as $account)
+                                <option value="{{ $account->id }}" {{ old('email_id', $department->email_id ?? '') == $account->id ? 'selected' : '' }}>
+                                    {{ $account->name }} ({{ $account->email }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('email_id')
                             <span class="text-danger">{{ $message }}</span>
                         @enderror
                     </div>

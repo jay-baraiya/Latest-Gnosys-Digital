@@ -469,6 +469,47 @@ class PermissionSeeder extends Seeder
                 'description' => 'Restore Tasks',
                 'status' => 1,
             ],
+            // Email Accounts
+            [
+                'id' => 55,
+                'name' => 'Create',
+                'module' => 'Email Accounts',
+                'slug' => 'create.email_accounts',
+                'description' => 'Create Email Accounts',
+                'status' => 1,
+            ],
+            [
+                'id' => 56,
+                'name' => 'View',
+                'module' => 'Email Accounts',
+                'slug' => 'view.email_accounts',
+                'description' => 'View Email Accounts',
+                'status' => 1,
+            ],
+            [
+                'id' => 57,
+                'name' => 'Edit',
+                'module' => 'Email Accounts',
+                'slug' => 'edit.email_accounts',
+                'description' => 'Edit Email Accounts',
+                'status' => 1,
+            ],
+            [
+                'id' => 58,
+                'name' => 'Delete',
+                'module' => 'Email Accounts',
+                'slug' => 'delete.email_accounts',
+                'description' => 'Delete Email Accounts',
+                'status' => 1,
+            ],
+            [
+                'id' => 59,
+                'name' => 'Restore',
+                'module' => 'Email Accounts',
+                'slug' => 'restore.email_accounts',
+                'description' => 'Restore Email Accounts',
+                'status' => 1,
+            ],
         ];
 
         foreach ($permissions as $permission) {

@@ -19,6 +19,20 @@
 
                 <div class="col-md-12">
                     <div class="mb-3">
+                        <label class="form-label" for="email_id">Email Account</label>
+                        <select disabled class="form-select" name="email_id" id="email_id">
+                            <option value="">Select Email Account</option>
+                            @foreach ($emailAccounts as $account)
+                                <option value="{{ $account->id }}" {{ old('email_id', $department->email_id ?? '') == $account->id ? 'selected' : '' }}>
+                                    {{ $account->name }} ({{ $account->email }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
                         <textarea disabled class="form-control" name="description" id="description" rows="3" placeholder="Description">{{ old('description', $department->description ?? '') }}</textarea>
                     </div>

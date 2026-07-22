@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\CustomField;
 use App\Models\CustomFieldType;
 use App\Models\Department;
+use App\Models\EmailAccount;
 use CompileError;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -88,8 +89,15 @@ class DepartmentController extends Controller
         view()->share('action', 'Create');
 
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
+        $emailAccounts = EmailAccount::where('status', 1)
+            ->whereNotIn('id', function($query) {
+                $query->select('email_id')
+                      ->from('departments')
+                      ->whereNotNull('email_id')
+                      ->whereNull('deleted_at');
+            })->get();
 
-        return view('admin.department.form' , compact('customfieldtyeps'));
+        return view('admin.department.form' , compact('customfieldtyeps', 'emailAccounts'));
     }
 
     /**
@@ -99,11 +107,13 @@ class DepartmentController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:departments,name',
+            'email_id' => 'nullable|exists:email_accounts,id',
             'status' => 'required|in:1,0',
         ]);
 
         $department = Department::create([
             'name' => $request->name,
+            'email_id' => $request->email_id,
             'description' => $request->description,
             'status' => $request->status,
         ]);
@@ -129,9 +139,10 @@ class DepartmentController extends Controller
         view()->share('action', 'View');
         $department = Department::findOrFail(decrypt($id));
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
+        $emailAccounts = EmailAccount::where('status', 1)->get();
         $customfields = CustomField::with(['fieldType'])->where('module_type', 'department')->where('recode_id', decrypt($id))->orderBy('sort_order', 'ASC')->get();
 
-        return view('admin.department.show', compact('department','customfieldtyeps','customfields'));
+        return view('admin.department.show', compact('department','customfieldtyeps','customfields', 'emailAccounts'));
     }
 
     /**
@@ -142,9 +153,21 @@ class DepartmentController extends Controller
         view()->share('action', 'Edit');
         $department = Department::findOrFail(decrypt($id));
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
+        $emailAccounts = EmailAccount::where('status', 1)
+            ->where(function ($q) use ($department) {
+                $q->whereNotIn('id', function($query) {
+                    $query->select('email_id')
+                          ->from('departments')
+                          ->whereNotNull('email_id')
+                          ->whereNull('deleted_at');
+                });
+                if ($department->email_id) {
+                    $q->orWhere('id', $department->email_id);
+                }
+            })->get();
         $customfields = CustomField::with(['fieldType'])->where('module_type', 'department')->where('recode_id', decrypt($id))->orderBy('sort_order', 'ASC')->get();
 
-        return view('admin.department.form', compact('department','customfieldtyeps','customfields'));
+        return view('admin.department.form', compact('department','customfieldtyeps','customfields', 'emailAccounts'));
     }
 
     /**
@@ -156,6 +179,7 @@ class DepartmentController extends Controller
         $departmentId = decrypt($id);
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('departments', 'name')->ignore($departmentId)],
+            'email_id' => 'nullable|exists:email_accounts,id',
             'status' => 'required|in:1,0',
         ]);
 
@@ -163,6 +187,7 @@ class DepartmentController extends Controller
 
         $department->update([
             'name' => $request->name,
+            'email_id' => $request->email_id,
             'description' => $request->description,
             'status' => $request->status,
         ]);
