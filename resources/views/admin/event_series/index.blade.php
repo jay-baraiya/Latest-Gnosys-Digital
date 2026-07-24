@@ -7,25 +7,6 @@
             </x-slot:breadcrumbs>
 
             <x-slot:actions>
-                {{-- <div class="dropdown">
-                    <a href="javascript:void(0);" class="dropdown-toggle btn btn-outline-light px-2 shadow"
-                        data-bs-toggle="dropdown"><i class="ti ti-package-export me-2"></i>Export</a>
-                    <div class="dropdown-menu  dropdown-menu-end">
-                        <ul>
-                            <li><a href="javascript:void(0);" class="dropdown-item"><i
-                                        class="ti ti-file-type-pdf me-1"></i>Export as PDF</a></li>
-                            <li><a href="javascript:void(0);" class="dropdown-item"><i
-                                        class="ti ti-file-type-xls me-1"></i>Export as Excel </a></li>
-                        </ul>
-                    </div>
-                </div> --}}
-                <a href="javascript:void(0);" class="btn btn-outline-light shadow buyerRecode" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Deleted Recodes" data-bs-original-title="See Buyer Users" data-buyer-value="0">
-                    See Buyer Users
-                </a>
-                <a href="javascript:void(0);" class="btn btn-outline-light shadow deletedRecode" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Deleted Recodes" data-bs-original-title="Deleted Recodes" data-value="1">
-                    Deleted Recodes
-                </a>
-                <input type="hidden" name="is_deleted" id="is_deleted" value="0">
                 <a href="javascript:void(0);" class="btn btn-icon btn-outline-light shadow" data-bs-toggle="tooltip"
                     data-bs-placement="top" aria-label="Refresh" data-bs-original-title="Refresh"><i
                         class="ti ti-refresh"></i></a>
@@ -41,10 +22,10 @@
                     <span class="input-icon-addon text-dark"><i class="ti ti-search"></i></span>
                     <input type="text" class="form-control" placeholder="Search" id="dataTable-search">
                 </div>
-                @can('create.'.strtolower($moduleName))
-                <a href="{{ route('admin.users.create') }}" class="btn btn-primary"><i
+                @can('create.event_series')
+                <a href="{{ route('admin.event_series.create') }}" class="btn btn-primary"><i
                         class="ti ti-square-rounded-plus-filled me-1"></i>Add
-                    {{ rtrim($moduleName, 's') }}
+                    {{$moduleName }}
                 </a>
                 @endcan
             </x-slot:header>
@@ -55,9 +36,7 @@
                         <tr>
                             <th class="no-sort">#</th>
                             <th>Name</th>
-                            <th>Role</th>
-                            <th>Email</th>
-                            <th>Phone</th>
+                            <th>Slug</th>
                             <th>Status</th>
                             <th class="text-end no-sort">Action</th>
                         </tr>
@@ -79,54 +58,9 @@
 
     </div>
 
-    <!-- Standard modal content -->
-    <div id="walletModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="wallet-modalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="wallet-modalLabel">Wallet History</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body historyData">
-                </div>
-            </div>
-        </div>
-    </div>
-
     @push('scripts')
     <script>
         $(document).ready(function() {
-
-            $(document).on('click', '.showWalletHistory', function (e) {
-                e.preventDefault();
-                $('#walletModal').modal('show');
-
-                var url = $(this).attr('href');
-                var modal = $('#walletModal');
-
-                if (url) {
-                    $.ajax({
-                        url: url,
-                        type: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
-                        beforeSend: function () {
-                            $('.historyData').html('Loading...');
-                        },
-                        success: function (response) {
-                            $('.historyData').html('');
-                            $('.historyData').html(response.html);
-                            modal.modal('show');
-                        },
-                        error: function (xhr) {
-                            $('.historyData').html('<center><p>History not found!</p></center>');
-                            console.log(xhr.responseText);
-                        }
-                    });
-                }
-            });
 
             if ($('#manage-module-list').length > 0) {
                 var table = $('#manage-module-list').DataTable({
@@ -138,12 +72,9 @@
                     "processing": true,
                     "serverSide": true,
                     "ajax": {
-                        "url": "{{ route('admin.users.getData') }}",
+                        "url": "{{ route('admin.event_series.getData') }}",
                         "type": "POST",
-                        data: function(d) {
-                            d.is_deleted = $('#is_deleted').val();
-                            d.is_buyer = $('.buyerRecode').attr('data-buyer-value');
-                        }
+                        data: function(d) {}
                     },
                     "language": {
                         search: ' ',
@@ -162,7 +93,7 @@
                     },
                     drawCallback: function(settings) {
                         var api = this.api();
-                        $('.record-count').text(api.ajax.json().total_users ?? 0);
+                        $('.record-count').text(api.ajax.json().total_records ?? 0);
                     },
                     "columns": [{
                             "data": "DT_RowIndex",
@@ -175,16 +106,8 @@
                             "name": "name"
                         },
                         {
-                            "data": "role",
-                            "name": "role"
-                        },
-                        {
-                            "data": "email",
-                            "name": "email"
-                        },
-                        {
-                            "data": "phone",
-                            "name": "phone"
+                            "data": "slug",
+                            "name": "slug"
                         },
                         {
                             "data": "status",

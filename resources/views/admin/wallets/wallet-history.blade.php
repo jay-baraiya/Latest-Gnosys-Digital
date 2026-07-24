@@ -7,6 +7,7 @@
             <th>Balance Before</th>
             <th>Transfer Amount</th>
             <th>Balance After</th>
+            <th>Notes</th>
             <th>Status</th>
         </tr>
     </thead>
@@ -39,13 +40,17 @@
                     </td>
 
                     <td>
+                        {{ $history->note ?? '-' }}
+                    </td>
+
+                    <td>
                         {{ ucfirst($history->status) }}
                     </td>
                 </tr>
             @endforeach
         @else
             <tr>
-                <td colspan="7" class="text-center">
+                <td colspan="8" class="text-center">
                     No Transaction History Found
                 </td>
             </tr>

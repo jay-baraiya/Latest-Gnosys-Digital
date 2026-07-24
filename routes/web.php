@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WalletController;
+use App\Http\Controllers\Admin\EventSeriesController;
 use App\Http\Controllers\BlogController as ForntBlogController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DigitalProductController as ProductController;
@@ -90,6 +91,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('users/check-phone', [UserController::class, 'checkPhone'])->name('users.check.phone');
     Route::get('users/permission/{id}', [UserController::class, 'createPermission'])->name('users.permission.create');
     Route::post('users/permission/update/{id}', [UserController::class, 'updatePermission'])->name('users.permission.update');
+
+    /* event_series */
+    Route::resource('event-series', EventSeriesController::class)->names('event_series');
+    Route::post('event-series/get-data', [EventSeriesController::class, 'getData'])->name('event_series.getData');
+    Route::post('event-series/restore/{id}', [EventSeriesController::class, 'restore'])->name('event_series.restore');
+    Route::post('event-series/update-status', [EventSeriesController::class, 'updateStatus'])->name('event_series.updateStatus');
+    Route::post('event-series/check-name', [EventSeriesController::class, 'checkName'])->name('event_series.checkName');
+    Route::post('event-series/check-slug', [EventSeriesController::class, 'checkSlug'])->name('event_series.checkSlug');
 
     Route::post('ajax/common/get-countries', [CommonController::class, 'getCountries'])->name('common.getCountries');
     Route::post('ajax/common/get-states', [CommonController::class, 'getStates'])->name('common.getStates');

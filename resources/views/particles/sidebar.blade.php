@@ -1,6 +1,7 @@
-@php
+@php    
     $currentRoute = request()->route()->getName();
 @endphp
+
 
 <div class="sidebar" id="sidebar">
 
@@ -230,6 +231,21 @@
                                     <li>
                                         <a href="{{ route('admin.tasks.index') }}"
                                             class="{{ request()->routeIs('admin.tasks.*') ? 'active' : '' }}">Task</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endcan
+
+                        @can('view.event_series')
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ request()->routeIs('admin.event_series.*') ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-calendar-event"></i><span>Events Management</span><span class="menu-arrow"></span>
+                                </a>
+                                <ul style="display: {{ request()->routeIs('admin.event_series.*') ? 'block' : 'none' }};">
+                                    <li>
+                                        <a href="{{ route('admin.event_series.index') }}"
+                                            class="{{ request()->routeIs('admin.event_series.*') ? 'active' : '' }}">Event Series</a>
                                     </li>
                                 </ul>
                             </li>

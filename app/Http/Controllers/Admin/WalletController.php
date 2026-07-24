@@ -47,21 +47,27 @@ class WalletController extends Controller
      */
     public function index(Request $request)
     {
+        return view('admin.wallets.index');
+    }
+
+    public function create()
+    {
+        view()->share('action', 'Create');
         $buyers = User::with('roles')
                 ->whereNotIn('id', [$this->authUser->id])
                 ->whereHas('roles', function($sq) {
                     $sq->where('role_id', User::IS_BUYER);
                 })
-                ->pluck('name', 'id');
+                ->get();
 
-        return view('admin.wallets.index', compact('buyers'));
+        return view('admin.wallets.form', compact('buyers'));
     }
 
     public function getData(Request $request)
     {
         if ($request->ajax()) {
             $searchValue = $request->input('search.value');
-            $data = Wallet::select(['id','user_id','date','balance','currency','status','is_approved'])
+            $data = Wallet::select(['id','user_id','date','balance','currency','status','is_approved','reject_reason','reapprove_reason','note'])
             ->with(['user:id,name'])
             ->when(!empty($searchValue), function ($query) use ($searchValue) {
                 $query->where(function($q) use ($searchValue) {
@@ -80,6 +86,10 @@ class WalletController extends Controller
                 ->addIndexColumn()
                 ->addColumn('name', function ($row) {
                     $name = $row->user?->name ?? 'Unknown';
+
+                    if (!empty($row->note)) {
+                        return '<span title="' . htmlspecialchars($row->note) . '" data-bs-toggle="tooltip" style="cursor: help;">' . $name . '</span>';
+                    }
 
                     return $name;
                 })
@@ -108,8 +118,8 @@ class WalletController extends Controller
                     return match ($row->is_approved) {
                         0 => '<span class="badge bg-warning">Pending</span>',
                         1 => '<span class="badge bg-success">Approved</span>',
-                        2 => '<span class="badge bg-danger">Rejected</span>',
-                        3 => '<span class="badge bg-success">Reapproved</span>',
+                        2 => '<span class="badge bg-danger show-reason pointer" data-title="Reject Reason" data-reason="'.htmlspecialchars($row->reject_reason ?? '').'" style="cursor:pointer;">Rejected</span>',
+                        3 => '<span class="badge bg-success show-reason pointer" data-title="Reapprove Reason" data-reason="'.htmlspecialchars($row->reapprove_reason ?? '').'" style="cursor:pointer;">Reapproved</span>',
                         default => '<span class="">-</span>',
                     };
                 })
@@ -118,9 +128,6 @@ class WalletController extends Controller
                         'delete' => route('admin.wallets.destroy', encrypt($row->id)),
                         'id' => encrypt($row->id),
                         'history' => route('admin.wallets.getTransactionHistoty', ['id' => encrypt($row->id), 'user_id' => encrypt($row->user_id)]),
-                        'approve' => route('admin.wallets.action', ['id' => encrypt($row->id), 'user_id' => encrypt($row->user_id), 'action' => 'approve']),
-                        'reject' => route('admin.wallets.action', ['id' => encrypt($row->id), 'user_id' => encrypt($row->user_id), 'action' => 'reject']),
-                        'reapprove' => route('admin.wallets.action', ['id' => encrypt($row->id), 'user_id' => encrypt($row->user_id), 'action' => 'reapprove']),
                         'is_approved' => $row->is_approved,
                     ])->render();
                 })
@@ -137,16 +144,26 @@ class WalletController extends Controller
 
         $request->validate([
             'buyer_id' => 'required',
-            'amount'   => 'required|numeric|min:1|max:50000'
+            'amount'   => 'required|numeric|min:1|max:50000',
+            'date'     => 'required',
+            'status'   => 'required',
+            'transaction_id' => 'nullable|string|max:255',
+            'proof'    => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120',
+            'note'     => 'nullable|string'
         ], [
             'buyer_id.required' => 'Please select a buyer.',
             'amount.required'   => 'Please enter wallet amount.',
             'amount.numeric'    => 'Amount must be a valid number.',
             'amount.min'        => 'Minimum add balance amount is $1.',
-            'amount.max'        => 'Maximum add balance amount is $50,000.'
+            'amount.max'        => 'Maximum add balance amount is $50,000.',
+            'date.required'     => 'Please enter date.',
+            'status.required'   => 'Please select status.',
+            'proof.mimes'       => 'The proof must be a file of type: jpeg, png, jpg, pdf.',
+            'proof.max'         => 'The proof must not be greater than 5MB.'
         ]);
 
-        $currentDate = Carbon::now();
+        $currentDate = $request->date ? Carbon::parse($request->date) : Carbon::now();
+        $status = $request->status;
 
         try {
             DB::beginTransaction();
@@ -160,6 +177,21 @@ class WalletController extends Controller
             $wallet->date = $currentDate;
             $wallet->user_id = $request->buyer_id;
             $wallet->balance = $oldBalance + $request->amount;
+            $wallet->status = $status;
+            
+            if ($request->filled('transaction_id')) {
+                $wallet->transaction_id = $request->transaction_id;
+            }
+
+            if ($request->filled('note')) {
+                $wallet->note = $request->note;
+            }
+
+            if ($request->hasFile('proof')) {
+                $proofPath = $request->file('proof')->store('wallets', 'public');
+                $wallet->proof = '/storage/' . $proofPath;
+            }
+
             $wallet->save();
 
             $newBalance = $wallet->balance;
@@ -173,24 +205,20 @@ class WalletController extends Controller
             $walletHistory->transfer_amount = $request->amount;
             $walletHistory->balance_after = $newBalance;
             $walletHistory->status = 'success';
+            if ($request->filled('note')) {
+                $walletHistory->note = $request->note;
+            }
             $walletHistory->save();
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Wallet credit added successfully.',
-                'new_balance' => $newBalance
-            ]);
+            return redirect()->route($this->moduleUrl)->with('success', 'Wallet credit added successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Wallet Add Error: ' . $e->getMessage());
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Something went wrong! Please try again.'
-            ], 500);
+            return redirect()->back()->withInput()->with('error', 'Something went wrong! Please try again.');
         }
     }
 

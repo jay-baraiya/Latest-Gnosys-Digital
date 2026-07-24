@@ -42,6 +42,19 @@
                     </div>
                 </div>
 
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label class="form-label" for="wallet_balance">Wallet Balance</label>
+                        <div class="input-group mb-1">
+                            @php
+                                $walletBalance = \App\Models\Wallet::where('user_id', $user->id ?? 0)->value('balance') ?? 0;
+                            @endphp
+                            <span class="input-group-text bg-light text-dark fw-bold">$</span>
+                            <input disabled type="text" class="form-control fw-bold text-success" name="wallet_balance" id="wallet_balance" value="{{ number_format($walletBalance, 2) }}">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label" for="password">Password @if (!isset($user))

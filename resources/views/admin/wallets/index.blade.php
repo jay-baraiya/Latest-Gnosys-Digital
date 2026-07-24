@@ -36,7 +36,7 @@
                     <input type="text" class="form-control" placeholder="Search" id="dataTable-search">
                 </div>
                 @can('create.' . strtolower($moduleName))
-                    <a href="#" class="btn btn-primary addBalanceInWallet">
+                    <a href="{{ route('admin.wallets.create') }}" class="btn btn-primary">
                         <i class="ti ti-square-rounded-plus-filled me-1"></i>
                         Add Balance
                     </a>
@@ -72,44 +72,6 @@
 
     </div>
 
-    <div id="addBalanceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addBalance-modalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <form id="walletAddBalanceForm">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title" id="addBalance-modalLabel">add Balance</h4>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-lg-12 mb-2">
-                                <label for="buyer_id" class="form-label">Buyers <span class="text-danger">*</span>
-                                </label>
-                                <select name="buyer_id" id="buyer_id" class="form-control">
-                                    <option value="">Select Buyer</option>
-                                    @if (isset($buyers))
-                                        @foreach ($buyers as $key => $buyer)
-                                            <option value="{{ $key }}">{{ $buyer }}</option>
-                                        @endforeach
-                                    @endif
-                                </select>
-                            </div>
-
-                            <div class="col-lg-12">
-                                <label for="amount" class="form-label">Amount <span class="text-danger">*</span></label>
-                                <input type="text" name="amount" class="form-control" id="amount" placeholder="$0.00">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-soft-light" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- Standard modal content -->
     <div id="walletModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="wallet-modalLabel"
@@ -126,18 +88,28 @@
         </div>
     </div>
 
+    <!-- Reason Modal -->
+    <div id="reasonModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="reason-modalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="reason-modalLabel">Reason</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="reasonText" style="white-space: pre-wrap; font-size: 15px; color: #333;"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
         <script>
             $(document).ready(function () {
 
-                $(document).on('click', '.addBalanceInWallet', function () {
-                    let form = $('#walletAddBalanceForm');
-                    form[0].reset();
-                    form.validate().resetForm();
-                    form.find('.is-invalid').removeClass('is-invalid');
-
-                    $('#addBalanceModal').modal('show');
-                });
 
                 $(document).on('click', '.showWalletHistory', function (e) {
                     e.preventDefault();
@@ -254,84 +226,17 @@
                     });
                 }
 
-                $('#walletAddBalanceForm').validate({
-                    rules: {
-                        buyer_id: {
-                            required: true
-                        },
-                        amount: {
-                            required: true,
-                            number: true,
-                            min: 1,
-                            max: 50000
-                        }
-                    },
-                    messages: {
-                        buyer_id: "Please select a buyer.",
-                        amount: {
-                            required: "Please enter wallet amount.",
-                            number: "Amount must be a valid number.",
-                            min: "Minimum amount is $1.",
-                            max: "Maximum amount is $50,000."
-                        }
-                    },
-                    errorElement: 'span',
-                    errorPlacement: function (error, element) {
-                        error.addClass('invalid-feedback text-danger');
-                        element.closest('.col-lg-12').append(error);
-                    },
-                    highlight: function (element) {
-                        $(element).addClass('is-invalid');
-                    },
-                    unhighlight: function (element) {
-                        $(element).removeClass('is-invalid');
-                    },
-                    submitHandler: function (form, event) {
-                        event.preventDefault(); // Stop default form submit
-
-                        let formData = $(form).serialize();
-                        let submitBtn = $(form).find('button[type="submit"]');
-
-                        $.ajax({
-                            url: "{{ route('admin.wallets.store') }}", // Ensure this route is correct
-                            type: "POST",
-                            data: formData,
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Laravel CSRF token
-                            },
-                            beforeSend: function () {
-                                submitBtn.prop('disabled', true).text('Processing...');
-                            },
-                            success: function (response) {
-                                submitBtn.prop('disabled', false).text('Save changes');
-
-                                if (response.success) {
-                                    $('#addBalanceModal').modal('hide');
-                                    showToast(response.message, 'success');
-                                    reloadDataTabale();
-                                }
-                            },
-                            error: function (xhr) {
-                                submitBtn.prop('disabled', false).text('Save changes');
-
-                                if (xhr.status === 422) {
-                                    let errors = xhr.responseJSON.errors;
-                                    let errorMessage = '';
-                                    $.each(errors, function (key, value) {
-                                        errorMessage += value[0] + '\n';
-                                        showToast(errorMessage, 'error');
-                                    });
-                                    reloadDataTabale();
-                                    // alert('Validation Error:\n' + errorMessage);
-                                } else {
-                                    // Handle 500 Server Errors
-                                    showToast('Something went wrong! Please check server logs.', 'error');
-                                    // alert('Something went wrong! Please check server logs.');
-                                }
-                            }
-                        });
-                    }
+                // Show Reason Popup
+                $(document).on('click', '.show-reason', function(e) {
+                    e.preventDefault();
+                    var reason = $(this).attr('data-reason');
+                    var title = $(this).attr('data-title');
+                    
+                    $('#reason-modalLabel').text(title);
+                    $('#reasonText').text(reason ? reason : 'No reason provided.');
+                    $('#reasonModal').modal('show');
                 });
+
             });
         </script>
     @endpush

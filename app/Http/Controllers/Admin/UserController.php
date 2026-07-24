@@ -128,7 +128,7 @@ class UserController extends Controller
             $excludedRoles[] = User::IS_BUYER;
         }
 
-            $data = User::with('roles')
+            $data = User::with('roles', 'balance')
                 ->whereNotIn('id', [$this->authUser->id])
                 ->when(!empty($request->is_deleted), function ($q){
                     $q->onlyTrashed();
@@ -175,6 +175,8 @@ class UserController extends Controller
                     return $row->role?->name ?? '-';
                 })
                 ->addColumn('actions', function ($row) use ($request) {
+                    $walletId = $row->balance?->id;
+                    $historyUrl = $walletId ? route('admin.wallets.getTransactionHistoty', ['id' => encrypt($walletId), 'user_id' => encrypt($row->id)]) : null;
                     return view('admin.components.action-links', [
                         'edit' => route('admin.users.edit', encrypt($row->id)),
                         'show' => route('admin.users.show', encrypt($row->id)),
@@ -183,6 +185,7 @@ class UserController extends Controller
                         'id' => encrypt($row->id),
                         'is_deleted' => $request->is_deleted,
                         'is_permission' => route('admin.users.permission.create', ['id' => encrypt($row->id)]),
+                        'history' => $historyUrl,
                     ])->render();
                 })
                 ->rawColumns(['status', 'role', 'actions','name'])

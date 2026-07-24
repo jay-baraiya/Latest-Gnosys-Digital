@@ -552,6 +552,48 @@ class PermissionSeeder extends Seeder
                 'description' => 'Restore Coupons',
                 'status' => 1,
             ],
+
+            // Event Series
+            [
+                'id' => 65,
+                'name' => 'Create',
+                'module' => 'Event Series',
+                'slug' => 'create.event_series',
+                'description' => 'Create Event Series',
+                'status' => 1,
+            ],
+            [
+                'id' => 66,
+                'name' => 'View',
+                'module' => 'Event Series',
+                'slug' => 'view.event_series',
+                'description' => 'View Event Series',
+                'status' => 1,
+            ],
+            [
+                'id' => 67,
+                'name' => 'Edit',
+                'module' => 'Event Series',
+                'slug' => 'edit.event_series',
+                'description' => 'Edit Event Series',
+                'status' => 1,
+            ],
+            [
+                'id' => 68,
+                'name' => 'Delete',
+                'module' => 'Event Series',
+                'slug' => 'delete.event_series',
+                'description' => 'Delete Event Series',
+                'status' => 1,
+            ],
+            [
+                'id' => 69,
+                'name' => 'Restore',
+                'module' => 'Event Series',
+                'slug' => 'restore.event_series',
+                'description' => 'Restore Event Series',
+                'status' => 1,
+            ],
         ];
 
         foreach ($permissions as $permission) {
