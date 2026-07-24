@@ -127,10 +127,13 @@ class FetchEmails extends Command
             $fromAddresses = $message->getFrom();
             $from = $fromAddresses->count() > 0 ? $fromAddresses[0]->mail : 'Unknown Sender';
             
-            // Get body (prefer text, fallback to html)
-            $body = $message->getTextBody();
+            // Get body (prefer html, fallback to text)
+            $body = $message->getHTMLBody();
             if (empty($body)) {
-                $body = $message->getHTMLBody();
+                $body = $message->getTextBody();
+                if (!empty($body)) {
+                    $body = nl2br(htmlspecialchars($body));
+                }
             }
             
             $messageId = $message->getMessageId();

@@ -11,7 +11,7 @@
             @endif
 
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label" for="name">Product Name <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
@@ -24,7 +24,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label" for="sku">SKU <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
@@ -37,7 +37,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label" for="category_id">Category <span class="text-danger">*</span></label>
                         <select class="form-select select2" name="category_id" id="category_id">
@@ -57,7 +57,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label" for="sub_category_id">Sub Category</label>
                         <select class="form-select select2" name="sub_category_id" id="sub_category_id">
@@ -128,7 +128,7 @@
 
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label mb-0" for="image">Product Image <span class="text-danger">*</span> </label>
                             <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" id="toggleImageMode">
                                 <i class="ti ti-link"></i> <span id="toggleImageText">Use Image URL instead</span>
@@ -201,8 +201,10 @@
                 </div>
 
                 <div class="col-lg-4">
-                    <label class="form-check-label" for="tags">Tags</label>
-                    <input type="text" name="tags" id="tags" class="form-control", value="{{ !empty($digitalproduct->tags) ? $digitalproduct->tags : '' }}" placeholder="Enter tags..." data-choices>
+                    <div class="mb-3">
+                        <label class="form-label" for="tags">Tags</label>
+                        <input type="text" name="tags" id="tags" class="form-control", value="{{ !empty($digitalproduct->tags) ? $digitalproduct->tags : '' }}" placeholder="Enter tags..." data-choices>
+                    </div>
                 </div>
 
 
@@ -299,8 +301,14 @@
                     allowClear: true,
                 });
 
-                $('#category_id').on('change', function() {
-                    let categoryId = $(this).val();
+                var catID = '{{ !empty($digitalproduct->category_id) ? $digitalproduct->category_id : '' }}';
+                var subCatID = '{{ !empty($digitalproduct->sub_category_id) ? $digitalproduct->sub_category_id : '' }}';
+
+                if (catID) {
+                    getSubCategory(catID, subCatID);
+                }
+
+                function getSubCategory(categoryId, subCategoryId = '') {
                     $('#sub_category_id').empty().append('<option value="">Select Sub Category</option>');
                     if (categoryId) {
                         $.ajax({
@@ -312,11 +320,17 @@
                             },
                             success: function(res) {
                                 $.each(res, function(key, value) {
-                                    $('#sub_category_id').append('<option value="'+ value.id +'">'+ value.name +'</option>');
+                                    var selected = (subCategoryId == value.id) ? 'selected' : '';
+                                    $('#sub_category_id').append('<option value="'+ value.id +'" ' + selected + '>'+ value.name +'</option>');
                                 });
                             }
                         });
                     }
+                }
+
+                $('#category_id').on('change', function() {
+                    let categoryId = $(this).val();
+                    getSubCategory(categoryId);
                 });
 
                 new Choices('[data-choices]', {

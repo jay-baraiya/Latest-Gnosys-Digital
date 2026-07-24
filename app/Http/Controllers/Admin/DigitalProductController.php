@@ -130,7 +130,7 @@ class DigitalProductController extends Controller
     {
         view()->share('action', 'Create');
 
-        $categories = Category::active()->where('type', 'product')->get();
+        $categories = Category::active()->where('type', 'product')->whereNull('sub_cat_id')->get();
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
 
         return view('admin.digital-products.form', compact('categories', 'customfieldtyeps'));
@@ -250,7 +250,7 @@ class DigitalProductController extends Controller
     public function show(string $id)
     {
         view()->share('action', 'View');
-        $categories = Category::active()->where('type', 'product')->get();
+        $categories = Category::active()->where('type', 'product')->whereNull('sub_cat_id')->get();
         $digitalproduct = DigitalProduct::findOrFail(decrypt($id));
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
         $customfields = CustomField::with(['fieldType'])->where('module_type', 'product')->where('recode_id', decrypt($id))->get();
@@ -265,7 +265,7 @@ class DigitalProductController extends Controller
     {
         view()->share('action', 'Edit');
 
-        $categories = Category::active()->where('type', 'product')->get();
+        $categories = Category::active()->where('type', 'product')->whereNull('sub_cat_id')->get();
         $digitalproduct = DigitalProduct::findOrFail(decrypt($id));
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
         $customfields = CustomField::with(['fieldType'])->where('module_type', 'product')->where('recode_id', decrypt($id))->get();
