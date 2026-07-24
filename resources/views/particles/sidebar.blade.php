@@ -77,34 +77,50 @@
                             </li>
                         @endcanany
 
-                        @canany(['view.categories', 'view.departments'])
+                        @can('view.categories')
                             <li class="submenu">
                                 <a href="javascript:void(0);"
-                                    class="{{ request()->routeIs(['admin.categories.*', 'admin.departments.*']) ? 'active subdrop' : '' }}">
+                                    class="{{ request()->routeIs(['admin.categories.*']) ? 'active subdrop' : '' }}">
                                     <i class="ti ti-category"></i><span>Category Management</span><span class="menu-arrow"></span>
                                 </a>
-                                <ul style="display: {{ request()->routeIs(['admin.categories.*', 'admin.departments.*', 'admin.email_accounts.*']) ? 'block' : 'none' }};">
-                                    @can('view.categories')
-                                        <li>
-                                            <a href="{{ route('admin.categories.index') }}"
-                                                class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">Categories</a>
-                                        </li>
-                                    @endcan
-                                    @can('view.departments')
-                                        <li>
-                                            <a href="{{ route('admin.departments.index') }}"
-                                                class="{{ request()->routeIs('admin.departments.*') ? 'active' : '' }}">Departments</a>
-                                        </li>
-                                    @endcan
-                                    @can('view.email_accounts')
+                                <ul style="display: {{ request()->routeIs(['admin.categories.*']) ? 'block' : 'none' }};">
+                                    <li>
+                                        <a href="{{ route('admin.categories.index') }}"
+                                            class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">Categories</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endcan
+
+                        @can('view.departments')
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ request()->routeIs('admin.departments.*') ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-building"></i><span>Manage Departments</span><span class="menu-arrow"></span>
+                                </a>
+                                <ul style="display: {{ request()->routeIs('admin.departments.*') ? 'block' : 'none' }};">
+                                    <li>
+                                        <a href="{{ route('admin.departments.index') }}"
+                                            class="{{ request()->routeIs('admin.departments.*') ? 'active' : '' }}">Departments</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endcan
+
+                        @can('view.email_accounts')
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ request()->routeIs('admin.email_accounts.*') ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-mail"></i><span>Manage Email Accounts</span><span class="menu-arrow"></span>
+                                </a>
+                                <ul style="display: {{ request()->routeIs('admin.email_accounts.*') ? 'block' : 'none' }};">
                                     <li>
                                         <a href="{{ route('admin.email_accounts.index') }}"
                                             class="{{ request()->routeIs('admin.email_accounts.*') ? 'active' : '' }}">Email Accounts</a>
                                     </li>
-                                    @endcan
                                 </ul>
                             </li>
-                        @endcanany
+                        @endcan
 
                         @canany(['view.digital.products', 'view.digital.services'])
                             <li class="submenu">
@@ -128,6 +144,21 @@
                                 </ul>
                             </li>
                         @endcanany
+
+                        @can('view.coupons')
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ request()->routeIs('admin.coupons.*') ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-tag"></i><span>Manage Coupons</span><span class="menu-arrow"></span>
+                                </a>
+                                <ul style="display: {{ request()->routeIs('admin.coupons.*') ? 'block' : 'none' }};">
+                                    <li>
+                                        <a href="{{ route('admin.coupons.index') }}"
+                                            class="{{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">Coupons</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endcan
 
                         @can('view.blogs')
                             <li class="submenu">

@@ -2,35 +2,40 @@
 
 use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\PermissionController;
-use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\CountryController;
-use App\Http\Controllers\Admin\StateController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\CommonController;
+use App\Http\Controllers\Admin\CountryController;
+use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
-use App\Http\Controllers\Admin\EmailAccountController;
 use App\Http\Controllers\Admin\DigitalProductController;
 use App\Http\Controllers\Admin\DigitalServiceController;
+use App\Http\Controllers\Admin\EmailAccountController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\StateController;
 use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\TicketController;
-use App\Http\Controllers\ProfileController as UserProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WalletController;
-use App\Http\Controllers\DigitalProductController as ProductController;
-use App\Http\Controllers\DigitalServiceController as ServiceController;
 use App\Http\Controllers\BlogController as ForntBlogController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\DigitalProductController as ProductController;
+use App\Http\Controllers\DigitalServiceController as ServiceController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProfileController as UserProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+Route::get('/phpinfo', function () {
+    return phpinfo();
+});
 
 Route::get('/admin', function () {
     return auth()->check() ? redirect()->route('admin.dashboard') : redirect()->route('admin.login');
@@ -91,6 +96,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('ajax/common/get-cities', [CommonController::class, 'getCities'])->name('common.getCities');
     Route::post('ajax/custom-fields/get-field-type-data', [CommonController::class, 'getFieldTypeData'])->name('custom.fields.getFieldTypeData');
     Route::post('ajax/get-categories', [CommonController::class, 'getCategories'])->name('ajax.categories');
+    Route::post('ajax/get-sub-categories', [CommonController::class, 'getSubCategories'])->name('ajax.subcategories');
+    Route::post('ajax/common/get-services', [CommonController::class, 'getServices'])->name('common.getServices');
 
     Route::get('ajax/tickets/get-order-numbers', [CommonController::class, 'getOrderNumbers'])->name('tickets.get.order_numbers');
     Route::get('ajax/tickets/get-ticket-numbers', [CommonController::class, 'getTicketNumbers'])->name('tickets.get.ticket_numbers');
@@ -136,6 +143,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('digital-products/get-data', [DigitalProductController::class, 'getData'])->name('digital.products.getData');
     Route::post('digital-products/restore/{id}', [DigitalProductController::class, 'restore'])->name('digital.products.restore');
     Route::post('digital-products/update-status', [DigitalProductController::class, 'updateStatus'])->name('digital.products.updateStatus');
+    Route::post('digital-products/check-name', [DigitalProductController::class, 'checkName'])->name('digital.products.check.name');
+    Route::post('digital-products/check-sku', [DigitalProductController::class, 'checkSku'])->name('digital.products.check.sku');
 
     Route::resource('digital-services', DigitalServiceController::class)->names('digital.services');
     Route::post('digital-services/get-data', [DigitalServiceController::class, 'getData'])->name('digital.services.getData');
@@ -143,6 +152,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('digital-services/update-status', [DigitalServiceController::class, 'updateStatus'])->name('digital.services.updateStatus');
     Route::post('digital-services/check-services-name', [DigitalServiceController::class, 'checkServiceName'])->name('digital.services.check.name');
     Route::post('digital-services/check-services-sku', [DigitalServiceController::class, 'checkServiceSku'])->name('digital.services.check.sku');
+
+    Route::resource('coupons', CouponController::class)->names('coupons');
+    Route::post('coupons/get-data', [CouponController::class, 'getData'])->name('coupons.getData');
+    Route::post('coupons/update-status', [CouponController::class, 'updateStatus'])->name('coupons.updateStatus');
+    Route::post('coupons/check-code', [CouponController::class, 'checkCode'])->name('coupons.check.code');
 
     Route::resource('blogs', BlogController::class)->names('blogs');
     Route::post('blogs/get-data', [BlogController::class, 'getData'])->name('blogs.getData');
@@ -212,9 +226,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
 
 });
 
+require __DIR__.'/payment-auth.php';
 
-require __DIR__ . '/payment-auth.php';
+require __DIR__.'/user-auth.php';
 
-require __DIR__ . '/user-auth.php';
-
-require __DIR__ . '/admin-auth.php';
+require __DIR__.'/admin-auth.php';

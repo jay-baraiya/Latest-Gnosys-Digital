@@ -6,20 +6,17 @@ use App\Models\Category;
 use App\Models\CustomField;
 use App\Models\CustomFieldType;
 use App\Models\DigitalService;
-use App\Models\ServiceFeature;
-use App\Models\ServiceVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Yajra\DataTables\Facades\DataTables;
 
 class DigitalServiceController extends Controller
 {
-
     protected $moduleName = 'Digital Services';
 
     protected $moduleUrl = 'admin.digital.services.index';
@@ -52,36 +49,36 @@ class DigitalServiceController extends Controller
             $searchValue = $request->input('search.value');
 
             $data = DigitalService::query()->with(['category'])
-            ->when(!empty($request->is_deleted), function ($q){
-                $q->onlyTrashed();
-            })
-            ->when($request->filled('category_id'), function ($query) use ($request) {
-                $query->whereHas('category', function ($q) use ($request) {
-                    $q->where('id', $request->category_id);
-                });
-            })
-            ->when(!empty($request->input('search.value')), function ($query) use ($request) {
-                $query->where(function($q) use ($request) {
-                    $q->where('name', 'like', "%{$request->input('search.value')}%")
-                    ->orWhere('description', 'like', "%{$request->input('search.value')}%");
-                });
-            })
-            ->orderBy('id', 'DESC');
+                ->when(! empty($request->is_deleted), function ($q) {
+                    $q->onlyTrashed();
+                })
+                ->when($request->filled('category_id'), function ($query) use ($request) {
+                    $query->whereHas('category', function ($q) use ($request) {
+                        $q->where('id', $request->category_id);
+                    });
+                })
+                ->when(! empty($request->input('search.value')), function ($query) use ($request) {
+                    $query->where(function ($q) use ($request) {
+                        $q->where('name', 'like', "%{$request->input('search.value')}%")
+                            ->orWhere('description', 'like', "%{$request->input('search.value')}%");
+                    });
+                })
+                ->orderBy('id', 'DESC');
 
             return DataTables::eloquent($data)
                 ->with('total_digital_services', $data->count())
                 ->addIndexColumn()
                 ->editColumn('status', function ($row) {
                     if ($row->status == 1) {
-                        return '<a href="' . route('admin.digital.services.updateStatus', ['id' => encrypt($row->id), 'status' => 0]) . '" class="badge badge-pill badge-status bg-success" id="statusUpdate">Active</a>';
+                        return '<a href="'.route('admin.digital.services.updateStatus', ['id' => encrypt($row->id), 'status' => 0]).'" class="badge badge-pill badge-status bg-success" id="statusUpdate">Active</a>';
                     } else {
-                        return '<a href="' . route('admin.digital.services.updateStatus', ['id' => encrypt($row->id), 'status' => 1]) . '" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
+                        return '<a href="'.route('admin.digital.services.updateStatus', ['id' => encrypt($row->id), 'status' => 1]).'" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
                     }
                 })
-               ->addColumn('name', function ($row) {
+                ->addColumn('name', function ($row) {
                     $name = $row->name ?? 'Unknown';
 
-                    if (!empty($row->image)) {
+                    if (! empty($row->image)) {
                         $imagePath = filter_var($row->image, FILTER_VALIDATE_URL)
                             ? $row->image
                             : asset($row->image);
@@ -91,9 +88,9 @@ class DigitalServiceController extends Controller
 
                     return '<h6 class="d-flex align-items-center fs-14 fw-medium mb-0">
                                 <a href="'.$imagePath.'" target="blank" class="avatar avatar-rounded me-2">
-                                    <img src="' . $imagePath . '" alt="' . $name . '">
+                                    <img src="'.$imagePath.'" alt="'.$name.'">
                                 </a>
-                                <a href="'.$imagePath.'" class="d-flex flex-column" target="blank">' . $name . '</a>
+                                <a href="'.$imagePath.'" class="d-flex flex-column" target="blank">'.$name.'</a>
                             </h6>';
                 })
                 ->addColumn('sku', function ($row) {
@@ -135,10 +132,10 @@ class DigitalServiceController extends Controller
     {
         view()->share('action', 'Create');
 
-        $categories = Category::active()->get();
+        $categories = Category::active()->where('type', 'service')->get();
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
 
-        return view('admin.digital-services.form', compact('categories','customfieldtyeps'));
+        return view('admin.digital-services.form', compact('categories', 'customfieldtyeps'));
     }
 
     /**
@@ -155,6 +152,7 @@ class DigitalServiceController extends Controller
             'short_description' => 'required',
             'price' => 'required',
             'status' => 'required|in:1,0',
+            'sub_category_id' => 'nullable|exists:categories,id',
         ]);
 
         DB::beginTransaction();
@@ -193,6 +191,7 @@ class DigitalServiceController extends Controller
                 'slug' => Str::slug($request->name),
                 'sku' => $request->sku,
                 'category_id' => $request->category_id,
+                'sub_category_id' => $request->sub_category_id,
                 'description' => $request->description,
                 'short_description' => $request->short_description,
                 'price' => $request->price,
@@ -230,12 +229,12 @@ class DigitalServiceController extends Controller
     {
         view()->share('action', 'View');
 
-        $categories = Category::active()->get();
+        $categories = Category::active()->where('type', 'service')->get();
         $digitalservice = DigitalService::findOrFail(decrypt($id));
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
         $customfields = CustomField::with(['fieldType'])->where('module_type', 'service')->where('recode_id', decrypt($id))->get();
 
-        return view('admin.digital-services.show', compact('digitalservice','categories','customfieldtyeps','customfields'));
+        return view('admin.digital-services.show', compact('digitalservice', 'categories', 'customfieldtyeps', 'customfields'));
     }
 
     /**
@@ -245,13 +244,13 @@ class DigitalServiceController extends Controller
     {
         view()->share('action', 'Edit');
 
-        $categories = Category::active()->get();
-        $digitalservice = DigitalService::with(['variants','serviceFeatures:id,service_id,name'])->findOrFail(decrypt($id));
+        $categories = Category::active()->where('type', 'service')->get();
+        $digitalservice = DigitalService::with(['variants', 'serviceFeatures:id,service_id,name'])->findOrFail(decrypt($id));
 
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
         $customfields = CustomField::with(['fieldType'])->where('module_type', 'service')->where('recode_id', decrypt($id))->get();
 
-        return view('admin.digital-services.form', compact('digitalservice','categories','customfieldtyeps','customfields'));
+        return view('admin.digital-services.form', compact('digitalservice', 'categories', 'customfieldtyeps', 'customfields'));
     }
 
     /**
@@ -261,7 +260,7 @@ class DigitalServiceController extends Controller
     {
 
         $validatedData = $request->validate([
-                'name' => [
+            'name' => [
                 'required',
                 'string',
                 'max:255',
@@ -271,11 +270,12 @@ class DigitalServiceController extends Controller
                 'required',
                 Rule::unique('digital_services', 'sku')->ignore(decrypt($id)),
             ],
-            'category_id'       => 'required',
-            'description'       => 'required',
+            'category_id' => 'required',
+            'description' => 'required',
             'short_description' => 'required',
-            'price'             => 'required',
-            'status'            => 'required|in:1,0',
+            'price' => 'required',
+            'status' => 'required|in:1,0',
+            'sub_category_id' => 'nullable|exists:categories,id',
         ]);
 
         DB::beginTransaction();
@@ -286,9 +286,9 @@ class DigitalServiceController extends Controller
             $imagePath = $digitalservice->image;
 
             if ($request->remove_existing_image == '1') {
-                if ($digitalservice->image && !filter_var($digitalservice->image, FILTER_VALIDATE_URL)) {
+                if ($digitalservice->image && ! filter_var($digitalservice->image, FILTER_VALIDATE_URL)) {
                     $pathToDelete = str_replace('/storage/', '', $digitalservice->image);
-                    if(Storage::disk('public')->exists($pathToDelete)) {
+                    if (Storage::disk('public')->exists($pathToDelete)) {
                         Storage::disk('public')->delete($pathToDelete);
                     }
                 }
@@ -296,9 +296,9 @@ class DigitalServiceController extends Controller
             }
 
             if ($request->hasFile('image')) {
-                if ($digitalservice->image && !filter_var($digitalservice->image, FILTER_VALIDATE_URL)) {
+                if ($digitalservice->image && ! filter_var($digitalservice->image, FILTER_VALIDATE_URL)) {
                     $pathToDelete = str_replace('/storage/', '', $digitalservice->image);
-                    if(Storage::disk('public')->exists($pathToDelete)) {
+                    if (Storage::disk('public')->exists($pathToDelete)) {
                         Storage::disk('public')->delete($pathToDelete);
                     }
                 }
@@ -321,20 +321,21 @@ class DigitalServiceController extends Controller
             }
 
             $digitalservice->update([
-                'name'              => $request->name,
-                'slug'              => Str::slug($request->name),
-                'sku'               => $request->sku,
-                'category_id'       => $request->category_id,
-                'description'       => $request->description,
+                'name' => $request->name,
+                'slug' => Str::slug($request->name),
+                'sku' => $request->sku,
+                'category_id' => $request->category_id,
+                'sub_category_id' => $request->sub_category_id,
+                'description' => $request->description,
                 'short_description' => $request->short_description,
-                'price'             => $request->price,
-                'price_for_sale'    => $request->price_for_sale,
-                'on_sale'           => $request->on_sale ? 1 : 0,
-                'badge'             => $request->badge,
-                'image'             => $imagePath,
-                'tags'              => $request->tags,
-                'sort_order'        => $request->sort_order,
-                'status'            => $request->status ? 1 : 0,
+                'price' => $request->price,
+                'price_for_sale' => $request->price_for_sale,
+                'on_sale' => $request->on_sale ? 1 : 0,
+                'badge' => $request->badge,
+                'image' => $imagePath,
+                'tags' => $request->tags,
+                'sort_order' => $request->sort_order,
+                'status' => $request->status ? 1 : 0,
             ]);
 
             $this->storeAllMultipleData($request, $digitalservice);
@@ -347,8 +348,8 @@ class DigitalServiceController extends Controller
             DB::rollBack();
             Log::error('Digital service Update Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'request' => $request->except(['image']),
             ]);
 
@@ -366,7 +367,7 @@ class DigitalServiceController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $digitalservice->status == 1 ? 'Digital service activated successfully.' : 'Digital service deactivated successfully.'
+                'message' => $digitalservice->status == 1 ? 'Digital service activated successfully.' : 'Digital service deactivated successfully.',
             ]);
         } catch (\Exception $e) {
             Log::error('Digital service Status Update Error', [
@@ -378,7 +379,7 @@ class DigitalServiceController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -393,9 +394,10 @@ class DigitalServiceController extends Controller
 
             if ($digitalservice->trashed()) {
                 $digitalservice->forceDelete();
+
                 return response()->json([
                     'success' => true,
-                    'message' => 'Service and associated files were permanently deleted.'
+                    'message' => 'Service and associated files were permanently deleted.',
                 ]);
             }
 
@@ -405,18 +407,18 @@ class DigitalServiceController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Digital service deleted successfully.'
+                'message' => 'Digital service deleted successfully.',
             ]);
         } catch (\Exception $e) {
             Log::error('Digital service Destroy Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -430,19 +432,19 @@ class DigitalServiceController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Digital service restored successfully.'
+                'message' => 'Digital service restored successfully.',
             ]);
 
         } catch (\Exception $e) {
             Log::error('Digital Service Restore Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -477,7 +479,8 @@ class DigitalServiceController extends Controller
         return response()->json(true);
     }
 
-    public function storeAllMultipleData($request, $digitalservice) {
+    public function storeAllMultipleData($request, $digitalservice)
+    {
         $customFieldIds = [];
         if ($request->has('custom_field') && $digitalservice->id) {
             $customFieldData = $request->input('custom_field', []);

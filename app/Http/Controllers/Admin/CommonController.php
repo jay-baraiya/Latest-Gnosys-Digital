@@ -7,6 +7,7 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\CustomField;
 use App\Models\CustomFieldType;
+use App\Models\DigitalService;
 use App\Models\Order;
 use App\Models\ServiceFeature;
 use App\Models\ServiceVariant;
@@ -31,9 +32,10 @@ class CommonController extends Controller
             ->map(function ($country) {
                 return [
                     'id' => $country->id,
-                    'text' => $country->name
+                    'text' => $country->name,
                 ];
             });
+
         return response()->json($countries);
     }
 
@@ -46,9 +48,10 @@ class CommonController extends Controller
             ->map(function ($state) {
                 return [
                     'id' => $state->id,
-                    'text' => $state->name
+                    'text' => $state->name,
                 ];
             });
+
         return response()->json($states);
     }
 
@@ -61,23 +64,25 @@ class CommonController extends Controller
             ->map(function ($city) {
                 return [
                     'id' => $city->id,
-                    'text' => $city->name
+                    'text' => $city->name,
                 ];
             });
+
         return response()->json($cities);
     }
 
-    public function getFieldTypeData(Request $request) {
+    public function getFieldTypeData(Request $request)
+    {
         $request->validate([
-            'type_id' => 'required|exists:custom_field_types,id'
+            'type_id' => 'required|exists:custom_field_types,id',
         ]);
 
         $fieldType = CustomFieldType::findOrFail($request->type_id);
         $customfields = CustomField::find($request->field_id);
 
         $fieldTypeParams = json_decode($fieldType->params, true) ?? [];
-        $options = !empty($customfields->options) ? json_decode($customfields->options, true) : [];
-        $params = !empty($customfields->params) ? json_decode($customfields->params, true) : [];
+        $options = ! empty($customfields->options) ? json_decode($customfields->options, true) : [];
+        $params = ! empty($customfields->params) ? json_decode($customfields->params, true) : [];
         $disabled = $request->is_disabled ?? '';
 
         $html = view('admin.custom-field.type_setting', [
@@ -86,27 +91,27 @@ class CommonController extends Controller
             'options' => $options,
             'params' => $params,
             'index' => $request->index,
-            'disabled' => $disabled
+            'disabled' => $disabled,
         ])->render();
 
         return response()->json([
             'success' => true,
-            'html' => $html
+            'html' => $html,
         ]);
     }
 
     public static function storeCustomFields(Request $request)
     {
         $customFieldData = $request->input('custom_field');
-       
-        if (!is_array($customFieldData) || !isset($customFieldData['fields']) || !is_array($customFieldData['fields'])) {
+
+        if (! is_array($customFieldData) || ! isset($customFieldData['fields']) || ! is_array($customFieldData['fields'])) {
             return [];
         }
 
         $request->validate([
             'custom_field.fields.*.name' => 'nullable|string|max:255|distinct',
             'custom_field.fields.*.custom_field_type_id' => 'nullable|exists:custom_field_types,id',
-        ],[
+        ], [
             'custom_field.fields.*.name.required' => 'The custom field name is required.',
             'custom_field.fields.*.name.max' => 'The custom field name may not be greater than 255 characters.',
             'custom_field.fields.*.name.distinct' => 'Duplicate custom field names are not allowed.',
@@ -115,14 +120,14 @@ class CommonController extends Controller
             'custom_field.fields.*.custom_field_type_id.exists' => 'The selected field type is invalid.',
         ]);
 
-        $module_type  = !empty($customFieldData['module_type']) ? $customFieldData['module_type'] : 'service';
-        $field_id  = !empty($customFieldData['field_id']) ? $customFieldData['field_id'] : [];
-        $recode_id  = !empty($customFieldData['recode_id']) ? $customFieldData['recode_id'] : null;
-        $fields  = $customFieldData['fields'];
-        $params  = $customFieldData['params'] ?? [];
+        $module_type = ! empty($customFieldData['module_type']) ? $customFieldData['module_type'] : 'service';
+        $field_id = ! empty($customFieldData['field_id']) ? $customFieldData['field_id'] : [];
+        $recode_id = ! empty($customFieldData['recode_id']) ? $customFieldData['recode_id'] : null;
+        $fields = $customFieldData['fields'];
+        $params = $customFieldData['params'] ?? [];
         $options = $customFieldData['options'] ?? [];
 
-        $all_field_ids = !empty($customFieldData['all_field_ids']) ? json_decode($customFieldData['all_field_ids'], true) : [];
+        $all_field_ids = ! empty($customFieldData['all_field_ids']) ? json_decode($customFieldData['all_field_ids'], true) : [];
 
         $diff_id = array_values(
             array_diff(
@@ -143,7 +148,7 @@ class CommonController extends Controller
 
         try {
 
-            if (!empty($diff_id)) {
+            if (! empty($diff_id)) {
                 CustomField::query()->whereIn('id', $diff_id)->delete();
             }
 
@@ -158,23 +163,23 @@ class CommonController extends Controller
                 //     throw new Exception("A custom field with the name '{$field['name']}' already exists.");
                 // }
 
-                $fieldParams  = isset($params[$index]) ? $params[$index] : [];
+                $fieldParams = isset($params[$index]) ? $params[$index] : [];
                 $fieldOptions = isset($options[$index]) ? $options[$index] : [];
 
                 $customField = CustomField::updateOrCreate([
                     'id' => isset($field_id[$index]) ? $field_id[$index] : null,
-                    'recode_id' => $recode_id
-                ],[
-                    'department_id'        => !empty($field['department_id']) ? $field['department_id'] : null,
-                    'module_type'          => $module_type,
-                    'name'                 => $field['name'],
-                    'sort_order'           => $field['sort_order'],
-                    'slug'                 => $slug,
+                    'recode_id' => $recode_id,
+                ], [
+                    'department_id' => ! empty($field['department_id']) ? $field['department_id'] : null,
+                    'module_type' => $module_type,
+                    'name' => $field['name'],
+                    'sort_order' => $field['sort_order'],
+                    'slug' => $slug,
                     'custom_field_type_id' => $field['custom_field_type_id'],
-                    'status'               => $request->input('status', 1),
-                    'options'              => !empty($fieldOptions) ? json_encode($fieldOptions) : '',
-                    'params'               => !empty($fieldParams) ? json_encode($fieldParams) : '',
-                    'recode_id' => $recode_id
+                    'status' => $request->input('status', 1),
+                    'options' => ! empty($fieldOptions) ? json_encode($fieldOptions) : '',
+                    'params' => ! empty($fieldParams) ? json_encode($fieldParams) : '',
+                    'recode_id' => $recode_id,
                 ]);
 
                 $insertedIds[] = $customField->id;
@@ -189,8 +194,8 @@ class CommonController extends Controller
 
             Log::error('storeCustomFields Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             throw $e;
@@ -211,15 +216,24 @@ class CommonController extends Controller
         return response()->json($categories);
     }
 
+    public function getSubCategories(Request $request)
+    {
+        $categoryId = $request->input('category_id');
+        $query = Category::where('status', 1)->where('sub_cat_id', $categoryId);
+        
+        $subcategories = $query->select('id', 'name')->get();
+        return response()->json($subcategories);
+    }
+
     public static function storeServiceVariants(Request $request)
     {
         $variantData = $request->input('variant');
 
-        if (!is_array($variantData) || !isset($variantData)) {
+        if (! is_array($variantData) || ! isset($variantData)) {
             return [];
         }
 
-        $service_id = !empty($variantData['service_id']) ? $variantData['service_id'] : null;
+        $service_id = ! empty($variantData['service_id']) ? $variantData['service_id'] : null;
 
         $insertedIds = [];
 
@@ -229,7 +243,7 @@ class CommonController extends Controller
             unset($variantData['service_id']);
             foreach ($variantData as $key => $variant) {
 
-                if (empty($variant['name']) && empty($variant['price']) && empty($variant['description']) && !empty($variant['variant_id'])) {
+                if (empty($variant['name']) && empty($variant['price']) && empty($variant['description']) && ! empty($variant['variant_id'])) {
                     ServiceVariant::query()->where('id', $variant['variant_id'])->where('service_id', $service_id)->delete();
                 }
 
@@ -237,20 +251,20 @@ class CommonController extends Controller
                     continue;
                 }
 
-                $features = ((is_array($variant['features']) && !empty($variant['features'])) ? json_encode($variant['features']) : null );
+                $features = ((is_array($variant['features']) && ! empty($variant['features'])) ? json_encode($variant['features']) : null);
 
                 $varinatid = ServiceVariant::updateOrCreate([
-                    'id' => !empty($variant['variant_id']) ? $variant['variant_id'] : null,
-                    'service_id' => $service_id
-                ],[
+                    'id' => ! empty($variant['variant_id']) ? $variant['variant_id'] : null,
+                    'service_id' => $service_id,
+                ], [
                     'name' => $variant['name'],
                     'price' => $variant['price'],
                     'description' => $variant['description'],
                     'service_id' => $service_id,
-                    'features' => $features
+                    'features' => $features,
                 ]);
 
-                if($varinatid->id) {
+                if ($varinatid->id) {
                     $insertedIds[] = $varinatid->id;
                 }
             }
@@ -273,11 +287,11 @@ class CommonController extends Controller
     public static function storeServiceFeatures(Request $request)
     {
         $featureData = $request->input('features');
-        if (!is_array($featureData) || !isset($featureData)) {
+        if (! is_array($featureData) || ! isset($featureData)) {
             return [];
         }
 
-        $service_id = !empty($featureData['service_id']) ? $featureData['service_id'] : null;
+        $service_id = ! empty($featureData['service_id']) ? $featureData['service_id'] : null;
 
         $insertedIds = [];
 
@@ -287,7 +301,7 @@ class CommonController extends Controller
             unset($featureData['service_id']);
             foreach ($featureData as $key => $feature) {
 
-                if (empty($feature['name']) && !empty($feature['feature_id']) && !empty($service_id)) {
+                if (empty($feature['name']) && ! empty($feature['feature_id']) && ! empty($service_id)) {
                     ServiceFeature::query()->where('id', $feature['feature_id'])->where('service_id', $service_id)->delete();
                 }
 
@@ -297,13 +311,13 @@ class CommonController extends Controller
 
                 $feature = ServiceFeature::updateOrCreate([
                     'id' => isset($feature['feature_id']) ? $feature['feature_id'] : null,
-                    'service_id' => $service_id
-                ],[
+                    'service_id' => $service_id,
+                ], [
                     'name' => $feature['name'],
-                    'service_id' => $service_id
+                    'service_id' => $service_id,
                 ]);
 
-                if($feature->id) {
+                if ($feature->id) {
                     $insertedIds[] = $feature->id;
                 }
             }
@@ -323,7 +337,8 @@ class CommonController extends Controller
         }
     }
 
-    public static function updateUserData() {
+    public static function updateUserData()
+    {
 
         if (auth()->check()) {
             try {
@@ -336,8 +351,8 @@ class CommonController extends Controller
                 // $address = Address::whereNull('user_id')
                 //         ->where('user_email', $user->email)
                 //         ->update(['user_id' => $user->id]);
-            } catch (\Throwable $e) {
-                Log::error('updateUserData() error -> '. $e->getMessage());
+            } catch (Throwable $e) {
+                Log::error('updateUserData() error -> '.$e->getMessage());
             }
         }
     }
@@ -348,20 +363,20 @@ class CommonController extends Controller
 
         $query = Order::query();
 
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->where('order_number', 'LIKE', "%{$search}%");
         }
 
         $orders = $query->select('order_number')
-                        ->whereNotNull('order_number')
-                        ->distinct()
-                        ->get();
+            ->whereNotNull('order_number')
+            ->distinct()
+            ->get();
 
         $formattedData = [];
         foreach ($orders as $order) {
             $formattedData[] = [
                 'id' => $order->order_number,
-                'text' => $order->order_number
+                'text' => $order->order_number,
             ];
         }
 
@@ -374,20 +389,20 @@ class CommonController extends Controller
 
         $query = Ticket::query();
 
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->where('ticket_number', 'LIKE', "%{$search}%");
         }
 
         $tickets = $query->select('ticket_number')
-                         ->whereNotNull('ticket_number')
-                         ->distinct()
-                         ->get();
+            ->whereNotNull('ticket_number')
+            ->distinct()
+            ->get();
 
         $formattedData = [];
         foreach ($tickets as $ticket) {
             $formattedData[] = [
                 'id' => $ticket->ticket_number,
-                'text' => $ticket->ticket_number
+                'text' => $ticket->ticket_number,
             ];
         }
 
@@ -401,15 +416,15 @@ class CommonController extends Controller
         $developersQuery = User::query()
             ->with(['roles', 'designation'])
             ->where('status', 1)
-            ->whereHas('roles', function($sq) {
+            ->whereHas('roles', function ($sq) {
                 $sq->whereIn('role_id', [User::IS_DEVELOPER])
-                   ->whereNotIn('role_id', [User::IS_ADMIN]);
+                    ->whereNotIn('role_id', [User::IS_ADMIN]);
             });
 
-        if (!empty($search)) {
-            $developersQuery->where(function($query) use ($search) {
-                $query->where('name', 'LIKE', '%' . $search . '%')
-                      ->orWhere('email', 'LIKE', '%' . $search . '%');
+        if (! empty($search)) {
+            $developersQuery->where(function ($query) use ($search) {
+                $query->where('name', 'LIKE', '%'.$search.'%')
+                    ->orWhere('email', 'LIKE', '%'.$search.'%');
             });
         }
 
@@ -418,14 +433,14 @@ class CommonController extends Controller
         $formattedData = [];
         foreach ($developers as $developer) {
             $formattedData[] = [
-                'id'   => $developer->id,
-                'name' => $developer->name . ($developer->designation ? ' - ' . $developer->designation->name : '')
+                'id' => $developer->id,
+                'name' => $developer->name.($developer->designation ? ' - '.$developer->designation->name : ''),
             ];
         }
 
         return response()->json([
-            'items'       => $formattedData,
-            'total_count' => count($formattedData)
+            'items' => $formattedData,
+            'total_count' => count($formattedData),
         ]);
     }
 
@@ -436,15 +451,15 @@ class CommonController extends Controller
         $usersQuery = User::query()
             ->with(['roles'])
             ->where('status', 1)
-            ->whereHas('roles', function($sq) {
+            ->whereHas('roles', function ($sq) {
                 $sq->whereNotIn('role_id', [User::IS_ADMIN])
-                   ->whereIn('role_id', [User::IS_BUYER]);
+                    ->whereIn('role_id', [User::IS_BUYER]);
             });
 
-        if (!empty($search)) {
-            $usersQuery->where(function($query) use ($search) {
-                $query->where('name', 'LIKE', '%' . $search . '%')
-                      ->orWhere('email', 'LIKE', '%' . $search . '%');
+        if (! empty($search)) {
+            $usersQuery->where(function ($query) use ($search) {
+                $query->where('name', 'LIKE', '%'.$search.'%')
+                    ->orWhere('email', 'LIKE', '%'.$search.'%');
             });
         }
 
@@ -453,14 +468,37 @@ class CommonController extends Controller
         $formattedData = [];
         foreach ($buyers as $buyer) {
             $formattedData[] = [
-                'id'   => $buyer->id,
-                'name' => $buyer->name . ' - ' . $buyer->email
+                'id' => $buyer->id,
+                'name' => $buyer->name.' - '.$buyer->email,
             ];
         }
 
         return response()->json([
-            'items'       => $formattedData,
-            'total_count' => count($formattedData)
+            'items' => $formattedData,
+            'total_count' => count($formattedData),
         ]);
+    }
+
+    public function getServices(Request $request)
+    {
+        $search = $request->input('q');
+
+        $query = DigitalService::query();
+
+        if (! empty($search)) {
+            $query->where('name', 'LIKE', "%{$search}%");
+        }
+
+        $services = $query->select(['id', 'name'])->where('status', 1)->get();
+
+        $formattedData = [];
+        foreach ($services as $service) {
+            $formattedData[] = [
+                'id' => $service->id,
+                'text' => $service->name,
+            ];
+        }
+
+        return response()->json(['results' => $formattedData]);
     }
 }

@@ -9,15 +9,14 @@ use App\Models\CustomFieldType;
 use App\Models\DigitalProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
 class DigitalProductController extends Controller
 {
-
     protected $moduleName = 'Digital Products';
 
     protected $moduleUrl = 'admin.digital.products.index';
@@ -48,36 +47,36 @@ class DigitalProductController extends Controller
         if ($request->ajax()) {
 
             $data = DigitalProduct::query()->with(['category'])
-            ->when(!empty($request->is_deleted), function ($q){
-                $q->onlyTrashed();
-            })
-            ->when($request->filled('category_id'), function ($query) use ($request) {
-                $query->whereHas('category', function ($q) use ($request) {
-                    $q->where('id', $request->category_id);
-                });
-            })
-            ->when(!empty($request->input('search.value')), function ($query) use ($request) {
-                $query->where(function($q) use ($request) {
-                    $q->where('name', 'like', "%{$request->input('search.value')}%")
-                    ->orWhere('description', 'like', "%{$request->input('search.value')}%");
-                });
-            })
-            ->orderBy('id', 'DESC');
+                ->when(! empty($request->is_deleted), function ($q) {
+                    $q->onlyTrashed();
+                })
+                ->when($request->filled('category_id'), function ($query) use ($request) {
+                    $query->whereHas('category', function ($q) use ($request) {
+                        $q->where('id', $request->category_id);
+                    });
+                })
+                ->when(! empty($request->input('search.value')), function ($query) use ($request) {
+                    $query->where(function ($q) use ($request) {
+                        $q->where('name', 'like', "%{$request->input('search.value')}%")
+                            ->orWhere('description', 'like', "%{$request->input('search.value')}%");
+                    });
+                })
+                ->orderBy('id', 'DESC');
 
             return DataTables::eloquent($data)
                 ->with('total_digital_products', $data->count())
                 ->addIndexColumn()
                 ->editColumn('status', function ($row) {
                     if ($row->status == 1) {
-                        return '<a href="' . route('admin.digital.products.updateStatus', ['id' => encrypt($row->id), 'status' => 0]) . '" class="badge badge-pill badge-status bg-success" id="statusUpdate">Active</a>';
+                        return '<a href="'.route('admin.digital.products.updateStatus', ['id' => encrypt($row->id), 'status' => 0]).'" class="badge badge-pill badge-status bg-success" id="statusUpdate">Active</a>';
                     } else {
-                        return '<a href="' . route('admin.digital.products.updateStatus', ['id' => encrypt($row->id), 'status' => 1]) . '" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
+                        return '<a href="'.route('admin.digital.products.updateStatus', ['id' => encrypt($row->id), 'status' => 1]).'" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
                     }
                 })
-               ->addColumn('name', function ($row) {
+                ->addColumn('name', function ($row) {
                     $name = $row->name ?? 'Unknown';
 
-                    if (!empty($row->image)) {
+                    if (! empty($row->image)) {
                         $imagePath = filter_var($row->image, FILTER_VALIDATE_URL)
                             ? $row->image
                             : asset($row->image);
@@ -86,10 +85,10 @@ class DigitalProductController extends Controller
                     }
 
                     return '<h6 class="d-flex align-items-center fs-14 fw-medium mb-0">
-                                <a href="' . $imagePath . '" target="blank" class="avatar avatar-rounded me-2">
-                                    <img src="' . $imagePath . '" alt="' . $name . '">
+                                <a href="'.$imagePath.'" target="blank" class="avatar avatar-rounded me-2">
+                                    <img src="'.$imagePath.'" alt="'.$name.'">
                                 </a>
-                                <a href="' . $imagePath . '" target="blank" class="d-flex flex-column">' . $name . '</a>
+                                <a href="'.$imagePath.'" target="blank" class="d-flex flex-column">'.$name.'</a>
                             </h6>';
                 })
                 ->addColumn('sku', function ($row) {
@@ -131,10 +130,10 @@ class DigitalProductController extends Controller
     {
         view()->share('action', 'Create');
 
-        $categories = Category::active()->get();
+        $categories = Category::active()->where('type', 'product')->get();
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
 
-        return view('admin.digital-products.form', compact('categories','customfieldtyeps'));
+        return view('admin.digital-products.form', compact('categories', 'customfieldtyeps'));
     }
 
     /**
@@ -143,15 +142,18 @@ class DigitalProductController extends Controller
     public function store(Request $request)
     {
 
+        ini_set('memory_limit', '5G');
+
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'sku' => 'required',
+            'name' => 'required|string|max:255|unique:digital_products,name',
+            'sku' => 'required|unique:digital_products,sku',
             'category_id' => 'required',
             'description' => 'required',
             'short_description' => 'required',
             'price' => 'required',
             'status' => 'required|in:1,0',
             'project' => 'required|file|mimes:zip|max:1048576',
+            'sub_category_id' => 'nullable|exists:categories,id',
         ]);
 
         DB::beginTransaction();
@@ -190,6 +192,7 @@ class DigitalProductController extends Controller
                 'slug' => Str::slug($request->name),
                 'sku' => $request->sku,
                 'category_id' => $request->category_id,
+                'sub_category_id' => $request->sub_category_id,
                 'description' => $request->description,
                 'short_description' => $request->short_description,
                 'price' => $request->price,
@@ -247,12 +250,12 @@ class DigitalProductController extends Controller
     public function show(string $id)
     {
         view()->share('action', 'View');
-        $categories = Category::active()->get();
+        $categories = Category::active()->where('type', 'product')->get();
         $digitalproduct = DigitalProduct::findOrFail(decrypt($id));
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
         $customfields = CustomField::with(['fieldType'])->where('module_type', 'product')->where('recode_id', decrypt($id))->get();
 
-        return view('admin.digital-products.show', compact('categories','digitalproduct','customfieldtyeps','customfields'));
+        return view('admin.digital-products.show', compact('categories', 'digitalproduct', 'customfieldtyeps', 'customfields'));
     }
 
     /**
@@ -262,12 +265,12 @@ class DigitalProductController extends Controller
     {
         view()->share('action', 'Edit');
 
-        $categories = Category::active()->get();
+        $categories = Category::active()->where('type', 'product')->get();
         $digitalproduct = DigitalProduct::findOrFail(decrypt($id));
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
         $customfields = CustomField::with(['fieldType'])->where('module_type', 'product')->where('recode_id', decrypt($id))->get();
 
-        return view('admin.digital-products.form', compact('digitalproduct','categories','customfieldtyeps','customfields'));
+        return view('admin.digital-products.form', compact('digitalproduct', 'categories', 'customfieldtyeps', 'customfields'));
     }
 
     /**
@@ -275,14 +278,16 @@ class DigitalProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $digitalproduct_id = decrypt($id);
         $validatedData = $request->validate([
-            'name'              => 'required|string|max:255',
-            'sku'               => 'required',
-            'category_id'       => 'required',
-            'description'       => 'required',
+            'name' => 'required|string|max:255|unique:digital_products,name,'.$digitalproduct_id,
+            'sku' => 'required|unique:digital_products,sku,'.$digitalproduct_id,
+            'category_id' => 'required',
+            'description' => 'required',
             'short_description' => 'required',
-            'price'             => 'required',
-            'status'            => 'required|in:1,0',
+            'price' => 'required',
+            'status' => 'required|in:1,0',
+            'sub_category_id' => 'nullable|exists:categories,id',
         ]);
 
         DB::beginTransaction();
@@ -293,9 +298,9 @@ class DigitalProductController extends Controller
             $imagePath = $digitalproduct->image;
 
             if ($request->remove_existing_image == '1') {
-                if ($digitalproduct->image && !filter_var($digitalproduct->image, FILTER_VALIDATE_URL)) {
+                if ($digitalproduct->image && ! filter_var($digitalproduct->image, FILTER_VALIDATE_URL)) {
                     $pathToDelete = str_replace('/storage/', '', $digitalproduct->image);
-                    if(Storage::disk('public')->exists($pathToDelete)) {
+                    if (Storage::disk('public')->exists($pathToDelete)) {
                         Storage::disk('public')->delete($pathToDelete);
                     }
                 }
@@ -303,9 +308,9 @@ class DigitalProductController extends Controller
             }
 
             if ($request->hasFile('image')) {
-                if ($digitalproduct->image && !filter_var($digitalproduct->image, FILTER_VALIDATE_URL)) {
+                if ($digitalproduct->image && ! filter_var($digitalproduct->image, FILTER_VALIDATE_URL)) {
                     $pathToDelete = str_replace('/storage/', '', $digitalproduct->image);
-                    if(Storage::disk('public')->exists($pathToDelete)) {
+                    if (Storage::disk('public')->exists($pathToDelete)) {
                         Storage::disk('public')->delete($pathToDelete);
                     }
                 }
@@ -349,19 +354,20 @@ class DigitalProductController extends Controller
             }
 
             $digitalproduct->update([
-                'name'              => $request->name,
-                'slug'              => Str::slug($request->name),
-                'sku'               => $request->sku,
-                'category_id'       => $request->category_id,
-                'description'       => $request->description,
+                'name' => $request->name,
+                'slug' => Str::slug($request->name),
+                'sku' => $request->sku,
+                'category_id' => $request->category_id,
+                'sub_category_id' => $request->sub_category_id,
+                'description' => $request->description,
                 'short_description' => $request->short_description,
-                'price'             => $request->price,
-                'price_for_sale'    => $request->price_for_sale,
-                'on_sale'           => $request->on_sale ? 1 : 0,
-                'badge'             => $request->badge,
-                'image'             => $imagePath,
-                'sort_order'        => $request->sort_order,
-                'status'            => $request->status ? 1 : 0,
+                'price' => $request->price,
+                'price_for_sale' => $request->price_for_sale,
+                'on_sale' => $request->on_sale ? 1 : 0,
+                'badge' => $request->badge,
+                'image' => $imagePath,
+                'sort_order' => $request->sort_order,
+                'status' => $request->status ? 1 : 0,
             ]);
 
             if ($request->has('custom_field')) {
@@ -376,8 +382,8 @@ class DigitalProductController extends Controller
             DB::rollBack();
             Log::error('Digital Product Update Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'request' => $request->except(['image']),
             ]);
 
@@ -395,7 +401,7 @@ class DigitalProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $digitalProduct->status == 1 ? 'Digital product activated successfully.' : 'Digital product deactivated successfully.'
+                'message' => $digitalProduct->status == 1 ? 'Digital product activated successfully.' : 'Digital product deactivated successfully.',
             ]);
         } catch (\Exception $e) {
             Log::error('Digital Product Status Update Error', [
@@ -407,9 +413,45 @@ class DigitalProductController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
+    }
+
+    public function checkName(Request $request)
+    {
+        $id = $request->input('id');
+        $name = $request->input('name');
+
+        $query = DigitalProduct::where('name', $name);
+
+        if ($id) {
+            $query->where('id', '!=', decrypt($id));
+        }
+
+        if ($query->exists()) {
+            return response()->json('This product name is already taken.');
+        }
+
+        return response()->json(true);
+    }
+
+    public function checkSku(Request $request)
+    {
+        $id = $request->input('id');
+        $sku = $request->input('sku');
+
+        $query = DigitalProduct::where('sku', $sku);
+
+        if ($id) {
+            $query->where('id', '!=', decrypt($id));
+        }
+
+        if ($query->exists()) {
+            return response()->json('This SKU is already taken.');
+        }
+
+        return response()->json(true);
     }
 
     /**
@@ -422,9 +464,10 @@ class DigitalProductController extends Controller
 
             if ($digitalProduct->trashed()) {
                 $digitalProduct->forceDelete();
+
                 return response()->json([
                     'success' => true,
-                    'message' => 'Product and associated files were permanently deleted.'
+                    'message' => 'Product and associated files were permanently deleted.',
                 ]);
             }
 
@@ -434,18 +477,18 @@ class DigitalProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Digital product deleted successfully.'
+                'message' => 'Digital product deleted successfully.',
             ]);
         } catch (\Exception $e) {
             Log::error('Digital Product Destroy Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -459,19 +502,19 @@ class DigitalProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Digital product restored successfully.'
+                'message' => 'Digital product restored successfully.',
             ]);
 
         } catch (\Exception $e) {
             Log::error('Digital Product Restore Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }

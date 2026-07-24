@@ -510,6 +510,48 @@ class PermissionSeeder extends Seeder
                 'description' => 'Restore Email Accounts',
                 'status' => 1,
             ],
+
+            // Coupons
+            [
+                'id' => 60,
+                'name' => 'Create',
+                'module' => 'Coupons',
+                'slug' => 'create.coupons',
+                'description' => 'Create Coupons',
+                'status' => 1,
+            ],
+            [
+                'id' => 61,
+                'name' => 'View',
+                'module' => 'Coupons',
+                'slug' => 'view.coupons',
+                'description' => 'View Coupons',
+                'status' => 1,
+            ],
+            [
+                'id' => 62,
+                'name' => 'Edit',
+                'module' => 'Coupons',
+                'slug' => 'edit.coupons',
+                'description' => 'Edit Coupons',
+                'status' => 1,
+            ],
+            [
+                'id' => 63,
+                'name' => 'Delete',
+                'module' => 'Coupons',
+                'slug' => 'delete.coupons',
+                'description' => 'Delete Coupons',
+                'status' => 1,
+            ],
+            [
+                'id' => 64,
+                'name' => 'Restore',
+                'module' => 'Coupons',
+                'slug' => 'restore.coupons',
+                'description' => 'Restore Coupons',
+                'status' => 1,
+            ],
         ];
 
         foreach ($permissions as $permission) {

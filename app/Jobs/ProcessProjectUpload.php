@@ -8,14 +8,15 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ProcessProjectUpload implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $productId;
+
     public $tempPath;
 
     /**
@@ -32,14 +33,17 @@ class ProcessProjectUpload implements ShouldQueue
      */
     public function handle()
     {
+        ini_set('memory_limit', '5G');
+
         try {
-            if (!Storage::disk('local')->exists($this->tempPath)) {
+            if (! Storage::disk('local')->exists($this->tempPath)) {
                 Log::error("Job failed: Temp file missing at {$this->tempPath}");
+
                 return;
             }
 
             $fileName = basename($this->tempPath);
-            $finalPath = 'digital_products/projects/' . $this->productId . '/' . $fileName;
+            $finalPath = 'digital_products/projects/'.$this->productId.'/'.$fileName;
 
             Storage::disk('local')->move($this->tempPath, $finalPath);
 
@@ -49,7 +53,7 @@ class ProcessProjectUpload implements ShouldQueue
             }
 
         } catch (\Exception $e) {
-            Log::error('Project Upload Job Error: ' . $e->getMessage());
+            Log::error('Project Upload Job Error: '.$e->getMessage());
         }
     }
 }

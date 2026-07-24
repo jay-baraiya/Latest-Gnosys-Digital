@@ -57,6 +57,23 @@
                     </div>
                 </div>
 
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label" for="sub_category_id">Sub Category</label>
+                        <select class="form-select select2" name="sub_category_id" id="sub_category_id">
+                            <option value="">Select Sub Category</option>
+                            @if(isset($digitalproduct) && $digitalproduct->sub_category_id)
+                                <option value="{{ $digitalproduct->sub_category_id }}" selected>
+                                    {{ $digitalproduct->subCategory->name ?? 'Unknown' }}
+                                </option>
+                            @endif
+                        </select>
+                        @error('sub_category_id')
+                            <span class="text-danger small">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
                 <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label" for="price">Price <span class="text-danger">*</span></label>
@@ -277,6 +294,31 @@
                     allowClear: true,
                 });
 
+                $('#sub_category_id').select2({
+                    placeholder: 'Select a sub category',
+                    allowClear: true,
+                });
+
+                $('#category_id').on('change', function() {
+                    let categoryId = $(this).val();
+                    $('#sub_category_id').empty().append('<option value="">Select Sub Category</option>');
+                    if (categoryId) {
+                        $.ajax({
+                            url: "{{ route('admin.ajax.subcategories') }}",
+                            type: "POST",
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                category_id: categoryId
+                            },
+                            success: function(res) {
+                                $.each(res, function(key, value) {
+                                    $('#sub_category_id').append('<option value="'+ value.id +'">'+ value.name +'</option>');
+                                });
+                            }
+                        });
+                    }
+                });
+
                 new Choices('[data-choices]', {
                     removeItemButton: true,
                     duplicateItemsAllowed: false,
@@ -330,9 +372,35 @@
 
                 let validator = $('#digitalProductForm').validate({
                     rules: {
-                        name: { required: true, maxlength: 255 },
+                        name: { 
+                            required: true, 
+                            maxlength: 255,
+                            remote: {
+                                url: "{{ route('admin.digital.products.check.name') }}",
+                                type: "post",
+                                data: {
+                                    _token: "{{ csrf_token() }}",
+                                    id: function() {
+                                        return "{{ isset($digitalproduct) ? encrypt($digitalproduct->id) : '' }}";
+                                    }
+                                }
+                            }
+                        },
                         short_description: { required: true },
-                        sku: { required: true, maxlength: 255 },
+                        sku: { 
+                            required: true, 
+                            maxlength: 255,
+                            remote: {
+                                url: "{{ route('admin.digital.products.check.sku') }}",
+                                type: "post",
+                                data: {
+                                    _token: "{{ csrf_token() }}",
+                                    id: function() {
+                                        return "{{ isset($digitalproduct) ? encrypt($digitalproduct->id) : '' }}";
+                                    }
+                                }
+                            }
+                        },
                         category_id: { required: true },
                         price: { required: true, number: true, min: 0 },
                         price_for_sale: { number: true, min: 0 },
@@ -355,9 +423,15 @@
                         }
                     },
                     messages: {
-                        name: { required: "Please enter the product name." },
+                        name: { 
+                            required: "Please enter the product name.",
+                            remote: "This product name is already taken."
+                        },
                         short_description: { required: "Please provide a detailed short description." },
-                        sku: { required: "Please provide a unique SKU." },
+                        sku: { 
+                            required: "Please provide a unique SKU.",
+                            remote: "This SKU is already taken."
+                        },
                         category_id: { required: "Please select a category." },
                         image: {
                             extension: "Only JPG, JPEG, PNG and WEBP files are allowed.",

@@ -57,6 +57,23 @@
                     </div>
                 </div>
 
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label" for="sub_category_id">Sub Category</label>
+                        <select class="form-select select2" name="sub_category_id" id="sub_category_id">
+                            <option value="">Select Sub Category</option>
+                            @if(isset($digitalservice) && $digitalservice->sub_category_id)
+                                <option value="{{ $digitalservice->sub_category_id }}" selected>
+                                    {{ $digitalservice->subCategory->name ?? 'Unknown' }}
+                                </option>
+                            @endif
+                        </select>
+                        @error('sub_category_id')
+                            <span class="text-danger small">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
                 <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label" for="price">Price <span class="text-danger">*</span></label>
@@ -264,6 +281,31 @@
                 $('#category_id').select2({
                     placeholder: 'Select a category',
                     allowClear: true,
+                });
+
+                $('#sub_category_id').select2({
+                    placeholder: 'Select a sub category',
+                    allowClear: true,
+                });
+
+                $('#category_id').on('change', function() {
+                    let categoryId = $(this).val();
+                    $('#sub_category_id').empty().append('<option value="">Select Sub Category</option>');
+                    if (categoryId) {
+                        $.ajax({
+                            url: "{{ route('admin.ajax.subcategories') }}",
+                            type: "POST",
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                category_id: categoryId
+                            },
+                            success: function(res) {
+                                $.each(res, function(key, value) {
+                                    $('#sub_category_id').append('<option value="'+ value.id +'">'+ value.name +'</option>');
+                                });
+                            }
+                        });
+                    }
                 });
 
                 Quill.register("modules/htmlEditButton", htmlEditButton);
