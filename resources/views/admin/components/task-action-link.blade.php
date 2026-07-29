@@ -73,11 +73,11 @@
             @endif
         @endcan
 
-        @if (isset($invoice) && $invoice)
+        {{-- @if (isset($invoice) && $invoice)
             <a class="dropdown-item generate-invoice-btn" href="javascript:void(0)" data-url="{{ $invoice }}">
                 <i class="ti ti-file-invoice text-success"></i> Generate Invoice
             </a>
-        @endif
+        @endif --}}
 
         {{-- Status Updates --}}
         {{-- @if($show_status_options && $id)
