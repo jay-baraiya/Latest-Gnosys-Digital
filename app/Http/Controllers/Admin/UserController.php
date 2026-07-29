@@ -2,28 +2,26 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\Country;
-use App\Models\State;
-use App\Models\City;
 use App\Models\Designation;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\RolePermission;
+use App\Models\User;
 use App\Models\UserRole;
 use App\Models\UserRolePermission;
 use App\Notifications\RealTimeNotification;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
     protected $moduleName = 'Users';
+
     protected $moduleUrl = 'admin.users.index';
 
     protected $authUser;
@@ -68,12 +66,12 @@ class UserController extends Controller
         $permissions = Permission::active()->whereIn('id', $rolePermission)->get()->groupBy('module');
 
         $user_permission = UserRolePermission::query()
-                            ->where('user_id', decrypt($id))
-                            ->where('role_id', $roleId)
-                            ->pluck('permission_id')
-                            ->toArray();
+            ->where('user_id', decrypt($id))
+            ->where('role_id', $roleId)
+            ->pluck('permission_id')
+            ->toArray();
 
-        return view('admin.user.permission', compact('permissions','user', 'user_permission'));
+        return view('admin.user.permission', compact('permissions', 'user', 'user_permission'));
     }
 
     public function updatePermission(Request $request, $id)
@@ -86,8 +84,6 @@ class UserController extends Controller
         ]);
 
         $id = decrypt($id);
-
-
 
         $permissions = Permission::active()->get()->groupBy('module');
 
@@ -108,7 +104,7 @@ class UserController extends Controller
         }
 
         $userQuery = User::find($id);
-        if (!empty($pArray)) {
+        if (! empty($pArray)) {
             $userQuery->update(['is_user_permission' => 1]);
             UserRolePermission::insert($pArray);
         } else {
@@ -122,27 +118,27 @@ class UserController extends Controller
     {
         if ($request->ajax()) {
 
-        $excludedRoles = [User::IS_ADMIN];
+            $excludedRoles = [User::IS_ADMIN];
 
-        if (isset($request->is_buyer) && $request->is_buyer == 0) {
-            $excludedRoles[] = User::IS_BUYER;
-        }
+            if (isset($request->is_buyer) && $request->is_buyer == 0) {
+                $excludedRoles[] = User::IS_BUYER;
+            }
 
             $data = User::with('roles', 'balance')
                 ->whereNotIn('id', [$this->authUser->id])
-                ->when(!empty($request->is_deleted), function ($q){
+                ->when(! empty($request->is_deleted), function ($q) {
                     $q->onlyTrashed();
                 })
-                ->when(!empty($request->is_buyer), function($q) {
-                    $q->whereHas('roles', function($sq) {
+                ->when(! empty($request->is_buyer), function ($q) {
+                    $q->whereHas('roles', function ($sq) {
                         $sq->where('role_id', User::IS_BUYER);
                     });
                 })
-                ->when(!empty($request->input('search.value')), function ($query) use ($request) {
-                    $query->where(function($q) use ($request) {
+                ->when(! empty($request->input('search.value')), function ($query) use ($request) {
+                    $query->where(function ($q) use ($request) {
                         $q->where('name', 'like', "%{$request->input('search.value')}%")
-                        ->orWhere('email', 'like', "%{$request->input('search.value')}%")
-                        ->orWhere('phone', 'like', "%{$request->input('search.value')}%");
+                            ->orWhere('email', 'like', "%{$request->input('search.value')}%")
+                            ->orWhere('phone', 'like', "%{$request->input('search.value')}%");
                     });
                 })
                 ->whereDoesntHave('roles', function ($query) use ($excludedRoles) {
@@ -158,17 +154,17 @@ class UserController extends Controller
                     $imagePath = $row->image ? asset($row->image) : asset('assets/img/profiles/default.jpg');
 
                     return '<h6 class="d-flex align-items-center fs-14 fw-medium mb-0">
-                                <a href="' . $imagePath . '" target="blank" class="avatar avatar-rounded me-2">
-                                    <img src="' . $imagePath . '" alt="' . $name . '">
+                                <a href="'.$imagePath.'" target="blank" class="avatar avatar-rounded me-2">
+                                    <img src="'.$imagePath.'" alt="'.$name.'">
                                 </a>
-                                <a href="' . $imagePath . '" target="blank" class="d-flex flex-column">' . $name . '</a>
+                                <a href="'.$imagePath.'" target="blank" class="d-flex flex-column">'.$name.'</a>
                             </h6>';
                 })
                 ->editColumn('status', function ($row) {
                     if ($row->status == 1) {
-                        return '<a href="' . route('admin.users.updateStatus', ['id' => encrypt($row->id), 'status' => 0]) . '" class="badge badge-pill badge-status bg-success" id="statusUpdate">Active</a>';
+                        return '<a href="'.route('admin.users.updateStatus', ['id' => encrypt($row->id), 'status' => 0]).'" class="badge badge-pill badge-status bg-success" id="statusUpdate">Active</a>';
                     } else {
-                        return '<a href="' . route('admin.users.updateStatus', ['id' => encrypt($row->id), 'status' => 1]) . '" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
+                        return '<a href="'.route('admin.users.updateStatus', ['id' => encrypt($row->id), 'status' => 1]).'" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
                     }
                 })
                 ->addColumn('role', function ($row) {
@@ -177,6 +173,7 @@ class UserController extends Controller
                 ->addColumn('actions', function ($row) use ($request) {
                     $walletId = $row->balance?->id;
                     $historyUrl = $walletId ? route('admin.wallets.getTransactionHistoty', ['id' => encrypt($walletId), 'user_id' => encrypt($row->id)]) : null;
+
                     return view('admin.components.action-links', [
                         'edit' => route('admin.users.edit', encrypt($row->id)),
                         'show' => route('admin.users.show', encrypt($row->id)),
@@ -188,7 +185,7 @@ class UserController extends Controller
                         'history' => $historyUrl,
                     ])->render();
                 })
-                ->rawColumns(['status', 'role', 'actions','name'])
+                ->rawColumns(['status', 'role', 'actions', 'name'])
                 ->make(true);
         }
     }
@@ -223,12 +220,12 @@ class UserController extends Controller
             'status' => 'required|in:1,0',
             'role_id' => 'required|exists:roles,id',
             // 'image' => 'required|image|mimes:jpeg,jpg,png,webp|max:1024',
-            'designation_id' => 'required'
+            'designation_id' => 'required',
         ],
-        [
-            'image.mimes' => 'Only JPEG, JPG, PNG, and WEBP images are allowed.',
-            'image.max' => 'The image size must not exceed 1 MB.',
-        ]);
+            [
+                'image.mimes' => 'Only JPEG, JPG, PNG, and WEBP images are allowed.',
+                'image.max' => 'The image size must not exceed 1 MB.',
+            ]);
 
         try {
 
@@ -252,7 +249,7 @@ class UserController extends Controller
 
             $user = User::create($validatedData);
 
-            if ($user && !empty($roleId)) {
+            if ($user && ! empty($roleId)) {
                 UserRole::create([
                     'user_id' => $user->id,
                     'role_id' => $roleId,
@@ -281,7 +278,8 @@ class UserController extends Controller
         $user = User::with(['country', 'state', 'city'])->findOrFail(decrypt($id));
         $roles = Role::query()->where('status', 1)->where('id', '!=', 1)->get();
         $designations = Designation::query()->where('status', 1)->get();
-        return view('admin.user.show', compact('user','roles','designations'));
+
+        return view('admin.user.show', compact('user', 'roles', 'designations'));
     }
 
     /**
@@ -293,12 +291,12 @@ class UserController extends Controller
         $user = User::with(['country', 'state', 'city'])->findOrFail(decrypt($id));
 
         // Notify the currently logged in user so they see the toast/alert immediately
-        Auth::user()->notify(new RealTimeNotification('You are editing ' . $user->name . '\'s profile!', []));
+        Auth::user()->notify(new RealTimeNotification('You are editing '.$user->name.'\'s profile!', []));
 
         $roles = Role::query()->where('status', 1)->where('id', '!=', 1)->get();
         $designations = Designation::query()->where('status', 1)->get();
 
-        return view('admin.user.form', compact('user', 'roles','designations'));
+        return view('admin.user.form', compact('user', 'roles', 'designations'));
     }
 
     /**
@@ -323,7 +321,7 @@ class UserController extends Controller
                 'zip' => 'nullable|string|max:10',
                 'status' => 'required|in:1,0',
                 // 'image' => 'required|image|mimes:jpeg,jpg,png,webp|max:1024',
-            ],[
+            ], [
                 'image.mimes' => 'Only JPEG, JPG, PNG, and WEBP images are allowed.',
                 'image.max' => 'The image size must not exceed 1 MB.',
             ]);
@@ -331,9 +329,9 @@ class UserController extends Controller
             $imagePath = $user->image;
 
             if ($request->remove_existing_image == '1') {
-                if ($user->image && !filter_var($user->image, FILTER_VALIDATE_URL)) {
+                if ($user->image && ! filter_var($user->image, FILTER_VALIDATE_URL)) {
                     $pathToDelete = str_replace('/storage/', '', $user->image);
-                    if(Storage::disk('public')->exists($pathToDelete)) {
+                    if (Storage::disk('public')->exists($pathToDelete)) {
                         Storage::disk('public')->delete($pathToDelete);
                     }
                 }
@@ -341,9 +339,9 @@ class UserController extends Controller
             }
 
             if ($request->hasFile('image')) {
-                if ($user->image && !filter_var($user->image, FILTER_VALIDATE_URL)) {
+                if ($user->image && ! filter_var($user->image, FILTER_VALIDATE_URL)) {
                     $pathToDelete = str_replace('/storage/', '', $user->image);
-                    if(Storage::disk('public')->exists($pathToDelete)) {
+                    if (Storage::disk('public')->exists($pathToDelete)) {
                         Storage::disk('public')->delete($pathToDelete);
                     }
                 }
@@ -366,8 +364,7 @@ class UserController extends Controller
 
             $user->update($validatedData);
 
-
-            if ($user && !empty($request->role_id)) {
+            if ($user && ! empty($request->role_id)) {
                 UserRole::updateOrCreate([
                     'user_id' => $user->id,
                 ], [
@@ -400,7 +397,7 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $user->status == 1 ? 'User activated successfully.' : 'User deactivated successfully.'
+                'message' => $user->status == 1 ? 'User activated successfully.' : 'User deactivated successfully.',
             ]);
         } catch (\Exception $e) {
             Log::error('User Status Update Error', [
@@ -412,7 +409,7 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -423,13 +420,20 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         try {
-            $user = User::findOrFail(decrypt($id));
-            $user->update(['status' => 0]);
-            $user->delete();
+            $user = User::withTrashed()->findOrFail(decrypt($id));
+
+            if ($user->trashed()) {
+                $user->forceDelete();
+                $message = 'User permanently deleted successfully.';
+            } else {
+                $user->update(['status' => 0]);
+                $user->delete();
+                $message = 'User deleted successfully.';
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'User deleted successfully.'
+                'message' => $message,
             ]);
         } catch (\Exception $e) {
             Log::error('User Destroy Error', [
@@ -440,7 +444,7 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -454,19 +458,19 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'User restored successfully.'
+                'message' => 'User restored successfully.',
             ]);
 
         } catch (\Exception $e) {
             Log::error('User Restore Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
