@@ -594,6 +594,48 @@ class PermissionSeeder extends Seeder
                 'description' => 'Restore Event Series',
                 'status' => 1,
             ],
+
+            // Events
+            [
+                'id' => 70,
+                'name' => 'Create',
+                'module' => 'Events',
+                'slug' => 'create.event',
+                'description' => 'Create Events',
+                'status' => 1,
+            ],
+            [
+                'id' => 71,
+                'name' => 'View',
+                'module' => 'Events',
+                'slug' => 'view.event',
+                'description' => 'View Events',
+                'status' => 1,
+            ],
+            [
+                'id' => 72,
+                'name' => 'Edit',
+                'module' => 'Events',
+                'slug' => 'edit.event',
+                'description' => 'Edit Events',
+                'status' => 1,
+            ],
+            [
+                'id' => 73,
+                'name' => 'Delete',
+                'module' => 'Events',
+                'slug' => 'delete.event',
+                'description' => 'Delete Events',
+                'status' => 1,
+            ],
+            [
+                'id' => 74,
+                'name' => 'Restore',
+                'module' => 'Events',
+                'slug' => 'restore.event',
+                'description' => 'Restore Events',
+                'status' => 1,
+            ],
         ];
 
         foreach ($permissions as $permission) {

@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
-            $table->foreignId('current_edition_id')->nullable()->constrained('events');
             $table->boolean('is_archived')->default(false);
             $table->dateTime('date_time')->nullable();
             $table->tinyInteger('status')->default(0)->comment('1=Active, 0=Inactive');
