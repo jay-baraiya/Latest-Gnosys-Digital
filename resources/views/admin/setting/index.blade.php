@@ -42,6 +42,12 @@
                             <i class="ti ti-palette me-2"></i>Theme Settings
                         </a>
                     </li>
+                    <li class="nav-item me-3">
+                        <a href="{{ route('admin.settings.index') }}?tab=paypal-settings" data-tab="paypal-settings"
+                            class="nav-link p-2 {{ $tab == 'paypal-settings' ? 'active' : '' }}">
+                            <i class="ti ti-brand-paypal me-2"></i>PayPal Settings
+                        </a>
+                    </li>
                 </ul>
             </div> <!-- end card body -->
         </div> <!-- end card -->
@@ -897,6 +903,113 @@
                     </div>
                 </div>
             </div>
+
+            <!-- start paypal-settings -->
+            <div class="col-xl-12 col-lg-12 tabHide" id="paypal-settings"
+                style="display: {{ $tab != 'paypal-settings' ? 'none' : '' }};">
+                
+                <div class="card mb-0">
+                    <div class="card-body">
+                        <div class="border-bottom mb-3 pb-3">
+                            <h6 class="mb-1">PayPal Configuration</h6>
+                            <p class="mb-0">Configure your PayPal API credentials and settings here.</p>
+                        </div>
+
+                        <!-- Test Connection Button Form -->
+                        <form method="POST" action="{{ route('admin.settings.testPaypal') }}" class="mb-4">
+                            @csrf
+                            <div class="row align-items-end">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Mode</label>
+                                    <select class="form-select" name="paypal_mode" required>
+                                        <option value="sandbox" {{ (old('paypal_mode', $settings->paypal_mode ?? '') == 'sandbox') ? 'selected' : '' }}>Sandbox (testing)</option>
+                                        <option value="live" {{ (old('paypal_mode', $settings->paypal_mode ?? '') == 'live') ? 'selected' : '' }}>Live</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Client ID</label>
+                                    <input type="text" class="form-control" name="paypal_client_id" value="{{ old('paypal_client_id', $settings->paypal_client_id ?? '') }}" required placeholder="Enter Client ID">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Client Secret</label>
+                                    <input type="password" class="form-control" name="paypal_client_secret" value="{{ old('paypal_client_secret', $settings->paypal_client_secret ?? '') }}" required placeholder="Enter Client Secret">
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <button type="submit" class="btn btn-info w-100"><i class="ti ti-plug me-2"></i>Test Connection</button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <hr class="mb-4">
+
+                        <!-- Save Settings Form -->
+                        <form method="POST" action="{{ route('admin.settings.store') }}?tab=paypal-settings">
+                            @csrf
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Mode</label>
+                                    <select class="form-select addSelect2" name="paypal_mode">
+                                        <option value="sandbox" {{ (old('paypal_mode', $settings->paypal_mode ?? '') == 'sandbox') ? 'selected' : '' }}>Sandbox (testing)</option>
+                                        <option value="live" {{ (old('paypal_mode', $settings->paypal_mode ?? '') == 'live') ? 'selected' : '' }}>Live</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Currency</label>
+                                    <select class="form-select paypal-currency addSelect2" name="paypal_currency">
+                                        <option value="USD" {{ (old('paypal_currency', $settings->paypal_currency ?? 'USD') == 'USD') ? 'selected' : '' }}>USD</option>
+                                        {{-- <option value="EUR" {{ (old('paypal_currency', $settings->paypal_currency ?? '') == 'EUR') ? 'selected' : '' }}>EUR</option>
+                                        <option value="GBP" {{ (old('paypal_currency', $settings->paypal_currency ?? '') == 'GBP') ? 'selected' : '' }}>GBP</option>
+                                        <option value="INR" {{ (old('paypal_currency', $settings->paypal_currency ?? '') == 'INR') ? 'selected' : '' }}>INR</option> --}}
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Client ID</label>
+                                    <input type="text" class="form-control" name="paypal_client_id" value="{{ old('paypal_client_id', $settings->paypal_client_id ?? '') }}" placeholder="Enter Client ID">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Client Secret</label>
+                                    <input type="password" class="form-control" name="paypal_client_secret" value="{{ old('paypal_client_secret', $settings->paypal_client_secret ?? '') }}" placeholder="Enter Client Secret">
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Webhook URL</label>
+                                    <input type="url" class="form-control" name="paypal_webhook_url" value="{{ old('paypal_webhook_url', $settings->paypal_webhook_url ?? '') }}" placeholder="https://yourdomain.com/webhooks/paypal">
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Return URL</label>
+                                    <input type="url" class="form-control" name="paypal_return_url" value="{{ old('paypal_return_url', $settings->paypal_return_url ?? '') }}" placeholder="https://yourdomain.com/payment/success">
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Cancel URL</label>
+                                    <input type="url" class="form-control" name="paypal_cancel_url" value="{{ old('paypal_cancel_url', $settings->paypal_cancel_url ?? '') }}" placeholder="https://yourdomain.com/payment/cancel">
+                                </div>
+                                
+                                <div class="col-md-12 mb-3">
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="paypal_enable_for_credits" name="paypal_enable_for_credits" {{ (old('paypal_enable_for_credits', $settings->paypal_enable_for_credits ?? 0) == 1) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="paypal_enable_for_credits">Enable PayPal for Credits</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="paypal_enable_for_events" name="paypal_enable_for_events" {{ (old('paypal_enable_for_events', $settings->paypal_enable_for_events ?? 0) == 1) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="paypal_enable_for_events">Enable PayPal for Events</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-end gap-2 mt-2">
+                                <button type="submit" class="btn btn-primary">Save Settings</button>
+                            </div>
+                        </form>
+                    </div> <!-- end card body -->
+                </div> <!-- end card -->
+
+            </div>
+            <!-- end paypal-settings -->
+
         </div>
 
     </div>
@@ -934,30 +1047,57 @@
                     $(this).closest('.profile-upload').find('.preview1').removeClass('it');
                     $(this).closest('.profile-upload').find('.profile-remove').removeClass('profile-remove-btn');
                     $('input[name="remove_existing_image" ]').val(1);
-                }); function readSettingsURL(input, previewElement) {
-                    if
-                        (input.files && input.files[0]) {
-                        var reader = new FileReader(); reader.onload = function (e) {
+                });
+
+                function readSettingsURL(input, previewElement) {
+                    if (input.files && input.files[0]) {
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
                             previewElement.attr('src', e.target.result);
-                        } reader.readAsDataURL(input.files[0]);
+                        };
+                        reader.readAsDataURL(input.files[0]);
                     }
                 }
+
                 $(".setting-img-input").on('change', function () {
-                    var container = $(this).closest('.col-md-4'); var
-                        previewImg = container.find('.setting-preview-img'); var removeBtn = container.find('.setting-remove-btn'); var
-                            removeFlag = container.find('.remove-flag'); readSettingsURL(this, previewImg); previewImg.addClass('it');
-                    removeBtn.addClass('profile-remove-btn'); removeFlag.val("0");
-                }); // Triggered when the remove cross is clicked
+                    var container = $(this).closest('.col-md-4');
+                    var previewImg = container.find('.setting-preview-img');
+                    var removeBtn = container.find('.setting-remove-btn');
+                    var removeFlag = container.find('.remove-flag');
+                    readSettingsURL(this, previewImg);
+                    previewImg.addClass('it');
+                    removeBtn.addClass('profile-remove-btn');
+                    removeFlag.val("0");
+                });
+
+                // Triggered when the remove cross is clicked
                 $(".setting-remove-btn").on('click', function (e) {
-                    e.preventDefault(); // Find the specific container for the
-                                clicked remove button var container = $(this).closest('.col-md-4'); var
-                        fileInput = container.find(".setting-img-input"); var previewImg = container.find(".setting-preview-img"); var
-                            removeFlag = container.find('.remove-flag'); // Clear the file input fileInput.val(""); // Reset image src to the
-                                default path stored in data -default attribute var defaultSrc = $(this).data('default') || "";
-                    previewImg.attr("src", defaultSrc); // Remove display classes previewImg.removeClass('it');
-                    $(this).removeClass('profile-remove-btn'); // Set this specific field's remove flag to 1 for backend logic
+                    e.preventDefault();
+                    
+                    // Find the specific container for the clicked remove button
+                    var container = $(this).closest('.col-md-4');
+                    var fileInput = container.find(".setting-img-input");
+                    var previewImg = container.find(".setting-preview-img");
+                    var removeFlag = container.find('.remove-flag');
+                    
+                    // Clear the file input
+                    fileInput.val("");
+                    
+                    // Reset image src to the default path stored in data-default attribute
+                    var defaultSrc = $(this).data('default') || "";
+                    previewImg.attr("src", defaultSrc);
+                    
+                    // Remove display classes
+                    previewImg.removeClass('it');
+                    $(this).removeClass('profile-remove-btn');
+                    
+                    // Set this specific field's remove flag to 1 for backend logic
                     removeFlag.val("1");
-                }); $(".input-img").trigger('change'); function isImageRequired() {
+                });
+
+                $(".input-img").trigger('change');
+
+                function isImageRequired() {
                     let
                         hasExistingImage = $('#currentImageContainer').length > 0 && !$('#currentImageContainer').hasClass('d-none');
                     let markedForRemoval = $('#remove_existing_image').val() === "1";
