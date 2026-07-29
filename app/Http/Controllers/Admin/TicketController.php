@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
+use App\Jobs\GenerateTicketInvoice;
 use App\Models\Chat;
 use App\Models\CustomField;
 use App\Models\Department;
-use App\Models\Designation;
 use App\Models\DigitalProduct;
 use App\Models\DigitalService;
+use App\Models\Note;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Role;
@@ -16,10 +18,9 @@ use App\Models\ServiceVariant;
 use App\Models\Task;
 use App\Models\Ticket;
 use App\Models\TicketAttachment;
-use App\Models\Note;
 use App\Models\User;
 use App\Models\UserRole;
-use App\Notifications\RealTimeNotification;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -29,12 +30,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
+use Webklex\IMAP\Facades\Client;
 use Yajra\DataTables\Facades\DataTables;
 
 class TicketController extends Controller
 {
     protected $moduleName = 'Tickets';
+
     protected $moduleUrl = 'admin.tickets.index';
 
     protected $authUser;
@@ -67,14 +69,14 @@ class TicketController extends Controller
         $priority = $request->input('priority', 'Low');
 
         $developers = User::query()
-                ->with(['roles','designation'])
-                ->where('status', 1)
-                ->whereHas('roles', function($sq) {
-                    $sq->whereNotIn('role_id', [User::IS_ADMIN,User::IS_BUYER]);
-                })
-                ->get();
+            ->with(['roles', 'designation'])
+            ->where('status', 1)
+            ->whereHas('roles', function ($sq) {
+                $sq->whereNotIn('role_id', [User::IS_ADMIN, User::IS_BUYER]);
+            })
+            ->get();
 
-        return view('admin.ticket.index', compact('status','priority','developers'));
+        return view('admin.ticket.index', compact('status', 'priority', 'developers'));
     }
 
     public function getData(Request $request)
@@ -88,7 +90,7 @@ class TicketController extends Controller
                 ->with([
                     'user:id,name,email',
                     'department:id,name',
-                    'assign:id,name'
+                    'assign:id,name',
                 ])
                 ->select([
                     'id',
@@ -100,9 +102,9 @@ class TicketController extends Controller
                     'subject',
                     'department_id',
                     'priority',
-                    'status'
+                    'status',
                 ])
-                ->when(!empty($request->input('ticket_number')), function ($query) use ($request) {
+                ->when(! empty($request->input('ticket_number')), function ($query) use ($request) {
                     $search = $request->input('ticket_number');
                     $query->where('ticket_number', 'like', "%{$search}%");
                 })
@@ -115,19 +117,19 @@ class TicketController extends Controller
                 ->addIndexColumn()
 
                 ->filter(function ($query) use ($request) {
-                    if ($request->has('search') && !empty($request->input('search.value'))) {
+                    if ($request->has('search') && ! empty($request->input('search.value'))) {
                         $search = $request->input('search.value');
 
                         $query->where(function ($q) use ($search) {
                             $q->where('ticket_number', 'like', "%{$search}%")
-                            ->orWhere('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%")
-                            ->orWhere('subject', 'like', "%{$search}%");
+                                ->orWhere('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere('subject', 'like', "%{$search}%");
                         });
                     }
                 }, true)
                 ->addColumn('ticket_number', function ($row) {
-                    return '<span class="fw-semibold">#' . $row?->ticket_number . '</span>';
+                    return '<span class="fw-semibold">#'.$row?->ticket_number.'</span>';
                 })
                 ->addColumn('date', function ($row) {
                     return Carbon::parse($row?->datetime)->format('d-m-Y H:i');
@@ -135,7 +137,8 @@ class TicketController extends Controller
                 ->addColumn('client_info', function ($row) {
                     $name = $row?->user?->name ?? 'Unknown';
                     $email = $row?->user?->email ?? '-';
-                    return '<div><span class="fw-medium">' . $name . '</span><br><small class="text-muted">' . $email . '</small></div>';
+
+                    return '<div><span class="fw-medium">'.$name.'</span><br><small class="text-muted">'.$email.'</small></div>';
                 })
                 ->addColumn('subject', function ($row) {
                     return $row->subject ?? '-';
@@ -145,33 +148,35 @@ class TicketController extends Controller
                 })
                 ->addColumn('priority', function ($row) {
                     $badges = [
-                        'High'   => '<span class="badge bg-danger">High</span>',
+                        'High' => '<span class="badge bg-danger">High</span>',
                         'Medium' => '<span class="badge bg-warning text-dark">Medium</span>',
-                        'Low'    => '<span class="badge bg-info">Low</span>',
+                        'Low' => '<span class="badge bg-info">Low</span>',
                     ];
-                    return $badges[$row->priority] ?? '<span class="badge bg-secondary">' . $row->priority . '</span>';
+
+                    return $badges[$row->priority] ?? '<span class="badge bg-secondary">'.$row->priority.'</span>';
                 })
                 ->addColumn('status', function ($row) {
                     $badges = [
-                        'pending'             => '<span class="badge bg-warning text-dark">Pending</span>',
-                        'assign_requested'    => '<span class="badge bg-info">Assign Requested</span>',
-                        'assigned'            => '<span class="badge bg-primary">Assigned</span>',
+                        'pending' => '<span class="badge bg-warning text-dark">Pending</span>',
+                        'assign_requested' => '<span class="badge bg-info">Assign Requested</span>',
+                        'assigned' => '<span class="badge bg-primary">Assigned</span>',
                         'assign_not_accepted' => '<span class="badge bg-secondary">Assign Not Accepted</span>',
-                        'in_progress'         => '<span class="badge bg-dark">In Progress</span>',
-                        'completed'           => '<span class="badge bg-success">Completed</span>',
-                        'cancel_requested'    => '<span class="badge bg-warning text-dark">Cancel Requested</span>',
-                        'cancelled'           => '<span class="badge bg-danger">Cancelled</span>',
-                        'refund'              => '<span class="badge bg-danger">Refund</span>',
+                        'in_progress' => '<span class="badge bg-dark">In Progress</span>',
+                        'completed' => '<span class="badge bg-success">Completed</span>',
+                        'cancel_requested' => '<span class="badge bg-warning text-dark">Cancel Requested</span>',
+                        'cancelled' => '<span class="badge bg-danger">Cancelled</span>',
+                        'refund' => '<span class="badge bg-danger">Refund</span>',
                     ];
+
                     return $badges[$row->status] ?? '<span class="badge bg-light text-dark">Unknown</span>';
                 })
                 ->addColumn('actions', function ($row) {
                     return view('admin.components.task-action-link', [
-                        'edit'           => route('admin.tickets.edit', encrypt($row->id)),
+                        'edit' => route('admin.tickets.edit', encrypt($row->id)),
                         // 'show'           => route('admin.tickets.show', encrypt($row->id)),
-                        'delete'         => route('admin.tickets.destroy', encrypt($row->id)),
-                        'invoice'        => route('admin.tickets.generate_invoice', encrypt($row->id)),
-                        'id'             => encrypt($row->id),
+                        'delete' => route('admin.tickets.destroy', encrypt($row->id)),
+                        'invoice' => route('admin.tickets.generate_invoice', encrypt($row->id)),
+                        'id' => encrypt($row->id),
                         'current_status' => $row->status,
                     ])->render();
                 })
@@ -187,18 +192,18 @@ class TicketController extends Controller
             $tasks = Task::query()->where('ticket_id', $ticket->id)->get();
             $ticket->setRelation('tasks', $tasks);
 
-            $fileName = 'exports/invoice_' . $ticket->ticket_number . '_' . time() . '.pdf';
+            $fileName = 'exports/invoice_'.$ticket->ticket_number.'_'.time().'.pdf';
 
             // Dispatch the job to the queue
-            \App\Jobs\GenerateTicketInvoice::dispatch($ticket, $fileName, Auth::id());
+            GenerateTicketInvoice::dispatch($ticket, $fileName, Auth::id());
 
             return response()->json([
                 'success' => true,
                 'message' => 'Invoice generation is processing...',
                 'filename' => $fileName,
-                'status' => 'processing'
+                'status' => 'processing',
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Invoice Generation Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -207,7 +212,7 @@ class TicketController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to generate invoice.'
+                'message' => 'Failed to generate invoice.',
             ]);
         }
     }
@@ -216,7 +221,7 @@ class TicketController extends Controller
     {
         $request->validate([
             'invoice_subject' => 'required|string',
-            'invoice_amount'  => 'required|numeric|min:1',
+            'invoice_amount' => 'required|numeric|min:1',
         ]);
 
         try {
@@ -225,12 +230,12 @@ class TicketController extends Controller
             $subject = $request->invoice_subject;
             $amount = $request->invoice_amount;
 
-            $fileName = 'custom_invoice_' . $ticket->ticket_number . '_' . time() . '.pdf';
+            $fileName = 'custom_invoice_'.$ticket->ticket_number.'_'.time().'.pdf';
 
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.ticket.custom_invoice', compact('ticket', 'subject', 'amount'));
+            $pdf = Pdf::loadView('admin.ticket.custom_invoice', compact('ticket', 'subject', 'amount'));
 
             return $pdf->download($fileName);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Custom Invoice Generation Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -249,36 +254,36 @@ class TicketController extends Controller
         view()->share('action', 'Create');
 
         $developers = User::query()
-                ->with(['roles','designation'])
-                ->where('status', 1)
-                ->whereHas('roles', function($sq) {
-                    $sq->whereIn('role_id', [User::IS_DEVELOPER])
+            ->with(['roles', 'designation'])
+            ->where('status', 1)
+            ->whereHas('roles', function ($sq) {
+                $sq->whereIn('role_id', [User::IS_DEVELOPER])
                     ->whereNotIn('role_id', [User::IS_ADMIN]);
-                })
-                ->get();
+            })
+            ->get();
 
         $users = User::query()
-                ->with(['roles'])
-                ->where('status', 1)
-                ->whereHas('roles', function($sq) {
-                    $sq->whereNotIn('role_id', [User::IS_ADMIN])
+            ->with(['roles'])
+            ->where('status', 1)
+            ->whereHas('roles', function ($sq) {
+                $sq->whereNotIn('role_id', [User::IS_ADMIN])
                     ->whereIn('role_id', [User::IS_BUYER]);
-                })
-                ->get();
+            })
+            ->get();
 
         $cc_recipients = User::query()
-                ->whereHas('roles', function($sq) {
-                    $sq->whereNotIn('role_id', [User::IS_ADMIN]);
-                })
-                ->where('status', 1)
-                ->get();
+            ->whereHas('roles', function ($sq) {
+                $sq->whereNotIn('role_id', [User::IS_ADMIN]);
+            })
+            ->where('status', 1)
+            ->get();
 
         $departments = Department::query()->where('status', 1)->get();
         $roles = Role::query()->where('status', 1)->where('id', '!=', 1)->get();
 
-        $products  = DigitalProduct::query()->where('status', 1)->get();
+        $products = DigitalProduct::query()->where('status', 1)->get();
 
-        $services  = DigitalService::with('variants')->where('status', 1)->get();
+        $services = DigitalService::with('variants')->where('status', 1)->get();
 
         $tab = $request->input('tab', 'ticket-form');
 
@@ -294,23 +299,23 @@ class TicketController extends Controller
     {
 
         $validatedData = $request->validate([
-            'user_id'          => 'required|integer|exists:users,id',
-            'cc_recipients'    => 'nullable|array',
-            'cc_recipients.*'  => 'email', // CC માં રહેલી વેલ્યુ ઈમેલ હોવી જોઈએ
+            'user_id' => 'required|integer|exists:users,id',
+            'cc_recipients' => 'nullable|array',
+            'cc_recipients.*' => 'email', // CC માં રહેલી વેલ્યુ ઈમેલ હોવી જોઈએ
 
-            'ticket_notice'    => 'nullable|string',
-            'ticket_source'    => 'required|string|in:phone,email,other',
-            'help_topic'       => 'required|string',
-            'department_id'    => 'nullable|integer', // જો ફરજીયાત હોય તો required કરો
-            'sla_plan'         => 'nullable|string',
-            'due_date'         => 'nullable|date',
-            'assign_id'        => 'nullable|integer',
-            'canned_response'  => 'nullable|string',
+            'ticket_notice' => 'nullable|string',
+            'ticket_source' => 'required|string|in:phone,email,other',
+            'help_topic' => 'required|string',
+            'department_id' => 'nullable|integer', // જો ફરજીયાત હોય તો required કરો
+            'sla_plan' => 'nullable|string',
+            'due_date' => 'nullable|date',
+            'assign_id' => 'nullable|integer',
+            'canned_response' => 'nullable|string',
 
-            'description'      => 'nullable|string',
-            'ticket_status'    => 'nullable|string|in:open,resolved,closed',
+            'description' => 'nullable|string',
+            'ticket_status' => 'nullable|string|in:open,resolved,closed',
             'signature_option' => 'nullable|string',
-            'internal_note'    => 'nullable|string',
+            'internal_note' => 'nullable|string',
 
             // જો ભવિષ્યમાં ફાઈલ અપલોડ ચાલુ કરો તો આ કોમેન્ટ હટાવી દેજો:
             // 'attachments'   => 'nullable|array|max:10',
@@ -323,46 +328,46 @@ class TicketController extends Controller
             $email = $user?->email ?? null;
 
             $ticket = Ticket::create([
-                'ticket_number'    => 'TCK-' . strtoupper(Str::random(6)),
-                'datetime'         => now(),
-                'user_id'          => $request->user_id,
-                'name'             => $name,
-                'email'            => $email,
-                'body'            => $request->body,
-                'cc_recipients'    => $request->cc_recipients ? json_encode($request->cc_recipients) : null,
+                'ticket_number' => 'TCK-'.strtoupper(Str::random(6)),
+                'datetime' => now(),
+                'user_id' => $request->user_id,
+                'name' => $name,
+                'email' => $email,
+                'body' => $request->body,
+                'cc_recipients' => $request->cc_recipients ? json_encode($request->cc_recipients) : null,
 
-                'ticket_notice'    => $request->ticket_notice,
-                'ticket_source'    => $request->ticket_source,
-                'help_topic'       => $request->help_topic,
-                'department_id'    => $request->department_id,
-                'sla_plan'         => $request->sla_plan,
-                'due_date'         => $request->due_date,
-                'assign_id'        => $request->assign_id,
-                'canned_response'  => $request->canned_response,
+                'ticket_notice' => $request->ticket_notice,
+                'ticket_source' => $request->ticket_source,
+                'help_topic' => $request->help_topic,
+                'department_id' => $request->department_id,
+                'sla_plan' => $request->sla_plan,
+                'due_date' => $request->due_date,
+                'assign_id' => $request->assign_id,
+                'canned_response' => $request->canned_response,
 
                 'signature_option' => $request->signature_option,
-
-                'status'           => 'pending',
-                'ticket_status'    => $request->ticket_status ?? 'open',
+                'priority' => !empty($request->priority) ? $request->priority : 'Low',
+                'status' => 'pending',
+                'ticket_status' => $request->ticket_status ?? 'open',
             ]);
 
             if ($request->description) {
                 Note::create([
-                    'ref_id'   => $ticket->id,
+                    'ref_id' => $ticket->id,
                     'ref_type' => 'description',
                     'datetime' => now(),
-                    'text'     => $request->description,
-                    'user_id'  => Auth::id(),
+                    'text' => $request->description,
+                    'user_id' => Auth::id(),
                 ]);
             }
 
             if ($request->internal_note) {
                 Note::create([
-                    'ref_id'   => $ticket->id,
+                    'ref_id' => $ticket->id,
                     'ref_type' => 'internal_note',
                     'datetime' => now(),
-                    'text'     => $request->internal_note,
-                    'user_id'  => Auth::id(),
+                    'text' => $request->internal_note,
+                    'user_id' => Auth::id(),
                 ]);
             }
 
@@ -413,11 +418,11 @@ class TicketController extends Controller
 
             // return redirect()->route('admin.tickets.edit', [ 'ticket' => encrypt($ticket->id) ])->with('success', 'Ticket created successfully.');
             return redirect()->route($this->moduleUrl)->with('success', 'Ticket created successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Ticket Store Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'request' => $request->except('attachments'),
             ]);
 
@@ -438,44 +443,44 @@ class TicketController extends Controller
         $orderItems_service = OrderItem::query()->where('order_id', $ticket->order_id)->where('product_type', 'service')->pluck('product_id')->toArray();
 
         $developers = User::query()
-                ->with(['roles','designation'])
-                ->where('status', 1)
-                ->whereHas('roles', function($sq) {
-                    $sq->whereIn('role_id', [User::IS_DEVELOPER])
+            ->with(['roles', 'designation'])
+            ->where('status', 1)
+            ->whereHas('roles', function ($sq) {
+                $sq->whereIn('role_id', [User::IS_DEVELOPER])
                     ->whereNotIn('role_id', [User::IS_ADMIN]);
-                })
-                ->get();
+            })
+            ->get();
 
         $users = User::query()
-                ->with(['roles'])
-                ->where('status', 1)
-                ->whereHas('roles', function($sq) {
-                    $sq->whereNotIn('role_id', [User::IS_ADMIN])
+            ->with(['roles'])
+            ->where('status', 1)
+            ->whereHas('roles', function ($sq) {
+                $sq->whereNotIn('role_id', [User::IS_ADMIN])
                     ->whereIn('role_id', [User::IS_BUYER]);
-                })
-                ->get();
+            })
+            ->get();
 
         $cc_recipients = User::query()
-                ->where('status', 1)
-                ->whereHas('roles', function($sq) {
-                    $sq->whereNotIn('role_id', [User::IS_ADMIN]);
-                })
-                ->get();
+            ->where('status', 1)
+            ->whereHas('roles', function ($sq) {
+                $sq->whereNotIn('role_id', [User::IS_ADMIN]);
+            })
+            ->get();
 
         $departments = Department::query()->where('status', 1)->get();
         $roles = Role::query()->where('status', 1)->where('id', '!=', 1)->get();
 
         $products = DigitalProduct::query()->where('status', 1)
-        ->when((!empty($ticket->order_id) && !empty($orderItems_product)), function($q) use ($orderItems_product) {
-            $q->whereIn('id', $orderItems_product);
-        })
-        ->get();
+            ->when((! empty($ticket->order_id) && ! empty($orderItems_product)), function ($q) use ($orderItems_product) {
+                $q->whereIn('id', $orderItems_product);
+            })
+            ->get();
 
         $services = DigitalService::with('variants')->where('status', 1)
-        ->when((!empty($ticket->order_id) && !empty($orderItems_service)), function($q) use ($orderItems_service) {
-            $q->whereIn('id', $orderItems_service);
-        })
-        ->get();
+            ->when((! empty($ticket->order_id) && ! empty($orderItems_service)), function ($q) use ($orderItems_service) {
+                $q->whereIn('id', $orderItems_service);
+            })
+            ->get();
 
         $tasks = Task::query()->with('assign')->where('ticket_id', decrypt($id))->get();
 
@@ -500,9 +505,9 @@ class TicketController extends Controller
             'department:id,name',
             'descriptionNote',
             'internalNoteRelation',
-            'notes' => function($q) {
+            'notes' => function ($q) {
                 $q->with('user')->orderBy('datetime', 'asc');
-            }
+            },
         ])->find(decrypt($id));
         // echo '<pre>';
         // print_r($ticket->toArray());
@@ -512,44 +517,44 @@ class TicketController extends Controller
         $orderItems_service = OrderItem::query()->where('order_id', $ticket->order_id)->where('product_type', 'service')->pluck('product_id')->toArray();
 
         $developers = User::query()
-                ->with(['roles','designation'])
-                ->where('status', 1)
-                ->whereHas('roles', function($sq) {
-                    $sq->whereIn('role_id', [User::IS_DEVELOPER])
+            ->with(['roles', 'designation'])
+            ->where('status', 1)
+            ->whereHas('roles', function ($sq) {
+                $sq->whereIn('role_id', [User::IS_DEVELOPER])
                     ->whereNotIn('role_id', [User::IS_ADMIN]);
-                })
-                ->get();
+            })
+            ->get();
 
         $users = User::query()
-                ->with(['roles'])
-                ->where('status', 1)
-                ->whereHas('roles', function($sq) {
-                    $sq->whereNotIn('role_id', [User::IS_ADMIN])
+            ->with(['roles'])
+            ->where('status', 1)
+            ->whereHas('roles', function ($sq) {
+                $sq->whereNotIn('role_id', [User::IS_ADMIN])
                     ->whereIn('role_id', [User::IS_BUYER]);
-                })
-                ->get();
+            })
+            ->get();
 
         $cc_recipients = User::query()
-                ->where('status', 1)
-                ->whereHas('roles', function($sq) {
-                    $sq->whereNotIn('role_id', [User::IS_ADMIN]);
-                })
-                ->get();
+            ->where('status', 1)
+            ->whereHas('roles', function ($sq) {
+                $sq->whereNotIn('role_id', [User::IS_ADMIN]);
+            })
+            ->get();
 
         $departments = Department::query()->where('status', 1)->get();
         $roles = Role::query()->where('status', 1)->where('id', '!=', 1)->get();
 
         $products = DigitalProduct::query()->where('status', 1)
-        ->when((!empty($ticket->order_id) && !empty($orderItems_product)), function($q) use ($orderItems_product) {
-            $q->whereIn('id', $orderItems_product);
-        })
-        ->get();
+            ->when((! empty($ticket->order_id) && ! empty($orderItems_product)), function ($q) use ($orderItems_product) {
+                $q->whereIn('id', $orderItems_product);
+            })
+            ->get();
 
         $services = DigitalService::with('variants')->where('status', 1)
-        ->when((!empty($ticket->order_id) && !empty($orderItems_service)), function($q) use ($orderItems_service) {
-            $q->whereIn('id', $orderItems_service);
-        })
-        ->get();
+            ->when((! empty($ticket->order_id) && ! empty($orderItems_service)), function ($q) use ($orderItems_service) {
+                $q->whereIn('id', $orderItems_service);
+            })
+            ->get();
 
         $tasks = Task::query()->with('assign')->where('ticket_id', decrypt($id))->get();
 
@@ -558,16 +563,16 @@ class TicketController extends Controller
         $isAdmin = $this->authUser?->role?->id === User::SUPERADMIN_ROLE_ID;
 
         $customfields = CustomField::with(['fieldType'])
-                        ->where('module_type', 'department')
-                        ->when(!$isAdmin, function($q) use ($ticket) {
-                            $q->where('recode_id', $ticket->department_id)
-                            ->where('params->only_admin', 0);
-                        })
-                        ->when($isAdmin, function($q) use ($ticket) {
-                            $q->where('recode_id', $ticket->department_id);
-                        })
-                        ->orderBy('sort_order', 'ASC')
-                        ->get();
+            ->where('module_type', 'department')
+            ->when(! $isAdmin, function ($q) use ($ticket) {
+                $q->where('recode_id', $ticket->department_id)
+                    ->where('params->only_admin', 0);
+            })
+            ->when($isAdmin, function ($q) use ($ticket) {
+                $q->where('recode_id', $ticket->department_id);
+            })
+            ->orderBy('sort_order', 'ASC')
+            ->get();
 
         return view('admin.ticket.edit', compact('tab', 'tasks', 'products', 'services', 'developers', 'users', 'ticket', 'cc_recipients', 'departments', 'roles', 'customfields'));
     }
@@ -579,37 +584,37 @@ class TicketController extends Controller
     {
 
         $validatedData = $request->validate([
-            'user_id'              => 'required|integer|exists:users,id',
-            'cc_recipients'        => 'nullable|array',
-            'cc_recipients.*'      => 'email',
-            'ticket_notice'        => 'nullable|string',
-            'ticket_source'        => 'required|string|in:phone,email,other',
-            'help_topic'           => 'required|string',
-            'department_id'        => 'nullable|integer',
-            'sla_plan'             => 'nullable|string',
-            'due_date'             => 'nullable|date',
-            'assign_id'            => 'nullable|integer',
-            'priority'             => 'required|string|in:High,Medium,Low',
-            'canned_response'      => 'nullable|string',
-            'description'          => 'nullable|string',
-            'ticket_status'        => 'nullable|string|in:open,resolved,closed',
-            'signature_option'     => 'nullable|string',
-            'internal_note'        => 'nullable|string',
+            'user_id' => 'required|integer|exists:users,id',
+            'cc_recipients' => 'nullable|array',
+            'cc_recipients.*' => 'email',
+            'ticket_notice' => 'nullable|string',
+            'ticket_source' => 'required|string|in:phone,email,other',
+            'help_topic' => 'required|string',
+            'department_id' => 'nullable|integer',
+            'sla_plan' => 'nullable|string',
+            'due_date' => 'nullable|date',
+            'assign_id' => 'nullable|integer',
+            'priority' => 'required|string|in:High,Medium,Low',
+            'canned_response' => 'nullable|string',
+            'description' => 'nullable|string',
+            'ticket_status' => 'nullable|string|in:open,resolved,closed',
+            'signature_option' => 'nullable|string',
+            'internal_note' => 'nullable|string',
 
-            'name'                 => 'nullable|string|max:255',
-            'email'                => 'nullable|email|max:255',
-            'subject'              => 'nullable|string|max:255',
-            'attachments'          => 'nullable|array|max:10',
-            'attachments.*'        => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'subject' => 'nullable|string|max:255',
+            'attachments' => 'nullable|array|max:10',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
             'existing_attachments' => 'nullable|array',
-            'existing_attachments.*'=> 'string',
+            'existing_attachments.*' => 'string',
 
-            'task_id'              => 'nullable|array',
-            'product_type'         => 'nullable|array',
-            'product_id'           => 'nullable|array',
-            'variant_id'           => 'nullable|array',
-            'quantity'             => 'nullable|array',
-            'price'                => 'nullable|array',
+            'task_id' => 'nullable|array',
+            'product_type' => 'nullable|array',
+            'product_id' => 'nullable|array',
+            'variant_id' => 'nullable|array',
+            'quantity' => 'nullable|array',
+            'price' => 'nullable|array',
         ]);
 
         try {
@@ -617,7 +622,7 @@ class TicketController extends Controller
             $ticket = Ticket::findOrFail($ticketId);
 
             $oldFiles = $ticket->attachments ? json_decode($ticket->attachments, true) : [];
-            if (!is_array($oldFiles)) {
+            if (! is_array($oldFiles)) {
                 $oldFiles = [];
             }
 
@@ -625,7 +630,7 @@ class TicketController extends Controller
 
             $removedFiles = array_diff($oldFiles, $keptFiles);
 
-            if (!empty($removedFiles)) {
+            if (! empty($removedFiles)) {
                 foreach ($removedFiles as $fileUrl) {
                     $pathToDelete = str_replace('/storage/', '', $fileUrl);
                     if (Storage::disk('public')->exists($pathToDelete)) {
@@ -633,8 +638,8 @@ class TicketController extends Controller
                     }
 
                     TicketAttachment::query()->where('ticket_id', $ticket->id)
-                                    ->where('file_path', $fileUrl)
-                                    ->delete();
+                        ->where('file_path', $fileUrl)
+                        ->delete();
                 }
             }
 
@@ -659,7 +664,7 @@ class TicketController extends Controller
             $email = $request->email ?? ($user?->email ?? null);
 
             if (in_array($request->ticket_status, ['closed', 'resolved'])) {
-                $incompleteTasks = \App\Models\Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
+                $incompleteTasks = Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
                 if ($incompleteTasks > 0) {
                     return redirect()->back()->withInput()->with('error', 'Cannot change ticket status to closed/resolved. All tasks must be completed first.');
                 }
@@ -668,25 +673,25 @@ class TicketController extends Controller
             $oldTicketStatus = $ticket->ticket_status;
 
             $ticket->update([
-                'user_id'          => $request->user_id,
-                'name'             => $name,
-                'email'            => $email,
-                'body'            => $request->body,
-                'cc_recipients'    => $request->cc_recipients ? json_encode($request->cc_recipients) : null,
-                'subject'          => $request->subject ?? $ticket->subject,
-                'ticket_notice'    => $request->ticket_notice,
-                'ticket_source'    => $request->ticket_source,
-                'help_topic'       => $request->help_topic,
-                'department_id'    => $request->department_id,
-                'sla_plan'         => $request->sla_plan,
-                'due_date'         => $request->due_date,
-                'assign_id'        => $request->assign_id,
-                'priority'         => $request->priority,
-                'canned_response'  => $request->canned_response,
-                'ticket_status'    => $request->ticket_status ?? 'open',
+                'user_id' => $request->user_id,
+                'name' => $name,
+                'email' => $email,
+                'body' => $request->body,
+                'cc_recipients' => $request->cc_recipients ? json_encode($request->cc_recipients) : null,
+                'subject' => $request->subject ?? $ticket->subject,
+                'ticket_notice' => $request->ticket_notice,
+                'ticket_source' => $request->ticket_source,
+                'help_topic' => $request->help_topic,
+                'department_id' => $request->department_id,
+                'sla_plan' => $request->sla_plan,
+                'due_date' => $request->due_date,
+                'assign_id' => $request->assign_id,
+                'priority' => $request->priority,
+                'canned_response' => $request->canned_response,
+                'ticket_status' => $request->ticket_status ?? 'open',
                 'signature_option' => $request->signature_option,
 
-                'attachments'      => !empty($allActiveFiles) ? json_encode(array_values($allActiveFiles)) : null
+                'attachments' => ! empty($allActiveFiles) ? json_encode(array_values($allActiveFiles)) : null,
             ]);
 
             // Save/Update description in notes table
@@ -694,8 +699,8 @@ class TicketController extends Controller
                 ['ref_id' => $ticket->id, 'ref_type' => 'description'],
                 [
                     'datetime' => now(),
-                    'text'     => $request->description,
-                    'user_id'  => Auth::id(),
+                    'text' => $request->description,
+                    'user_id' => Auth::id(),
                 ]
             );
 
@@ -705,7 +710,7 @@ class TicketController extends Controller
                     'ref_type' => 'internal_note',
                     'title' => 'Status Updated',
                     'datetime' => now(),
-                    'text' => 'Ticket status changed from ' . ucfirst(str_replace('_', ' ', $oldTicketStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $request->ticket_status)),
+                    'text' => 'Ticket status changed from '.ucfirst(str_replace('_', ' ', $oldTicketStatus)).' to '.ucfirst(str_replace('_', ' ', $request->ticket_status)),
                     'user_id' => Auth::id(),
                 ]);
             }
@@ -716,38 +721,38 @@ class TicketController extends Controller
                     ['ref_id' => $ticket->id, 'ref_type' => 'internal_note'],
                     [
                         'datetime' => now(),
-                        'text'     => $request->internal_note,
-                        'user_id'  => Auth::id(),
+                        'text' => $request->internal_note,
+                        'user_id' => Auth::id(),
                     ]
                 );
             } else {
                 Note::where('ref_id', $ticket->id)->where('ref_type', 'internal_note')->delete();
             }
 
-            $taskIds      = $request->input('task_id', []);
+            $taskIds = $request->input('task_id', []);
             $productTypes = $request->input('product_type', []);
-            $productIds   = $request->input('product_id', []);
-            $variantIds   = $request->input('variant_id', []);
-            $quantities   = $request->input('quantity', []);
-            $prices       = $request->input('price', []);
-            $duedate       = $request->input('due_date', []);
+            $productIds = $request->input('product_id', []);
+            $variantIds = $request->input('variant_id', []);
+            $quantities = $request->input('quantity', []);
+            $prices = $request->input('price', []);
+            $duedate = $request->input('due_date', []);
 
             $processedTaskIds = [];
 
-            if (!empty($productTypes) && is_array($productTypes)) {
+            if (! empty($productTypes) && is_array($productTypes)) {
                 foreach ($productTypes as $i => $type) {
-                    if (!empty($productIds[$i])) {
+                    if (! empty($productIds[$i])) {
 
-                        $taskId = !empty($taskIds[$i]) ? $taskIds[$i] : null;
+                        $taskId = ! empty($taskIds[$i]) ? $taskIds[$i] : null;
 
                         $taskData = [
-                            'ticket_id'    => $ticket->id,
+                            'ticket_id' => $ticket->id,
                             'product_type' => $type,
-                            'product_id'   => $productIds[$i],
-                            'variant_id'   => !empty($variantIds[$i]) ? $variantIds[$i] : null,
-                            'due_date'     => $duedate[$i] ?? null,
-                            'quantity'     => $quantities[$i] ?? 1,
-                            'price'        => $prices[$i] ?? 0.00,
+                            'product_id' => $productIds[$i],
+                            'variant_id' => ! empty($variantIds[$i]) ? $variantIds[$i] : null,
+                            'due_date' => $duedate[$i] ?? null,
+                            'quantity' => $quantities[$i] ?? 1,
+                            'price' => $prices[$i] ?? 0.00,
                         ];
 
                         if ($taskId) {
@@ -765,7 +770,7 @@ class TicketController extends Controller
                 }
             }
 
-            if (!empty($processedTaskIds)) {
+            if (! empty($processedTaskIds)) {
                 Task::query()
                     ->where('ticket_id', $ticket->id)
                     ->whereNotIn('id', $processedTaskIds)
@@ -777,11 +782,11 @@ class TicketController extends Controller
             return redirect()->back()->with('success', 'Ticket updated successfully.');
             // return redirect()->route($this->moduleUrl ?? 'admin.tickets.index')->with('success', 'Ticket updated successfully.');
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Ticket Update Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'request' => $request->except(['attachments', 'existing_attachments']),
             ]);
 
@@ -799,11 +804,11 @@ class TicketController extends Controller
             }
 
             if (in_array($request->status, ['completed', 'cancel_requested', 'cancelled', 'refund'])) {
-                $incompleteTasks = \App\Models\Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
+                $incompleteTasks = Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
                 if ($incompleteTasks > 0) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Cannot change status to completed/cancelled. All tasks must be completed first.'
+                        'message' => 'Cannot change status to completed/cancelled. All tasks must be completed first.',
                     ]);
                 }
             }
@@ -818,7 +823,7 @@ class TicketController extends Controller
                     'ref_type' => 'internal_note',
                     'title' => 'Status Updated',
                     'datetime' => now(),
-                    'text' => 'Ticket status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $ticket->status)),
+                    'text' => 'Ticket status changed from '.ucfirst(str_replace('_', ' ', $oldStatus)).' to '.ucfirst(str_replace('_', ' ', $ticket->status)),
                     'user_id' => Auth::id(),
                 ]);
             }
@@ -826,9 +831,9 @@ class TicketController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Ticket status updated successfully!',
-                'data' => $ticket
+                'data' => $ticket,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Ticket Status Update Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -838,7 +843,7 @@ class TicketController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -854,9 +859,9 @@ class TicketController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Ticket deleted successfully.'
+                'message' => 'Ticket deleted successfully.',
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Ticket Destroy Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -865,7 +870,7 @@ class TicketController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -876,20 +881,20 @@ class TicketController extends Controller
             $orderId = decrypt($request->order_id);
 
             $order = Order::with([
-                'tickets:id,ticket_number,datetime,order_id,user_id,developer_id,order_item_id,status,cancelled_by,cancel_reason','user:id,name','orderItems:id,order_id,product_id,product_name,product_type,variant_id,variant_name,product_price,total_amount','tickets.orderItems:id,order_id,product_id,product_name,product_type,variant_id,variant_name,product_price'])->select(['id','user_id','order_number','date_time'
-            ])->findOrFail($orderId);
+                'tickets:id,ticket_number,datetime,order_id,user_id,developer_id,order_item_id,status,cancelled_by,cancel_reason', 'user:id,name', 'orderItems:id,order_id,product_id,product_name,product_type,variant_id,variant_name,product_price,total_amount', 'tickets.orderItems:id,order_id,product_id,product_name,product_type,variant_id,variant_name,product_price'])->select(['id', 'user_id', 'order_number', 'date_time',
+                ])->findOrFail($orderId);
 
             $html = view('admin.task.ticket_list', compact('order'))->render();
 
             return response()->json([
                 'status' => 'success',
-                'html'   => $html
+                'html' => $html,
             ]);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unauthorized action.'
+                'message' => 'Unauthorized action.',
             ], 403);
         }
     }
@@ -917,7 +922,7 @@ class TicketController extends Controller
 
             $user = User::create($validatedData);
 
-            if ($user && !empty($roleId)) {
+            if ($user && ! empty($roleId)) {
                 UserRole::create([
                     'user_id' => $user->id,
                     'role_id' => $roleId,
@@ -931,9 +936,9 @@ class TicketController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                ]
+                ],
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             \Log::error('AJAX User Store Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -942,7 +947,7 @@ class TicketController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create user: ' . $e->getMessage()
+                'message' => 'Failed to create user: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -950,16 +955,16 @@ class TicketController extends Controller
     public function getDevUser()
     {
         $data = User::query()
-                ->with(['roles'])
-                ->where('status', 1)
-                ->whereHas('roles', function($sq) {
-                    $sq->whereNotIn('role_id', [User::IS_ADMIN, User::IS_BUYER]);
-                })
-                ->get();
+            ->with(['roles'])
+            ->where('status', 1)
+            ->whereHas('roles', function ($sq) {
+                $sq->whereNotIn('role_id', [User::IS_ADMIN, User::IS_BUYER]);
+            })
+            ->get();
 
         return response()->json([
             'success' => true,
-            'data' => $data
+            'data' => $data,
         ]);
     }
 
@@ -979,13 +984,13 @@ class TicketController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Developer assigned successfully',
-                'data' => $ticket
+                'data' => $ticket,
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'Ticket not found'
+            'message' => 'Ticket not found',
         ], 404);
     }
 
@@ -997,7 +1002,7 @@ class TicketController extends Controller
 
         return response()->json([
             'success' => 1,
-            'variants' => $variants
+            'variants' => $variants,
         ]);
     }
 
@@ -1005,15 +1010,15 @@ class TicketController extends Controller
     {
         $request->validate([
             'ticket_id' => 'required',
-            'status' => 'required|in:pending,assign_requested,assigned,assign_not_accepted,in_progress,completed,cancel_requested,cancelled,refund'
+            'status' => 'required|in:pending,assign_requested,assigned,assign_not_accepted,in_progress,completed,cancel_requested,cancelled,refund',
         ]);
 
         try {
             $ticket_id = decrypt($request->ticket_id);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid Ticket ID'
+                'message' => 'Invalid Ticket ID',
             ], 400);
         }
 
@@ -1026,11 +1031,11 @@ class TicketController extends Controller
             }
 
             if (in_array($request->status, ['completed', 'cancel_requested', 'cancelled', 'refund'])) {
-                $incompleteTasks = \App\Models\Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
+                $incompleteTasks = Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
                 if ($incompleteTasks > 0) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Cannot change status to completed/cancelled. All tasks must be completed first.'
+                        'message' => 'Cannot change status to completed/cancelled. All tasks must be completed first.',
                     ]);
                 }
             }
@@ -1045,7 +1050,7 @@ class TicketController extends Controller
                     'ref_type' => 'internal_note',
                     'title' => 'Status Updated',
                     'datetime' => now(),
-                    'text' => 'Ticket status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $ticket->status)),
+                    'text' => 'Ticket status changed from '.ucfirst(str_replace('_', ' ', $oldStatus)).' to '.ucfirst(str_replace('_', ' ', $ticket->status)),
                     'user_id' => Auth::id(),
                 ]);
             }
@@ -1053,41 +1058,41 @@ class TicketController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Ticket status updated successfully!',
-                'data' => $ticket
+                'data' => $ticket,
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'Ticket not found'
+            'message' => 'Ticket not found',
         ], 404);
     }
 
     public function getItemQty(Request $request)
     {
         $request->validate([
-            'order_id'     => 'required|integer',
-            'product_id'   => 'required|integer',
+            'order_id' => 'required|integer',
+            'product_id' => 'required|integer',
             'product_type' => 'required|string',
         ]);
 
         $orderItem = OrderItem::where('order_id', $request->order_id)
-                            ->where('product_id', $request->product_id)
-                            ->where('product_type', $request->product_type)
-                            ->first();
+            ->where('product_id', $request->product_id)
+            ->where('product_type', $request->product_type)
+            ->first();
 
         if ($orderItem) {
             return response()->json([
                 'success' => true,
-                'data'    => $orderItem,
-                'qty'     => $orderItem->product_qty ?? 1,
-                'price'   => $orderItem->product_price ?? 0
+                'data' => $orderItem,
+                'qty' => $orderItem->product_qty ?? 1,
+                'price' => $orderItem->product_price ?? 0,
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'Item not found in this order.'
+            'message' => 'Item not found in this order.',
         ]);
     }
 
@@ -1099,54 +1104,54 @@ class TicketController extends Controller
         try {
             DB::beginTransaction();
 
-            if (!$ticket_id) {
+            if (! $ticket_id) {
                 $ticket = Ticket::create([
-                    'ticket_number' => 'TCK-' . strtoupper(Str::random(6)),
-                    'datetime'      => now(),
-                    'user_id'       => null,
-                    'name'          => null,
-                    'email'         => null,
+                    'ticket_number' => 'TCK-'.strtoupper(Str::random(6)),
+                    'datetime' => now(),
+                    'user_id' => null,
+                    'name' => null,
+                    'email' => null,
                     'cc_recipients' => null,
-                    'subject'       => 'Create Tasks.',
+                    'subject' => 'Create Tasks.',
                     'department_id' => null,
-                    'assign_id'     => null,
-                    'priority'      => 'Low',
-                    'description'   => null,
-                    'note'          => null,
-                    'status'        => 'pending',
+                    'assign_id' => null,
+                    'priority' => 'Low',
+                    'description' => null,
+                    'note' => null,
+                    'status' => 'pending',
                 ]);
                 $ticket_id = $ticket->id;
             }
 
             if ($ticket_id) {
-                $taskIds      = $request->input('task_id', []);
+                $taskIds = $request->input('task_id', []);
                 $productTypes = $request->input('product_type', []);
-                $productIds   = $request->input('product_id', []);
-                $variantIds   = $request->input('variant_id', []);
-                $quantities   = $request->input('quantity', []);
-                $prices       = $request->input('price', []);
-                $duedate      = $request->input('due_date', []);
+                $productIds = $request->input('product_id', []);
+                $variantIds = $request->input('variant_id', []);
+                $quantities = $request->input('quantity', []);
+                $prices = $request->input('price', []);
+                $duedate = $request->input('due_date', []);
                 $departmentId = $request->input('department_id', []);
-                $assignId     = $request->input('assign_id', []);
+                $assignId = $request->input('assign_id', []);
 
                 $processedTaskIds = [];
 
-                if (!empty($productTypes) && is_array($productTypes)) {
+                if (! empty($productTypes) && is_array($productTypes)) {
                     foreach ($productTypes as $i => $type) {
-                        if (!empty($productIds[$i])) {
+                        if (! empty($productIds[$i])) {
 
-                            $taskId = !empty($taskIds[$i]) ? $taskIds[$i] : null;
+                            $taskId = ! empty($taskIds[$i]) ? $taskIds[$i] : null;
 
                             $taskData = [
-                                'ticket_id'     => $ticket_id,
-                                'product_type'  => $type,
-                                'product_id'    => $productIds[$i],
-                                'variant_id'    => !empty($variantIds[$i]) ? $variantIds[$i] : null,
-                                'due_date'      => $duedate[$i] ?? null,
-                                'quantity'      => $quantities[$i] ?? 1,
-                                'price'         => $prices[$i] ?? 0.00,
+                                'ticket_id' => $ticket_id,
+                                'product_type' => $type,
+                                'product_id' => $productIds[$i],
+                                'variant_id' => ! empty($variantIds[$i]) ? $variantIds[$i] : null,
+                                'due_date' => $duedate[$i] ?? null,
+                                'quantity' => $quantities[$i] ?? 1,
+                                'price' => $prices[$i] ?? 0.00,
                                 'department_id' => $departmentId[$i] ?? null,
-                                'assign_id'     => $assignId[$i] ?? null,
+                                'assign_id' => $assignId[$i] ?? null,
                             ];
 
                             if ($taskId) {
@@ -1164,7 +1169,7 @@ class TicketController extends Controller
                     }
                 }
 
-                if (!empty($processedTaskIds)) {
+                if (! empty($processedTaskIds)) {
                     Task::query()
                         ->where('ticket_id', $ticket_id)
                         ->whereNotIn('id', $processedTaskIds)
@@ -1184,13 +1189,13 @@ class TicketController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
 
-            Log::error('Error creating Task Ticket: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+            Log::error('Error creating Task Ticket: '.$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()->back()
-                            ->withInput()
-                            ->with('error', 'An error occurred while saving the tasks. Please try again.');
+                ->withInput()
+                ->with('error', 'An error occurred while saving the tasks. Please try again.');
         }
     }
 
@@ -1200,10 +1205,10 @@ class TicketController extends Controller
         $request->validate([
             'ticket_id' => 'required|exists:tickets,id',
             'text' => 'required_without:attachment|nullable|string',
-            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,zip|max:5120'
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,zip|max:5120',
         ]);
 
-        $chat = new Chat();
+        $chat = new Chat;
         $chat->ticket_id = $request->ticket_id;
         $chat->user_id = Auth::id();
         $chat->task_id = $request->task_id;
@@ -1221,39 +1226,40 @@ class TicketController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Message sent successfully!',
-            'data' => $chat
+            'data' => $chat,
         ]);
     }
 
     public function getChats(Request $request)
     {
         $request->validate([
-            'ticket_id' => 'required|exists:tickets,id'
+            'ticket_id' => 'required|exists:tickets,id',
         ]);
 
         $chats = Chat::with('user')
-                    ->where('ticket_id', $request->ticket_id)
-                    ->orderBy('created_at', 'asc')
-                    ->get();
+            ->where('ticket_id', $request->ticket_id)
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         $html = view('admin.ticket.parts.list-chat', compact('chats'))->render();
 
         return response()->json([
             'status' => 'success',
-            'html' => $html
+            'html' => $html,
         ]);
     }
 
     public function deleteChat(Request $request)
     {
         $request->validate([
-            'chat_id' => 'required|exists:chats,id'
+            'chat_id' => 'required|exists:chats,id',
         ]);
 
         $chat = Chat::findOrFail($request->chat_id);
 
         if ($chat->user_id == auth()->id()) {
             $chat->delete();
+
             return response()->json(['status' => 'success', 'message' => 'Message deleted successfully!']);
         }
 
@@ -1280,23 +1286,23 @@ class TicketController extends Controller
             ];
 
             // Quill editor text ne <p> tag ma wrap kare chhe, aathi ahi pan <p> lagavvu joiye jethi UI match thay
-            $newFormattedText = '<p>' . $request->text . '</p>';
+            $newFormattedText = '<p>'.$request->text.'</p>';
 
             $chat->update([
                 'text' => $newFormattedText,
                 'is_edited' => true,
-                'edit_history' => $history
+                'edit_history' => $history,
             ]);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Message updated successfully!'
+                'message' => 'Message updated successfully!',
             ]);
         }
 
         return response()->json([
             'status' => 'error',
-            'message' => 'Unauthorized action.'
+            'message' => 'Unauthorized action.',
         ], 403);
     }
 
@@ -1314,7 +1320,7 @@ class TicketController extends Controller
         ]);
 
         try {
-            if (!empty($request->description)) {
+            if (! empty($request->description)) {
                 Note::create([
                     'ref_id' => $ticket->id,
                     'ref_type' => 'reply',
@@ -1326,7 +1332,7 @@ class TicketController extends Controller
 
             if ($request->ticket_status) {
                 if (in_array($request->ticket_status, ['closed', 'resolved'])) {
-                    $incompleteTasks = \App\Models\Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
+                    $incompleteTasks = Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
                     if ($incompleteTasks > 0) {
                         return redirect()->back()->withInput()->with('error', 'Reply posted, but cannot close ticket. All tasks must be completed first.');
                     }
@@ -1340,19 +1346,20 @@ class TicketController extends Controller
                         'ref_type' => 'reply',
                         'title' => 'Status Updated',
                         'datetime' => now(),
-                        'text' => 'Ticket status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $request->ticket_status)),
+                        'text' => 'Ticket status changed from '.ucfirst(str_replace('_', ' ', $oldStatus)).' to '.ucfirst(str_replace('_', ' ', $request->ticket_status)),
                         'user_id' => Auth::id(),
                     ]);
                 }
             }
 
             return redirect()->back()->with('success', 'Reply posted successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Store Reply Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
+
             return redirect()->back()->with('error', 'Failed to post reply. Please try again.');
         }
     }
@@ -1371,7 +1378,7 @@ class TicketController extends Controller
         ]);
 
         try {
-            if (!empty($request->internal_note)) {
+            if (! empty($request->internal_note)) {
                 Note::create([
                     'ref_id' => $ticket->id,
                     'ref_type' => 'internal_note',
@@ -1384,7 +1391,7 @@ class TicketController extends Controller
 
             if ($request->ticket_status) {
                 if (in_array($request->ticket_status, ['closed', 'resolved'])) {
-                    $incompleteTasks = \App\Models\Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
+                    $incompleteTasks = Task::where('ticket_id', $ticket->id)->where('status', '!=', 'completed')->count();
                     if ($incompleteTasks > 0) {
                         return redirect()->back()->withInput()->with('error', 'Note posted, but cannot close ticket. All tasks must be completed first.');
                     }
@@ -1398,19 +1405,20 @@ class TicketController extends Controller
                         'ref_type' => 'internal_note',
                         'title' => 'Status Updated',
                         'datetime' => now(),
-                        'text' => 'Ticket status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $request->ticket_status)),
+                        'text' => 'Ticket status changed from '.ucfirst(str_replace('_', ' ', $oldStatus)).' to '.ucfirst(str_replace('_', ' ', $request->ticket_status)),
                         'user_id' => Auth::id(),
                     ]);
                 }
             }
 
             return redirect()->back()->with('success', 'Internal note posted successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             \Log::error('Store Internal Note Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
+
             return redirect()->back()->with('error', 'Failed to post internal note. Please try again.');
         }
     }
@@ -1420,19 +1428,19 @@ class TicketController extends Controller
         $ticketId = decrypt($id);
         $ticket = Ticket::findOrFail($ticketId);
 
-        $departments = \App\Models\Department::query()->where('status', 1)->get();
-        $products  = \App\Models\DigitalProduct::query()->where('status', 1)->get();
-        $services  = \App\Models\DigitalService::with('variants')->where('status', 1)->get();
-        $developers = \App\Models\User::query()
-                ->with(['roles','designation'])
-                ->where('status', 1)
-                ->whereHas('roles', function($sq) {
-                    $sq->whereIn('role_id', [\App\Models\User::IS_DEVELOPER])
-                    ->whereNotIn('role_id', [\App\Models\User::IS_ADMIN]);
-                })
-                ->get();
+        $departments = Department::query()->where('status', 1)->get();
+        $products = DigitalProduct::query()->where('status', 1)->get();
+        $services = DigitalService::with('variants')->where('status', 1)->get();
+        $developers = User::query()
+            ->with(['roles', 'designation'])
+            ->where('status', 1)
+            ->whereHas('roles', function ($sq) {
+                $sq->whereIn('role_id', [User::IS_DEVELOPER])
+                    ->whereNotIn('role_id', [User::IS_ADMIN]);
+            })
+            ->get();
 
-        $task_number = 'TSK-' . strtoupper(\Illuminate\Support\Str::random(6));
+        $task_number = 'TSK-'.strtoupper(Str::random(6));
         $action = 'Create';
 
         return view('admin.ticket.tasks.form', compact('ticket', 'departments', 'products', 'services', 'developers', 'task_number', 'action'));
@@ -1444,14 +1452,14 @@ class TicketController extends Controller
         $ticket = Ticket::findOrFail($ticketId);
 
         $validatedData = $request->validate([
-            'task_number'   => 'required',
-            'title'         => 'required|string|max:255',
-            'product_type'  => 'required',
-            'description'   => 'required',
-            'status'        => 'required',
-            'due_date'      => 'required',
+            'task_number' => 'required',
+            'title' => 'required|string|max:255',
+            'product_type' => 'required',
+            'description' => 'required',
+            'status' => 'required',
+            'due_date' => 'required',
             'department_id' => 'required',
-            'assign_id'     => 'required'
+            'assign_id' => 'required',
         ]);
 
         $product_id = $request->input('product_id');
@@ -1468,26 +1476,26 @@ class TicketController extends Controller
         $variant_name = null;
 
         if ($product_type == 'product') {
-            $products = \App\Models\DigitalProduct::query()
-                        ->where('id', $product_id)
-                        ->where('status', 1)
-                        ->first();
+            $products = DigitalProduct::query()
+                ->where('id', $product_id)
+                ->where('status', 1)
+                ->first();
             $product_name = $products?->name ?? '';
             $product_price = $products?->price ?? 0;
-        } else if ($product_type == 'service') {
-            $services = \App\Models\DigitalService::query()
-                        ->where('id', $service_id)
-                        ->with(['variants' => function ($sq) use ($is_variant, $service_variant) {
-                            if ($is_variant && $service_variant) {
-                                $sq->where('id', $service_variant);
-                            }
-                        }])
-                        ->where('status', 1)
-                        ->first();
+        } elseif ($product_type == 'service') {
+            $services = DigitalService::query()
+                ->where('id', $service_id)
+                ->with(['variants' => function ($sq) use ($is_variant, $service_variant) {
+                    if ($is_variant && $service_variant) {
+                        $sq->where('id', $service_variant);
+                    }
+                }])
+                ->where('status', 1)
+                ->first();
             $product_name = $services?->name ?? '';
             $product_price = $services?->price ?? 0;
 
-            if ($services && !empty($services->variants[0])) {
+            if ($services && ! empty($services->variants[0])) {
                 $variant_id = $services->variants[0]->id;
                 $variant_name = $services->variants[0]->name;
                 $product_price = $services->variants[0]->price;
@@ -1495,29 +1503,29 @@ class TicketController extends Controller
         }
 
         try {
-            \App\Models\Task::create([
-                'title'          => $request->title,
-                'task_number'    => $request->task_number,
-                'ticket_id'      => $ticket->id,
-                'department_id'  => $request->department_id,
-                'user_id'        => $ticket->user_id,
-                'product_type'   => $request->product_type,
-                'product_id'     => (($request->product_type == 'product') ? $request->product_id : $request->service_id),
-                'due_date'       => $duedate,
-                'variant_id'     => $variant_id,
-                'variant_name'   => $variant_name,
-                'quantity'       => 1,
-                'price'          => $product_price ?? 0.00,
-                'status'         => !empty($request->status) ? $request->status : 'pending',
-                'description'    => $request->description,
-                'cancel_reason'  => $request->cancel_reason,
-                'product_name'   => $product_name,
-                'assign_id'      => $request->assign_id
+            Task::create([
+                'title' => $request->title,
+                'task_number' => $request->task_number,
+                'ticket_id' => $ticket->id,
+                'department_id' => $request->department_id,
+                'user_id' => $ticket->user_id,
+                'product_type' => $request->product_type,
+                'product_id' => (($request->product_type == 'product') ? $request->product_id : $request->service_id),
+                'due_date' => $duedate,
+                'variant_id' => $variant_id,
+                'variant_name' => $variant_name,
+                'quantity' => 1,
+                'price' => $product_price ?? 0.00,
+                'status' => ! empty($request->status) ? $request->status : 'pending',
+                'description' => $request->description,
+                'cancel_reason' => $request->cancel_reason,
+                'product_name' => $product_name,
+                'assign_id' => $request->assign_id,
             ]);
 
             return redirect()->route('admin.tickets.edit', ['ticket' => encrypt($ticket->id), 'tab' => 'task-form'])->with('success', 'Task created successfully.');
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Task Store Error', [
+        } catch (Exception $e) {
+            Log::error('Task Store Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -1534,19 +1542,19 @@ class TicketController extends Controller
         $ticket = Ticket::findOrFail($ticketId);
 
         $decryptedTaskId = decrypt($taskId);
-        $task = \App\Models\Task::findOrFail($decryptedTaskId);
+        $task = Task::findOrFail($decryptedTaskId);
 
-        $departments = \App\Models\Department::query()->where('status', 1)->get();
-        $products  = \App\Models\DigitalProduct::query()->where('status', 1)->get();
-        $services  = \App\Models\DigitalService::with('variants')->where('status', 1)->get();
-        $developers = \App\Models\User::query()
-                ->with(['roles','designation'])
-                ->where('status', 1)
-                ->whereHas('roles', function($sq) {
-                    $sq->whereIn('role_id', [\App\Models\User::IS_DEVELOPER])
-                    ->whereNotIn('role_id', [\App\Models\User::IS_ADMIN]);
-                })
-                ->get();
+        $departments = Department::query()->where('status', 1)->get();
+        $products = DigitalProduct::query()->where('status', 1)->get();
+        $services = DigitalService::with('variants')->where('status', 1)->get();
+        $developers = User::query()
+            ->with(['roles', 'designation'])
+            ->where('status', 1)
+            ->whereHas('roles', function ($sq) {
+                $sq->whereIn('role_id', [User::IS_DEVELOPER])
+                    ->whereNotIn('role_id', [User::IS_ADMIN]);
+            })
+            ->get();
 
         $action = 'Edit';
 
@@ -1559,17 +1567,17 @@ class TicketController extends Controller
         $ticket = Ticket::findOrFail($ticketId);
 
         $decryptedTaskId = decrypt($taskId);
-        $task = \App\Models\Task::findOrFail($decryptedTaskId);
+        $task = Task::findOrFail($decryptedTaskId);
 
         $validatedData = $request->validate([
-            'task_number'   => 'required',
-            'title'         => 'required|string|max:255',
-            'product_type'  => 'required',
-            'description'   => 'required',
-            'status'        => 'required',
-            'due_date'      => 'required',
+            'task_number' => 'required',
+            'title' => 'required|string|max:255',
+            'product_type' => 'required',
+            'description' => 'required',
+            'status' => 'required',
+            'due_date' => 'required',
             'department_id' => 'required',
-            'assign_id'     => 'required'
+            'assign_id' => 'required',
         ]);
 
         $product_id = $request->input('product_id');
@@ -1586,26 +1594,26 @@ class TicketController extends Controller
         $variant_name = null;
 
         if ($product_type == 'product') {
-            $products = \App\Models\DigitalProduct::query()
-                        ->where('id', $product_id)
-                        ->where('status', 1)
-                        ->first();
+            $products = DigitalProduct::query()
+                ->where('id', $product_id)
+                ->where('status', 1)
+                ->first();
             $product_name = $products?->name ?? '';
             $product_price = $products?->price ?? 0;
-        } else if ($product_type == 'service') {
-            $services = \App\Models\DigitalService::query()
-                        ->where('id', $service_id)
-                        ->with(['variants' => function ($sq) use ($is_variant, $service_variant) {
-                            if ($is_variant && $service_variant) {
-                                $sq->where('id', $service_variant);
-                            }
-                        }])
-                        ->where('status', 1)
-                        ->first();
+        } elseif ($product_type == 'service') {
+            $services = DigitalService::query()
+                ->where('id', $service_id)
+                ->with(['variants' => function ($sq) use ($is_variant, $service_variant) {
+                    if ($is_variant && $service_variant) {
+                        $sq->where('id', $service_variant);
+                    }
+                }])
+                ->where('status', 1)
+                ->first();
             $product_name = $services?->name ?? '';
             $product_price = $services?->price ?? 0;
 
-            if ($services && !empty($services->variants[0])) {
+            if ($services && ! empty($services->variants[0])) {
                 $variant_id = $services->variants[0]->id;
                 $variant_name = $services->variants[0]->name;
                 $product_price = $services->variants[0]->price;
@@ -1615,37 +1623,37 @@ class TicketController extends Controller
         try {
             $oldStatus = $task->status;
             $task->update([
-                'title'          => $request->title,
-                'task_number'    => $request->task_number,
-                'ticket_id'      => $ticket->id,
-                'department_id'  => $request->department_id,
-                'product_type'   => $request->product_type,
-                'product_id'     => (($request->product_type == 'product') ? $request->product_id : $request->service_id),
-                'due_date'       => $duedate,
-                'variant_id'     => $variant_id,
-                'variant_name'   => $variant_name,
-                'price'          => $product_price ?? 0.00,
-                'status'         => !empty($request->status) ? $request->status : 'pending',
-                'description'    => $request->description,
-                'cancel_reason'  => $request->cancel_reason,
-                'product_name'   => $product_name,
-                'assign_id'      => $request->assign_id
+                'title' => $request->title,
+                'task_number' => $request->task_number,
+                'ticket_id' => $ticket->id,
+                'department_id' => $request->department_id,
+                'product_type' => $request->product_type,
+                'product_id' => (($request->product_type == 'product') ? $request->product_id : $request->service_id),
+                'due_date' => $duedate,
+                'variant_id' => $variant_id,
+                'variant_name' => $variant_name,
+                'price' => $product_price ?? 0.00,
+                'status' => ! empty($request->status) ? $request->status : 'pending',
+                'description' => $request->description,
+                'cancel_reason' => $request->cancel_reason,
+                'product_name' => $product_name,
+                'assign_id' => $request->assign_id,
             ]);
 
             if ($oldStatus != $request->status && $request->status) {
-                \App\Models\Note::create([
+                Note::create([
                     'task_id' => $task->id,
                     'ref_type' => 'internal_note',
                     'title' => 'Status Updated',
                     'datetime' => now(),
-                    'text' => 'Task status changed from ' . ucfirst(str_replace('_', ' ', $oldStatus)) . ' to ' . ucfirst(str_replace('_', ' ', $request->status)),
+                    'text' => 'Task status changed from '.ucfirst(str_replace('_', ' ', $oldStatus)).' to '.ucfirst(str_replace('_', ' ', $request->status)),
                     'user_id' => Auth::id(),
                 ]);
             }
 
             return redirect()->route('admin.tickets.edit', ['ticket' => encrypt($ticket->id), 'tab' => 'task-form'])->with('success', 'Task updated successfully.');
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Task Update Error', [
+        } catch (Exception $e) {
+            Log::error('Task Update Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -1663,13 +1671,13 @@ class TicketController extends Controller
             Ticket::findOrFail($ticketId); // verify ticket
 
             $decryptedTaskId = decrypt($taskId);
-            $task = \App\Models\Task::findOrFail($decryptedTaskId);
+            $task = Task::findOrFail($decryptedTaskId);
 
             $task->delete();
 
             return redirect()->route('admin.tickets.edit', ['ticket' => encrypt($ticketId), 'tab' => 'task-form'])->with('success', 'Task deleted successfully.');
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Task Delete Error', [
+        } catch (Exception $e) {
+            Log::error('Task Delete Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -1685,7 +1693,7 @@ class TicketController extends Controller
         // print_r(config('imap.accounts.default'));
         // exit;
         try {
-            $departments = \App\Models\Department::whereNotNull('email_id')->with('emailAccount')->get();
+            $departments = Department::whereNotNull('email_id')->with('emailAccount')->get();
             $totalFetched = 0;
 
             foreach ($departments as $department) {
@@ -1703,20 +1711,21 @@ class TicketController extends Controller
             if ($totalFetched === 0) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'No emails found to fetch.'
+                    'message' => 'No emails found to fetch.',
                 ]);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => "Successfully fetched {$totalFetched} email(s) and generated tickets."
+                'message' => "Successfully fetched {$totalFetched} email(s) and generated tickets.",
             ]);
 
-        } catch (\Exception $e) {
-            Log::error('FetchEmails AJAX Error: ' . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('FetchEmails AJAX Error: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while fetching emails: ' . $e->getMessage()
+                'message' => 'An error occurred while fetching emails: '.$e->getMessage(),
             ], 500);
         } finally {
             if (function_exists('imap_errors')) {
@@ -1728,14 +1737,15 @@ class TicketController extends Controller
     protected function fetchFromCustomAccount($emailAccount, $departmentId)
     {
         try {
-            \App\Helpers\Helper::setDynamicImapConfig($emailAccount, 'default');
-            
-            $client = \Webklex\IMAP\Facades\Client::account('default');
+            Helper::setDynamicImapConfig($emailAccount, 'default');
+
+            $client = Client::account('default');
             $client->connect();
-            
+
             return $this->processClientMessages($client, $emailAccount->protocol, $departmentId);
-        } catch (\Exception $e) {
-            Log::error("FetchEmails Custom Account Error ({$emailAccount->email}): " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("FetchEmails Custom Account Error ({$emailAccount->email}): ".$e->getMessage());
+
             return 0;
         }
     }
@@ -1748,13 +1758,14 @@ class TicketController extends Controller
         }
 
         try {
-            $client = \Webklex\IMAP\Facades\Client::account('default');
+            $client = Client::account('default');
             $client->connect();
             $protocol = config('imap.accounts.default.protocol');
-            
+
             return $this->processClientMessages($client, $protocol, null);
-        } catch (\Exception $e) {
-            Log::error('FetchEmails Default Account Error: ' . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('FetchEmails Default Account Error: '.$e->getMessage());
+
             return 0;
         }
     }
@@ -1770,7 +1781,7 @@ class TicketController extends Controller
         }
 
         $count = $messages->count();
-        
+
         if ($count === 0) {
             return 0;
         }
@@ -1778,18 +1789,18 @@ class TicketController extends Controller
         $fetchedCount = 0;
         foreach ($messages as $message) {
             $subject = $message->getSubject();
-            
+
             $fromAddresses = $message->getFrom();
             $from = $fromAddresses->count() > 0 ? $fromAddresses[0]->mail : 'Unknown Sender';
-            
+
             $body = $message->getHTMLBody();
             if (empty($body)) {
                 $body = $message->getTextBody();
-                if (!empty($body)) {
+                if (! empty($body)) {
                     $body = nl2br(htmlspecialchars($body));
                 }
             }
-            
+
             $messageId = $message->getMessageId();
             $date = $message->getDate();
 
@@ -1798,25 +1809,25 @@ class TicketController extends Controller
             //     'from'       => $from,
             //     'subject'    => $subject,
             //     'date'       => $date,
-            //     'body'       => \Illuminate\Support\Str::limit($body, 1000) 
+            //     'body'       => \Illuminate\Support\Str::limit($body, 1000)
             // ]);
 
-            $user = \App\Models\User::where('email', $from)->first();
-            
-            if (!$user) {
-                $newName = ($fromAddresses->count() > 0 && !empty($fromAddresses[0]->personal)) ? $fromAddresses[0]->personal : 'Unknown Sender';
-                
-                $user = \App\Models\User::create([
-                    'name'     => $newName,
-                    'email'    => $from,
-                    'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(10)),
-                    'status'   => '1',
+            $user = User::where('email', $from)->first();
+
+            if (! $user) {
+                $newName = ($fromAddresses->count() > 0 && ! empty($fromAddresses[0]->personal)) ? $fromAddresses[0]->personal : 'Unknown Sender';
+
+                $user = User::create([
+                    'name' => $newName,
+                    'email' => $from,
+                    'password' => Hash::make(Str::random(10)),
+                    'status' => '1',
                 ]);
 
                 if ($user) {
-                    \App\Models\UserRole::create([
+                    UserRole::create([
                         'user_id' => $user->id,
-                        'role_id' => \App\Models\User::IS_BUYER,
+                        'role_id' => User::IS_BUYER,
                     ]);
                 }
             }
@@ -1825,24 +1836,24 @@ class TicketController extends Controller
             $name = $user ? $user->name : 'Unknown Sender';
 
             $ticketData = [
-                'ticket_number'    => 'TCK-' . strtoupper(\Illuminate\Support\Str::random(6)),
-                'datetime'         => now(),
-                'user_id'          => $userId,
-                'name'             => $name,
-                'email'            => $from,
-                'subject'          => $subject,
-                'body'             => $body,
-                'ticket_source'    => 'email',
-                'status'           => 'pending',
-                'ticket_status'    => 'open',
-                'priority'         => 'Low'
+                'ticket_number' => 'TCK-'.strtoupper(Str::random(6)),
+                'datetime' => now(),
+                'user_id' => $userId,
+                'name' => $name,
+                'email' => $from,
+                'subject' => $subject,
+                'body' => $body,
+                'ticket_source' => 'email',
+                'status' => 'pending',
+                'ticket_status' => 'open',
+                'priority' => 'Low',
             ];
 
             if ($departmentId) {
                 $ticketData['department_id'] = $departmentId;
             }
 
-            \App\Models\Ticket::create($ticketData);
+            Ticket::create($ticketData);
 
             $message->delete();
             $fetchedCount++;
