@@ -16,11 +16,8 @@ return new class extends Migration
 
             $table->enum('event_type', ['single', 'series']);
 
-            $table->foreignId('series_id')
-                ->nullable()
-                ->constrained('event_series')
-                ->nullOnDelete();
-
+            $table->string('series_id')
+                ->nullable();
             $table->integer('series_edition')->nullable();
 
             $table->string('title');
@@ -53,7 +50,7 @@ return new class extends Migration
                 'published',
                 'ongoing',
                 'ended',
-                'cancelled'
+                'cancelled',
             ])->default('draft');
 
             $table->json('registration_form_schema')->nullable();
@@ -78,4 +75,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('events');
     }
-}; 
+};
