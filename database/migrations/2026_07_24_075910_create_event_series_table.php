@@ -16,10 +16,12 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
+            $table->foreignId('current_edition_id')->nullable();
             $table->boolean('is_archived')->default(false);
             $table->dateTime('date_time')->nullable();
             $table->tinyInteger('status')->default(0)->comment('1=Active, 0=Inactive');
             $table->timestamps();
+            $table->foreign('current_edition_id')->references('id')->on('events')->onDelete('set null');
         });
     }
 

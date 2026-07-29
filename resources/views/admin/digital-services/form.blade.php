@@ -11,7 +11,7 @@
             @endif
 
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label" for="name">Service Name <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
@@ -24,7 +24,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label" for="sku">SKU <span class="text-danger">*</span></label>
                         <div class="input-group mb-1">
@@ -37,7 +37,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label" for="category_id">Category <span class="text-danger">*</span></label>
                         <select class="form-select select2" name="category_id" id="category_id">
@@ -57,7 +57,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label" for="sub_category_id">Sub Category</label>
                         <select class="form-select select2" name="sub_category_id" id="sub_category_id">
@@ -288,8 +288,14 @@
                     allowClear: true,
                 });
 
-                $('#category_id').on('change', function() {
-                    let categoryId = $(this).val();
+                var catID = '{{ !empty($digitalservice->category_id) ? $digitalservice->category_id : '' }}';
+                var subCatID = '{{ !empty($digitalservice->sub_category_id) ? $digitalservice->sub_category_id : '' }}';
+
+                if (catID) {
+                    getSubCategory(catID, subCatID);
+                }
+
+                function getSubCategory(categoryId, subCategoryId = '') {
                     $('#sub_category_id').empty().append('<option value="">Select Sub Category</option>');
                     if (categoryId) {
                         $.ajax({
@@ -301,11 +307,17 @@
                             },
                             success: function(res) {
                                 $.each(res, function(key, value) {
-                                    $('#sub_category_id').append('<option value="'+ value.id +'">'+ value.name +'</option>');
+                                    var selected = (subCategoryId == value.id) ? 'selected' : '';
+                                    $('#sub_category_id').append('<option value="'+ value.id +'" ' + selected + '>'+ value.name +'</option>');
                                 });
                             }
                         });
                     }
+                }
+
+                $('#category_id').on('change', function() {
+                    let categoryId = $(this).val();
+                    getSubCategory(categoryId);
                 });
 
                 Quill.register("modules/htmlEditButton", htmlEditButton);

@@ -160,6 +160,16 @@ class SettingController extends Controller
                 $setting->imap_encryption = $request->imap_encryption;
                 $setting->imap_username = $request->imap_username;
                 $setting->imap_password = $request->imap_password;
+            } elseif ($tab === 'paypal-settings') {
+                $setting->paypal_mode = $request->paypal_mode;
+                $setting->paypal_client_id = $request->paypal_client_id;
+                $setting->paypal_client_secret = $request->paypal_client_secret;
+                $setting->paypal_currency = $request->paypal_currency;
+                $setting->paypal_webhook_url = $request->paypal_webhook_url;
+                $setting->paypal_return_url = $request->paypal_return_url;
+                $setting->paypal_cancel_url = $request->paypal_cancel_url;
+                $setting->paypal_enable_for_credits = $request->has('paypal_enable_for_credits') ? 1 : 0;
+                $setting->paypal_enable_for_events = $request->has('paypal_enable_for_events') ? 1 : 0;
             }
 
             $setting->save();
@@ -287,6 +297,43 @@ class SettingController extends Controller
 
             return redirect()->route('admin.settings.index', ['tab' => 'email-settings'])
                 ->with('error', 'Failed to send test email. Error: ' . $e->getMessage());
+        }
+    }
+
+    public function testPaypalConnection(Request $request)
+    {
+        $request->validate([
+            'paypal_mode' => 'required',
+            'paypal_client_id' => 'required',
+            'paypal_client_secret' => 'required',
+        ]);
+
+        $mode = $request->paypal_mode;
+        $clientId = $request->paypal_client_id;
+        $secret = $request->paypal_client_secret;
+
+        $url = $mode === 'live' ? 'https://api-m.paypal.com/v1/oauth2/token' : 'https://api-m.sandbox.paypal.com/v1/oauth2/token';
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withBasicAuth($clientId, $secret)
+                ->asForm()
+                ->post($url, [
+                    'grant_type' => 'client_credentials'
+                ]);
+
+            if ($response->successful()) {
+                return redirect()->route('admin.settings.index', ['tab' => 'paypal-settings'])
+                    ->with('success', 'PayPal connection successful! Credentials are valid.');
+            }
+
+            return redirect()->route('admin.settings.index', ['tab' => 'paypal-settings'])
+                ->with('error', 'PayPal connection failed. Invalid credentials. Response: ' . $response->json('error_description', 'Unknown error'));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('PayPal Test Connection Error', [
+                'message' => $e->getMessage(),
+            ]);
+            return redirect()->route('admin.settings.index', ['tab' => 'paypal-settings'])
+                ->with('error', 'Failed to test PayPal connection. Error: ' . $e->getMessage());
         }
     }
 }
