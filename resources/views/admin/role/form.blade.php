@@ -67,10 +67,10 @@
                                 <div class="card-header bg-light border-bottom py-2">
                                     <div class="form-check mb-0">
                                         <input class="form-check-input module-checkbox" type="checkbox"
-                                            id="{{ strtolower($module) }}-all"
+                                            id="{{ str_replace(" ", "-", strtolower($module)) }}-all"
                                             {{ $pTotal == $rpTotal ? 'checked' : '' }}>
                                         <label class="form-check-label fw-bold mt-1 text-uppercase"
-                                            for="{{ strtolower($module) }}-all"
+                                            for="{{ str_replace(" ", "-", strtolower($module)) }}-all"
                                             style="font-size: 0.85rem; letter-spacing: 0.5px;">
                                             {{ $module }}
                                         </label>
@@ -83,7 +83,7 @@
                                             @foreach ($permission as $perm)
                                                 <div class="form-check">
                                                     <input
-                                                        class="form-check-input permission-checkbox {{ strtolower($module) }}"
+                                                        class="form-check-input permission-checkbox {{ str_replace(" ", "-", strtolower($module)) }}"
                                                         type="checkbox" name="permissions[]"
                                                         value="{{ $perm->id }}"
                                                         id="{{ $perm->slug }}-{{ $perm->id }}"
