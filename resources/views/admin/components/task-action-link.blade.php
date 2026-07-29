@@ -80,7 +80,7 @@
         @endif
 
         {{-- Status Updates --}}
-        @if($show_status_options && $id)
+        {{-- @if($show_status_options && $id)
             <div class="dropdown-divider"></div>
             <h6 class="dropdown-header">Update Status</h6>
 
@@ -91,7 +91,7 @@
                     </a>
                 @endif
             @endforeach
-        @endif
+        @endif --}}
 
     </div>
 </div>
