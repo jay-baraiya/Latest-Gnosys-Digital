@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\EmailAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use App\Http\Controllers\Controller;
+use Yajra\DataTables\Facades\DataTables;
 
 class EmailAccountController extends Controller
 {
     protected $moduleName = 'Email Accounts';
+
     protected $moduleUrl = 'admin.email_accounts.index';
 
     public function __construct()
@@ -35,25 +35,25 @@ class EmailAccountController extends Controller
     {
         if ($request->ajax()) {
             $data = EmailAccount::query()
-            ->select(['id', 'name', 'email', 'protocol', 'status'])
-            ->when(!empty($request->is_deleted), function ($q){
-                $q->onlyTrashed();
-            })
-            ->when(!empty($request->input('search.value')), function ($query) use ($request) {
-                $query->where(function($q) use ($request) {
-                    $q->where('name', 'like', "%{$request->input('search.value')}%")
-                      ->orWhere('email', 'like', "%{$request->input('search.value')}%");
-                });
-            })->orderBy('id', 'DESC');
+                ->select(['id', 'name', 'email', 'protocol', 'status'])
+                ->when(! empty($request->is_deleted), function ($q) {
+                    $q->onlyTrashed();
+                })
+                ->when(! empty($request->input('search.value')), function ($query) use ($request) {
+                    $query->where(function ($q) use ($request) {
+                        $q->where('name', 'like', "%{$request->input('search.value')}%")
+                            ->orWhere('email', 'like', "%{$request->input('search.value')}%");
+                    });
+                })->orderBy('id', 'DESC');
 
             return DataTables::eloquent($data)
                 ->with('total_email_accounts', $data->count())
                 ->addIndexColumn()
                 ->editColumn('status', function ($row) {
                     if ($row->status == 1) {
-                        return '<a href="' . route('admin.email_accounts.updateStatus', ['id' => encrypt($row->id), 'status' => 0]) . '" class="badge badge-pill badge-status bg-success" id="statusUpdate">Active</a>';
+                        return '<a href="'.route('admin.email_accounts.updateStatus', ['id' => encrypt($row->id), 'status' => 0]).'" class="badge badge-pill badge-status bg-success" id="statusUpdate">Active</a>';
                     } else {
-                        return '<a href="' . route('admin.email_accounts.updateStatus', ['id' => encrypt($row->id), 'status' => 1]) . '" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
+                        return '<a href="'.route('admin.email_accounts.updateStatus', ['id' => encrypt($row->id), 'status' => 1]).'" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
                     }
                 })
                 ->addColumn('actions', function ($row) use ($request) {
@@ -77,6 +77,7 @@ class EmailAccountController extends Controller
     public function create()
     {
         view()->share('action', 'Create');
+
         return view('admin.email_account.form');
     }
 
@@ -109,6 +110,7 @@ class EmailAccountController extends Controller
     {
         view()->share('action', 'View');
         $email_account = EmailAccount::findOrFail(decrypt($id));
+
         return view('admin.email_account.show', compact('email_account'));
     }
 
@@ -119,6 +121,7 @@ class EmailAccountController extends Controller
     {
         view()->share('action', 'Edit');
         $email_account = EmailAccount::findOrFail(decrypt($id));
+
         return view('admin.email_account.form', compact('email_account'));
     }
 
@@ -141,7 +144,7 @@ class EmailAccountController extends Controller
         ]);
 
         $emailAccount = EmailAccount::findOrFail($emailAccountId);
-        
+
         if (empty($validated['password'])) {
             unset($validated['password']);
         }
@@ -167,7 +170,7 @@ class EmailAccountController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => $message
+            'message' => $message,
         ]);
     }
 
@@ -177,17 +180,23 @@ class EmailAccountController extends Controller
     public function destroy(string $id)
     {
         try {
-            $emailAccount = EmailAccount::findOrFail(decrypt($id));
-            $emailAccount->delete();
+            $emailAccount = EmailAccount::withTrashed()->findOrFail(decrypt($id));
+            if ($emailAccount->trashed()) {
+                $emailAccount->forceDelete();
+                $message = 'Email Account permanently deleted successfully.';
+            } else {
+                $emailAccount->delete();
+                $message = 'Email Account deleted successfully.';
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Email Account deleted successfully.'
+                'message' => $message,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -196,12 +205,12 @@ class EmailAccountController extends Controller
     {
         $exists = EmailAccount::query()
             ->where('name', $request->name)
-            ->when(!empty($request->id), function ($query) use ($request) {
+            ->when(! empty($request->id), function ($query) use ($request) {
                 $query->where('id', '!=', decrypt($request->id));
             })
             ->exists();
 
-        return response()->json(!$exists);
+        return response()->json(! $exists);
     }
 
     public function restore(string $id)
@@ -212,19 +221,19 @@ class EmailAccountController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Email Account restored successfully.'
+                'message' => 'Email Account restored successfully.',
             ]);
 
         } catch (\Exception $e) {
             Log::error('Email Account Restore Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }

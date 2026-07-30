@@ -6,16 +6,15 @@ use App\Models\CustomField;
 use App\Models\CustomFieldType;
 use App\Models\Department;
 use App\Models\EmailAccount;
-use CompileError;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Yajra\DataTables\Facades\DataTables;
 
 class DepartmentController extends Controller
 {
     protected $moduleName = 'Departments';
+
     protected $moduleUrl = 'admin.departments.index';
 
     public function __construct()
@@ -38,15 +37,15 @@ class DepartmentController extends Controller
     {
         if ($request->ajax()) {
             $data = Department::query()
-            ->select(['id', 'name', 'description', 'status'])
-            ->when(!empty($request->is_deleted), function ($q){
-                $q->onlyTrashed();
-            })
-            ->when(!empty($request->input('search.value')), function ($query) use ($request) {
-                $query->where(function($q) use ($request) {
-                    $q->where('name', 'like', "%{$request->input('search.value')}%");
-                });
-            })->orderBy('id', 'DESC');
+                ->select(['id', 'name', 'description', 'status'])
+                ->when(! empty($request->is_deleted), function ($q) {
+                    $q->onlyTrashed();
+                })
+                ->when(! empty($request->input('search.value')), function ($query) use ($request) {
+                    $query->where(function ($q) use ($request) {
+                        $q->where('name', 'like', "%{$request->input('search.value')}%");
+                    });
+                })->orderBy('id', 'DESC');
 
             return DataTables::eloquent($data)
                 ->with('total_departments', $data->count())
@@ -61,9 +60,9 @@ class DepartmentController extends Controller
                 })
                 ->editColumn('status', function ($row) {
                     if ($row->status == 1) {
-                        return '<a href="' . route('admin.departments.updateStatus', ['id' => encrypt($row->id), 'status' => 0]) . '" class="badge badge-pill badge-status bg-success" id="statusUpdate">Active</a>';
+                        return '<a href="'.route('admin.departments.updateStatus', ['id' => encrypt($row->id), 'status' => 0]).'" class="badge badge-pill badge-status bg-success" id="statusUpdate">Active</a>';
                     } else {
-                        return '<a href="' . route('admin.departments.updateStatus', ['id' => encrypt($row->id), 'status' => 1]) . '" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
+                        return '<a href="'.route('admin.departments.updateStatus', ['id' => encrypt($row->id), 'status' => 1]).'" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
                     }
                 })
                 ->addColumn('actions', function ($row) use ($request) {
@@ -90,14 +89,14 @@ class DepartmentController extends Controller
 
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
         $emailAccounts = EmailAccount::where('status', 1)
-            ->whereNotIn('id', function($query) {
+            ->whereNotIn('id', function ($query) {
                 $query->select('email_id')
-                      ->from('departments')
-                      ->whereNotNull('email_id')
-                      ->whereNull('deleted_at');
+                    ->from('departments')
+                    ->whereNotNull('email_id')
+                    ->whereNull('deleted_at');
             })->get();
 
-        return view('admin.department.form' , compact('customfieldtyeps', 'emailAccounts'));
+        return view('admin.department.form', compact('customfieldtyeps', 'emailAccounts'));
     }
 
     /**
@@ -142,7 +141,7 @@ class DepartmentController extends Controller
         $emailAccounts = EmailAccount::where('status', 1)->get();
         $customfields = CustomField::with(['fieldType'])->where('module_type', 'department')->where('recode_id', decrypt($id))->orderBy('sort_order', 'ASC')->get();
 
-        return view('admin.department.show', compact('department','customfieldtyeps','customfields', 'emailAccounts'));
+        return view('admin.department.show', compact('department', 'customfieldtyeps', 'customfields', 'emailAccounts'));
     }
 
     /**
@@ -155,11 +154,11 @@ class DepartmentController extends Controller
         $customfieldtyeps = CustomFieldType::query()->where('status', 1)->get();
         $emailAccounts = EmailAccount::where('status', 1)
             ->where(function ($q) use ($department) {
-                $q->whereNotIn('id', function($query) {
+                $q->whereNotIn('id', function ($query) {
                     $query->select('email_id')
-                          ->from('departments')
-                          ->whereNotNull('email_id')
-                          ->whereNull('deleted_at');
+                        ->from('departments')
+                        ->whereNotNull('email_id')
+                        ->whereNull('deleted_at');
                 });
                 if ($department->email_id) {
                     $q->orWhere('id', $department->email_id);
@@ -167,7 +166,7 @@ class DepartmentController extends Controller
             })->get();
         $customfields = CustomField::with(['fieldType'])->where('module_type', 'department')->where('recode_id', decrypt($id))->orderBy('sort_order', 'ASC')->get();
 
-        return view('admin.department.form', compact('department','customfieldtyeps','customfields', 'emailAccounts'));
+        return view('admin.department.form', compact('department', 'customfieldtyeps', 'customfields', 'emailAccounts'));
     }
 
     /**
@@ -215,7 +214,7 @@ class DepartmentController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => $message
+            'message' => $message,
         ]);
     }
 
@@ -225,18 +224,24 @@ class DepartmentController extends Controller
     public function destroy(string $id)
     {
         try {
-            $department = Department::findOrFail(decrypt($id));
+            $department = Department::withTrashed()->findOrFail(decrypt($id));
 
-            $department->delete();
+            if ($department->trashed()) {
+                $department->forceDelete();
+                $message = 'Department permanently deleted successfully.';
+            } else {
+                $department->delete();
+                $message = 'Department deleted successfully.';
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Department deleted successfully.'
+                'message' => $message,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -245,12 +250,12 @@ class DepartmentController extends Controller
     {
         $exists = Department::query()
             ->where('name', $request->name)
-            ->when(!empty($request->id), function ($query) use ($request) {
+            ->when(! empty($request->id), function ($query) use ($request) {
                 $query->where('id', '!=', decrypt($request->id));
             })
             ->exists();
 
-        return response()->json(!$exists);
+        return response()->json(! $exists);
     }
 
     public function restore(string $id)
@@ -262,19 +267,19 @@ class DepartmentController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Department restored successfully.'
+                'message' => 'Department restored successfully.',
             ]);
 
         } catch (\Exception $e) {
             Log::error('Department Restore Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }

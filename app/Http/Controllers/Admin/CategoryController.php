@@ -3,18 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Category;
-use App\Models\DigitalProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Yajra\DataTables\Facades\DataTables;
 
 class CategoryController extends Controller
 {
-
     protected $moduleName = 'Categories';
+
     protected $moduleUrl = 'admin.categories.index';
 
     protected $authUser;
@@ -43,24 +42,24 @@ class CategoryController extends Controller
         if ($request->ajax()) {
 
             $data = Category::query()->with(['subcategory'])
-            ->when(!empty($request->is_deleted), function ($q){
-                $q->onlyTrashed();
-            })
-            ->when(!empty($request->input('search.value')), function ($query) use ($request) {
-                $query->where(function($q) use ($request) {
-                    $q->where('name', 'like', "%{$request->input('search.value')}%");
-                });
-            })
-            ->orderBy('id', 'DESC');
+                ->when(! empty($request->is_deleted), function ($q) {
+                    $q->onlyTrashed();
+                })
+                ->when(! empty($request->input('search.value')), function ($query) use ($request) {
+                    $query->where(function ($q) use ($request) {
+                        $q->where('name', 'like', "%{$request->input('search.value')}%");
+                    });
+                })
+                ->orderBy('id', 'DESC');
 
             return DataTables::eloquent($data)
                 ->with('total_categories', $data->count())
                 ->addIndexColumn()
                 ->editColumn('status', function ($row) {
                     if ($row->status == 1) {
-                        return '<a href="' . route('admin.categories.updateStatus', ['id' => encrypt($row->id), 'status' => 0]) . '" class="badge badge-pill badge-status bg-success" id="statusUpdate">Active</a>';
+                        return '<a href="'.route('admin.categories.updateStatus', ['id' => encrypt($row->id), 'status' => 0]).'" class="badge badge-pill badge-status bg-success" id="statusUpdate">Active</a>';
                     } else {
-                        return '<a href="' . route('admin.categories.updateStatus', ['id' => encrypt($row->id), 'status' => 1]) . '" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
+                        return '<a href="'.route('admin.categories.updateStatus', ['id' => encrypt($row->id), 'status' => 1]).'" class="badge badge-pill badge-status bg-danger" id="statusUpdate">Inactive</a>';
                     }
                 })
                 ->addColumn('name', function ($row) {
@@ -102,6 +101,7 @@ class CategoryController extends Controller
     {
         view()->share('action', 'Create');
         $categorys = Category::query()->whereNull('sub_cat_id')->where('status', 1)->get();
+
         return view('admin.categories.form', compact('categorys'));
     }
 
@@ -146,7 +146,8 @@ class CategoryController extends Controller
         view()->share('action', 'View');
         $category = Category::findOrFail(decrypt($id));
         $categorys = Category::query()->whereNull('sub_cat_id')->where('status', 1)->get();
-        return view('admin.categories.show', compact('category','categorys'));
+
+        return view('admin.categories.show', compact('category', 'categorys'));
     }
 
     /**
@@ -164,10 +165,10 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request,string $id)
+    public function update(Request $request, string $id)
     {
         $validatedData = $request->validate([
-            'name' => ['required','string','max:255', Rule::unique('categories', 'name')->ignore(decrypt($id))],
+            'name' => ['required', 'string', 'max:255', Rule::unique('categories', 'name')->ignore(decrypt($id))],
             'type' => 'required|in:product,service',
             'status' => 'required|in:1,0',
         ]);
@@ -179,9 +180,8 @@ class CategoryController extends Controller
                 'name' => $request->name,
                 'type' => $request->type,
                 'status' => $request->status ? 1 : 0,
-                'sub_cat_id' => $request->sub_cat_id
+                'sub_cat_id' => $request->sub_cat_id,
             ]);
-
 
             return redirect()->route($this->moduleUrl)->with('success', 'Category updated successfully.');
         } catch (\Exception $e) {
@@ -207,7 +207,7 @@ class CategoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $category->status == 1 ? 'Category activated successfully.' : 'Category deactivated successfully.'
+                'message' => $category->status == 1 ? 'Category activated successfully.' : 'Category deactivated successfully.',
             ]);
         } catch (\Exception $e) {
             Log::error('Category Status Update Error', [
@@ -219,7 +219,7 @@ class CategoryController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -230,43 +230,49 @@ class CategoryController extends Controller
     public function destroy(string $id)
     {
         try {
-            $category = Category::with(['products','services','blogs'])->findOrFail(decrypt($id));
+            $category = Category::withTrashed()->with(['products', 'services', 'blogs'])->findOrFail(decrypt($id));
 
             $checkSubCat = Category::query()->where('sub_cat_id', $category->id)->exists();
 
             if ($checkSubCat) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete this category because it is currently assigned to one or more sub categorys.'
+                    'message' => 'Cannot delete this category because it is currently assigned to one or more sub categorys.',
                 ]);
             }
 
             if ($category->products()->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete this category because it is currently assigned to one or more digital products.'
+                    'message' => 'Cannot delete this category because it is currently assigned to one or more digital products.',
                 ]);
             }
 
             if ($category->services()->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete this category because it is currently assigned to one or more digital services.'
+                    'message' => 'Cannot delete this category because it is currently assigned to one or more digital services.',
                 ]);
             }
 
             if ($category->blogs()->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete this category because it is currently assigned to one or more blogs.'
+                    'message' => 'Cannot delete this category because it is currently assigned to one or more blogs.',
                 ]);
             }
 
-            $category->delete();
+            if ($category->trashed()) {
+                $category->forceDelete();
+                $message = 'Category permanently deleted successfully.';
+            } else {
+                $category->delete();
+                $message = 'Category deleted successfully.';
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Category deleted successfully.'
+                'message' => $message,
             ]);
         } catch (\Exception $e) {
             Log::error('Category Destroy Error', [
@@ -277,7 +283,7 @@ class CategoryController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -291,19 +297,19 @@ class CategoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Category restored successfully.'
+                'message' => 'Category restored successfully.',
             ]);
 
         } catch (\Exception $e) {
             Log::error('Category Restore Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
