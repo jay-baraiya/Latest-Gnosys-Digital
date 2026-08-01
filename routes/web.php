@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WalletController;
 use App\Http\Controllers\Admin\EventSeriesController;
 use App\Http\Controllers\Admin\EventController;
+use App\Http\Controllers\EventRegistrationsController;
 use App\Http\Controllers\BlogController as ForntBlogController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DigitalProductController as ProductController;
@@ -107,6 +108,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::post('event/get-data', [EventController::class, 'getData'])->name('event.getData');
     Route::post('event/check-title', [EventController::class, 'checkTitle'])->name('event.checkTitle');
     Route::post('event/check-slug', [EventController::class, 'checkSlug'])->name('event.checkSlug');
+
+    /* event registrations */
+    Route::resource('event-registrations', EventRegistrationsController::class)->names('event_registrations');
+    Route::post('event-registrations/get-data', [EventRegistrationsController::class, 'getData'])->name('event_registrations.getData');
 
     Route::post('ajax/common/get-countries', [CommonController::class, 'getCountries'])->name('common.getCountries');
     Route::post('ajax/common/get-states', [CommonController::class, 'getStates'])->name('common.getStates');

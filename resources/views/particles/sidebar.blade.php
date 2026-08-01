@@ -236,13 +236,13 @@
                             </li>
                         @endcan
 
-                        @canany(['view.event_series', 'view.event'])
+                        @canany(['view.event_series', 'view.event', 'view.event_registrations'])
                             <li class="submenu">
                                 <a href="javascript:void(0);"
-                                    class="{{ request()->routeIs(['admin.event_series.*', 'admin.event.*']) ? 'active subdrop' : '' }}">
+                                    class="{{ request()->routeIs(['admin.event_series.*', 'admin.event.*', 'admin.event_registrations.*']) ? 'active subdrop' : '' }}">
                                     <i class="ti ti-calendar-event"></i><span>Events Management</span><span class="menu-arrow"></span>
                                 </a>
-                                <ul style="display: {{ request()->routeIs(['admin.event_series.*', 'admin.event.*']) ? 'block' : 'none' }};">
+                                <ul style="display: {{ request()->routeIs(['admin.event_series.*', 'admin.event.*', 'admin.event_registrations.*']) ? 'block' : 'none' }};">
                                     @can('view.event_series')
                                     <li>
                                         <a href="{{ route('admin.event_series.index') }}"
@@ -253,6 +253,12 @@
                                     <li>
                                         <a href="{{ route('admin.event.index') }}"
                                             class="{{ request()->routeIs('admin.event.*') ? 'active' : '' }}">Events</a>
+                                    </li>
+                                    @endcan
+                                    @can('view.event_registrations')
+                                    <li>
+                                        <a href="{{ route('admin.event_registrations.index') }}"
+                                            class="{{ request()->routeIs('admin.event_registrations.*') ? 'active' : '' }}">Event Registrations</a>
                                     </li>
                                     @endcan
                                 </ul>
