@@ -113,6 +113,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'check_i
     Route::resource('event-registrations', EventRegistrationsController::class)->names('event_registrations');
     Route::post('event-registrations/get-data', [EventRegistrationsController::class, 'getData'])->name('event_registrations.getData');
 
+    /* event waitlists */
+    Route::resource('event-waitlists', App\Http\Controllers\EventWaitlistController::class)->names('event_waitlists');
+    Route::post('event-waitlists/get-data', [App\Http\Controllers\EventWaitlistController::class, 'getData'])->name('event_waitlists.getData');
+
     Route::post('ajax/common/get-countries', [CommonController::class, 'getCountries'])->name('common.getCountries');
     Route::post('ajax/common/get-states', [CommonController::class, 'getStates'])->name('common.getStates');
     Route::post('ajax/common/get-cities', [CommonController::class, 'getCities'])->name('common.getCities');

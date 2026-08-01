@@ -236,13 +236,13 @@
                             </li>
                         @endcan
 
-                        @canany(['view.event_series', 'view.event', 'view.event_registrations'])
+                        @canany(['view.event_series', 'view.event', 'view.event_registrations', 'view.event_waitlists'])
                             <li class="submenu">
                                 <a href="javascript:void(0);"
-                                    class="{{ request()->routeIs(['admin.event_series.*', 'admin.event.*', 'admin.event_registrations.*']) ? 'active subdrop' : '' }}">
+                                    class="{{ request()->routeIs(['admin.event_series.*', 'admin.event.*', 'admin.event_registrations.*', 'admin.event_waitlists.*']) ? 'active subdrop' : '' }}">
                                     <i class="ti ti-calendar-event"></i><span>Events Management</span><span class="menu-arrow"></span>
                                 </a>
-                                <ul style="display: {{ request()->routeIs(['admin.event_series.*', 'admin.event.*', 'admin.event_registrations.*']) ? 'block' : 'none' }};">
+                                <ul style="display: {{ request()->routeIs(['admin.event_series.*', 'admin.event.*', 'admin.event_registrations.*', 'admin.event_waitlists.*']) ? 'block' : 'none' }};">
                                     @can('view.event_series')
                                     <li>
                                         <a href="{{ route('admin.event_series.index') }}"
@@ -259,6 +259,12 @@
                                     <li>
                                         <a href="{{ route('admin.event_registrations.index') }}"
                                             class="{{ request()->routeIs('admin.event_registrations.*') ? 'active' : '' }}">Event Registrations</a>
+                                    </li>
+                                    @endcan
+                                    @can('view.event_waitlists')
+                                    <li>
+                                        <a href="{{ route('admin.event_waitlists.index') }}"
+                                            class="{{ request()->routeIs('admin.event_waitlists.*') ? 'active' : '' }}">Event Waitlist</a>
                                     </li>
                                     @endcan
                                 </ul>

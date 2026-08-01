@@ -677,6 +677,47 @@ class PermissionSeeder extends Seeder
                 'description' => 'Restore Event Registrations',
                 'status' => 1,
             ],
+            // Event Waitlists
+            [
+                'id' => 80,
+                'name' => 'Create',
+                'module' => 'Event Waitlist',
+                'slug' => 'create.event_waitlists',
+                'description' => 'Create Event Waitlist',
+                'status' => 1,
+            ],
+            [
+                'id' => 81,
+                'name' => 'View',
+                'module' => 'Event Waitlist',
+                'slug' => 'view.event_waitlists',
+                'description' => 'View Event Waitlist',
+                'status' => 1,
+            ],
+            [
+                'id' => 82,
+                'name' => 'Edit',
+                'module' => 'Event Waitlist',
+                'slug' => 'edit.event_waitlists',
+                'description' => 'Edit Event Waitlist',
+                'status' => 1,
+            ],
+            [
+                'id' => 83,
+                'name' => 'Delete',
+                'module' => 'Event Waitlist',
+                'slug' => 'delete.event_waitlists',
+                'description' => 'Delete Event Waitlist',
+                'status' => 1,
+            ],
+            [
+                'id' => 84,
+                'name' => 'Restore',
+                'module' => 'Event Waitlist',
+                'slug' => 'restore.event_waitlists',
+                'description' => 'Restore Event Waitlist',
+                'status' => 1,
+            ],
         ];
 
         foreach ($permissions as $permission) {
