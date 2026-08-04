@@ -220,7 +220,7 @@ class UserController extends Controller
             'status' => 'required|in:1,0',
             'role_id' => 'required|exists:roles,id',
             // 'image' => 'required|image|mimes:jpeg,jpg,png,webp|max:1024',
-            'designation_id' => 'required',
+            'designation_id' => 'nullable',
         ],
             [
                 'image.mimes' => 'Only JPEG, JPG, PNG, and WEBP images are allowed.',

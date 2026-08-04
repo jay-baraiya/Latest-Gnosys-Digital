@@ -8,6 +8,15 @@
             @method('PUT')
             @endif
 
+            @php
+                
+                if (isset($order)) {
+                    $dno = $order->order_number;
+                } else {
+                    $dno = $order_number;
+                }
+            @endphp
+
             <div class="row">
                 <h5 class="mb-3 text-primary">Order Details</h5>
 
@@ -15,7 +24,7 @@
                     <div class="mb-3">
                         <label class="form-label" for="order_number">Order Number <span class="text-danger">*</span></label>
                         <input type="text" class="form-control @error('order_number') is-invalid @enderror" name="order_number" id="order_number" placeholder="ORD-12345"
-                            value="{{ old('order_number', $order->order_number ?? $order_number ?? '') }}">
+                            value="{{ $dno }}">
                         @error('order_number')
                         <span class="text-danger small">{{ $message }}</span>
                         @enderror

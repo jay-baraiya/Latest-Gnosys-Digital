@@ -12,15 +12,41 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('settings', function (Blueprint $table) {
-            $table->string('paypal_mode')->default('sandbox')->nullable();
-            $table->string('paypal_client_id')->nullable();
-            $table->string('paypal_client_secret')->nullable();
-            $table->string('paypal_currency')->default('USD')->nullable();
-            $table->string('paypal_webhook_url')->nullable();
-            $table->string('paypal_return_url')->nullable();
-            $table->string('paypal_cancel_url')->nullable();
-            $table->boolean('paypal_enable_for_credits')->default(0)->nullable();
-            $table->boolean('paypal_enable_for_events')->default(0)->nullable();
+            if (! Schema::hasColumn('settings', 'paypal_mode')) {
+                $table->string('paypal_mode')->default('sandbox')->nullable();
+            }
+            if (! Schema::hasColumn('settings', 'paypal_client_id')) {
+                $table->string('paypal_client_id')->nullable();
+            }
+            if (! Schema::hasColumn('settings', 'paypal_client_secret')) {
+                $table->string('paypal_client_secret')->nullable();
+            }
+            if (! Schema::hasColumn('settings', 'paypal_currency')) {
+                $table->string('paypal_currency')->default('USD')->nullable();
+            }
+            if (! Schema::hasColumn('settings', 'paypal_webhook_url')) {
+                $table->string('paypal_webhook_url')->nullable();
+            }
+            if (! Schema::hasColumn('settings', 'paypal_return_url')) {
+                $table->string('paypal_return_url')->nullable();
+            }
+            if (! Schema::hasColumn('settings', 'paypal_cancel_url')) {
+                $table->string('paypal_cancel_url')->nullable();
+            }
+            if (! Schema::hasColumn('settings', 'paypal_enable_for_credits')) {
+                $table->boolean('paypal_enable_for_credits')->default(0)->nullable();
+            }
+            if (! Schema::hasColumn('settings', 'paypal_enable_for_events')) {
+                $table->boolean('paypal_enable_for_events')->default(0)->nullable();
+            }
+            // $table->string('paypal_client_id')->nullable();
+            // $table->string('paypal_client_secret')->nullable();
+            // $table->string('paypal_currency')->default('USD')->nullable();
+            // $table->string('paypal_webhook_url')->nullable();
+            // $table->string('paypal_return_url')->nullable();
+            // $table->string('paypal_cancel_url')->nullable();
+            // $table->boolean('paypal_enable_for_credits')->default(0)->nullable();
+            // $table->boolean('paypal_enable_for_events')->default(0)->nullable();
         });
     }
 

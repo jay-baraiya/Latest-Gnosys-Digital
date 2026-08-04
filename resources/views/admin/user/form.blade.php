@@ -90,7 +90,7 @@
 
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <label class="form-label" for="designation_id">Designation <span class="text-danger">*</span></label>
+                        <label class="form-label" for="designation_id">Designation</label>
                         <select class="form-select select2" name="designation_id" id="designation_id">
                             <option value="">Select Designation</option>
                             @if (isset($designations) && count($designations) > 0)
@@ -336,7 +336,7 @@
                             required: true
                         },
                         designation_id : {
-                            required: true
+                            required: false
                         },
                         status: {
                             required: true

@@ -4,23 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Country;
-use App\Models\Designation;
 use App\Models\DigitalProduct;
 use App\Models\DigitalService;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Role;
 use App\Models\ServiceVariant;
 use App\Models\State;
 use App\Models\Ticket;
 use App\Models\User;
-use App\Models\UserRole;
-use App\Notifications\RealTimeNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -30,6 +25,7 @@ use Yajra\DataTables\Facades\DataTables;
 class OrderController extends Controller
 {
     protected $moduleName = 'Orders';
+
     protected $moduleUrl = 'admin.orders.index';
 
     protected $authUser;
@@ -83,7 +79,7 @@ class OrderController extends Controller
                 ->with('total_tasks', $query->count())
                 ->addIndexColumn()
                 ->addColumn('order_number', function ($row) {
-                    return '<span class="fw-semibold">#' . $row->order_number . '</span>';
+                    return '<span class="fw-semibold">#'.$row->order_number.'</span>';
                 })
                 ->addColumn('order_date', function ($row) {
                     return Carbon::parse($row->date_time)->format('d-m-Y');
@@ -92,7 +88,7 @@ class OrderController extends Controller
                     return $row->user->name ?? '-';
                 })
                 ->addColumn('total_amount', function ($row) {
-                    return '$' . number_format($row->total_amount, 2);
+                    return '$'.number_format($row->total_amount, 2);
                 })
                 ->addColumn('tickets_list', function ($row) {
                     $count = $row->tickets->count();
@@ -101,16 +97,16 @@ class OrderController extends Controller
                         return '<span class="text-muted">No tickets</span>';
                     }
 
-                    return '<button class="btn btn-sm btn-outline-info view-tickets-btn" data-order-id="' . encrypt($row->id) . '">
-                            <i class="ti ti-ticket me-1"></i> See Tickets (' . $count . ')
+                    return '<button class="btn btn-sm btn-outline-info view-tickets-btn" data-order-id="'.encrypt($row->id).'">
+                            <i class="ti ti-ticket me-1"></i> See Tickets ('.$count.')
                         </button>';
                 })
-                ->addColumn('actions', function ($row) use ($request) {
+                ->addColumn('actions', function ($row) {
                     return view('admin.components.action-links', [
-                        'edit'       => route('admin.orders.edit', encrypt($row->id)),
-                        'show'       => route('admin.orders.show', encrypt($row->id)),
-                        'delete'     => route('admin.orders.destroy', encrypt($row->id)),
-                        'id'         => encrypt($row->id),
+                        'edit' => route('admin.orders.edit', encrypt($row->id)),
+                        'show' => route('admin.orders.show', encrypt($row->id)),
+                        'delete' => route('admin.orders.destroy', encrypt($row->id)),
+                        'id' => encrypt($row->id),
                     ])->render();
                 })
                 ->rawColumns(['order_number', 'tickets_list', 'actions'])
@@ -124,14 +120,14 @@ class OrderController extends Controller
     public function create()
     {
         view()->share('action', 'Create');
-        $users       = User::query()->where('status', 1)->whereNotIn('id', [User::IS_ADMIN])->get(['id', 'name', 'email']);
-        $countries   = Country::query()->orderBy('name')->get();
-        $products    = DigitalProduct::query()->whereNull('deleted_at')->get(['id', 'name', 'price']);
-        $services    = DigitalService::with('variants')->where('status', 1)->get();
+        $users = User::query()->where('status', 1)->whereNotIn('id', [User::IS_ADMIN])->get(['id', 'name', 'email']);
+        $countries = Country::query()->orderBy('name')->get();
+        $products = DigitalProduct::query()->whereNull('deleted_at')->get(['id', 'name', 'price']);
+        $services = DigitalService::with('variants')->where('status', 1)->get();
 
         $states = State::get();
 
-        $order_number = 'ORD-' . strtoupper(substr(uniqid(), -6));
+        $order_number = 'ORD-'.strtoupper(substr(uniqid(), -6));
 
         return view('admin.order.form', compact('users', 'countries', 'states', 'products', 'services', 'order_number'));
     }
@@ -172,6 +168,31 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
+            if ($request->filled('user_id')) {
+                $wallet = \App\Models\Wallet::firstOrNew(['user_id' => $request->user_id]);
+                $walletBalance = $wallet->balance ?? 0;
+
+                if ($walletBalance < $request->total_amount) {
+                    DB::rollBack();
+                    return redirect()->back()->withInput()->with('error', 'Insufficient wallet balance for this user.');
+                }
+
+                $wallet->balance = $walletBalance - $request->total_amount;
+                $wallet->save();
+
+                $walletHistory = new \App\Models\WalletHistory();
+                $walletHistory->date = now();
+                $walletHistory->wallet_id = $wallet->id;
+                $walletHistory->user_id = $request->user_id;
+                $walletHistory->type = 'debit';
+                $walletHistory->balance_before = $walletBalance;
+                $walletHistory->transfer_amount = $request->total_amount;
+                $walletHistory->balance_after = $wallet->balance;
+                $walletHistory->status = 'success';
+                $walletHistory->note = 'Deducted for order creation';
+                $walletHistory->save();
+            }
+
             $order = Order::create([
                 'user_id' => $request->user_id,
                 'order_number' => $request->order_number,
@@ -189,6 +210,8 @@ class OrderController extends Controller
                 'payment_status' => $request->payment_status,
                 'order_notes' => $request->order_notes,
             ]);
+
+            $total_amount = 0;
 
             foreach ($request->product_id as $index => $productId) {
                 $type = $request->product_type[$index];
@@ -223,18 +246,20 @@ class OrderController extends Controller
                     'total_amount' => $price * $qty,
                 ]);
 
-                // Create ticket for the order item
-                Ticket::create([
-                    'ticket_number' => 'TCK-' . strtoupper(Str::random(6)),
-                    'datetime' => now(),
-                    'order_id' => $order->id,
-                    'order_item_id' => $orderItem->id,
-                    'user_id' => $order->user_id,
-                    'status' => 'pending',
-                ]);
             }
 
+            // Create ticket for the order item
+            Ticket::create([
+                'ticket_number' => 'TCK-'.strtoupper(Str::random(6)),
+                'datetime' => now(),
+                'order_id' => $order->id,
+                'priority' => 'Low',
+                'user_id' => $order->user_id,
+                'status' => 'pending',
+            ]);
+
             DB::commit();
+
             return redirect()->route($this->moduleUrl)->with('success', 'Order created successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -255,12 +280,12 @@ class OrderController extends Controller
     public function show(string $id)
     {
         view()->share('action', 'View');
-         $order = Order::with('orderItems')->findOrFail(decrypt($id));
+        $order = Order::with('orderItems')->findOrFail(decrypt($id));
 
-        $users     = User::query()->where('status', 1)->whereNotIn('id', [User::IS_ADMIN])->get(['id', 'name', 'email']);
+        $users = User::query()->where('status', 1)->whereNotIn('id', [User::IS_ADMIN])->get(['id', 'name', 'email']);
         $countries = Country::query()->orderBy('name')->get(['id', 'name']);
-        $products  = DigitalProduct::query()->whereNull('deleted_at')->get(['id', 'name', 'price']);
-        $services  = DigitalService::with('variants')->where('status', 1)->get();
+        $products = DigitalProduct::query()->whereNull('deleted_at')->get(['id', 'name', 'price']);
+        $services = DigitalService::with('variants')->where('status', 1)->get();
 
         $states = State::get();
 
@@ -275,10 +300,10 @@ class OrderController extends Controller
         view()->share('action', 'Edit');
         $order = Order::with('orderItems')->findOrFail(decrypt($id));
 
-        $users     = User::query()->where('status', 1)->whereNotIn('id', [User::IS_ADMIN])->get(['id', 'name', 'email']);
+        $users = User::query()->where('status', 1)->whereNotIn('id', [User::IS_ADMIN])->get(['id', 'name', 'email']);
         $countries = Country::query()->orderBy('name')->get(['id', 'name']);
-        $products  = DigitalProduct::query()->whereNull('deleted_at')->get(['id', 'name', 'price']);
-        $services  = DigitalService::with('variants')->where('status', 1)->get();
+        $products = DigitalProduct::query()->whereNull('deleted_at')->get(['id', 'name', 'price']);
+        $services = DigitalService::with('variants')->where('status', 1)->get();
 
         $states = State::get();
 
@@ -397,7 +422,7 @@ class OrderController extends Controller
 
                     // Create ticket for new order item
                     Ticket::create([
-                        'ticket_number' => 'TCK-' . strtoupper(Str::random(6)),
+                        'ticket_number' => 'TCK-'.strtoupper(Str::random(6)),
                         'datetime' => now(),
                         'order_id' => $order->id,
                         'order_item_id' => $orderItem->id,
@@ -421,6 +446,7 @@ class OrderController extends Controller
             Ticket::where('order_id', $order->id)->update(['user_id' => $order->user_id]);
 
             DB::commit();
+
             return redirect()->route($this->moduleUrl)->with('success', 'Order updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -445,7 +471,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $user->status == 1 ? 'Order activated successfully.' : 'Order deactivated successfully.'
+                'message' => $user->status == 1 ? 'Order activated successfully.' : 'Order deactivated successfully.',
             ]);
         } catch (\Exception $e) {
             Log::error('Order Status Update Error', [
@@ -457,7 +483,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -474,7 +500,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Order deleted successfully.'
+                'message' => 'Order deleted successfully.',
             ]);
         } catch (\Exception $e) {
             Log::error('Order Destroy Error', [
@@ -485,7 +511,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -499,18 +525,18 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'User restored successfully.'
+                'message' => 'User restored successfully.',
             ]);
         } catch (\Exception $e) {
             Log::error('User Restore Error', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong!'
+                'message' => 'Something went wrong!',
             ]);
         }
     }
@@ -527,19 +553,19 @@ class OrderController extends Controller
                 'id',
                 'user_id',
                 'order_number',
-                'date_time'
+                'date_time',
             ])->findOrFail($orderId);
 
             $html = view('admin.order.ticket_list', compact('order'))->render();
 
             return response()->json([
                 'status' => 'success',
-                'html'   => $html
+                'html' => $html,
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'status'  => 'error',
-                'message' => $e->getMessage()
+                'status' => 'error',
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -554,7 +580,7 @@ class OrderController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $data
+            'data' => $data,
         ]);
     }
 
@@ -573,46 +599,45 @@ class OrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Developer assigned successfully',
-                'data' => $ticket
+                'data' => $ticket,
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'Ticket not found'
+            'message' => 'Ticket not found',
         ], 404);
     }
 
-   public function getUserBillingDetails(Request $request)
-{
-    $userId = $request->user_id;
+    public function getUserBillingDetails(Request $request)
+    {
+        $userId = $request->user_id;
 
-    if (!empty($userId)) {
-        // User ને તેની country અને state ની રિલેશનશિપ સાથે ગેટ કરો
-        $user = User::with(['country', 'state'])->find($userId);
+        if (! empty($userId)) {
+            // User ને તેની country અને state ની રિલેશનશિપ સાથે ગેટ કરો
+            $user = User::with(['country', 'state'])->find($userId);
 
-        if ($user) {
-            return response()->json([
-                'status' => true,
-                'data' => [
-                    'billing_first_name' => $user->name,
-                    'billing_phone'      => $user->phone,
-                    'billing_city'       => $user->city_id,
-                    'billing_address'    => $user->address,
+            if ($user) {
+                return response()->json([
+                    'status' => true,
+                    'data' => [
+                        'billing_first_name' => $user->name,
+                        'billing_phone' => $user->phone,
+                        'billing_city' => $user->city_id,
+                        'billing_address' => $user->address,
 
-                    // Country ની ID અને Name અલગથી મોકલો
-                    'billing_country'      => $user->country_id,
-                    'billing_country_name' => $user->country ? $user->country->name : '',
+                        // Country ની ID અને Name અલગથી મોકલો
+                        'billing_country' => $user->country_id,
+                        'billing_country_name' => $user->country ? $user->country->name : '',
 
-                    // State ની ID અને Name અલગથી મોકલો
-                    'billing_state'      => $user->state_id,
-                    'billing_state_name' => $user->state ? $user->state->name : '',
-                ]
-            ]);
+                        // State ની ID અને Name અલગથી મોકલો
+                        'billing_state' => $user->state_id,
+                        'billing_state_name' => $user->state ? $user->state->name : '',
+                    ],
+                ]);
+            }
         }
+
+        return response()->json(['status' => false, 'message' => 'User not found']);
     }
-
-    return response()->json(['status' => false, 'message' => 'User not found']);
-}
-
 }
