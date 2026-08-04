@@ -150,7 +150,7 @@ class OrderController extends Controller
             'billing_city' => 'required|string|max:255',
             'billing_address' => 'required|string|max:255',
             'status' => 'required|string|in:pending,processing,shipped,delivered,cancelled',
-            'payment_method' => 'nullable|string|in:stripe,paypal,cod',
+            'payment_method' => 'nullable|string|in:stripe,paypal,cod,wallet',
             'payment_status' => 'required|string|in:pending,paid,failed,refunded,success',
             'order_notes' => 'nullable|string',
 
@@ -168,7 +168,7 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
-            if ($request->filled('user_id')) {
+            if ($request->filled('user_id') && $request->payment_method === 'wallet') {
                 $wallet = \App\Models\Wallet::firstOrNew(['user_id' => $request->user_id]);
                 $walletBalance = $wallet->balance ?? 0;
 

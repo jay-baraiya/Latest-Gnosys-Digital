@@ -199,6 +199,7 @@
                             <option value="stripe" {{ old('payment_method', $order->payment_method ?? '') == 'stripe' ? 'selected' : '' }}>Stripe</option>
                             <option value="paypal" {{ old('payment_method', $order->payment_method ?? '') == 'paypal' ? 'selected' : '' }}>PayPal</option>
                             <option value="cod" {{ old('payment_method', $order->payment_method ?? '') == 'cod' ? 'selected' : '' }}>Cash on Delivery (COD)</option>
+                            <option value="wallet" {{ old('payment_method', $order->payment_method ?? '') == 'wallet' ? 'selected' : '' }}>Wallet</option>
                         </select>
                         @error('payment_method')
                         <span class="text-danger small">{{ $message }}</span>
