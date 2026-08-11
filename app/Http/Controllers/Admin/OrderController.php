@@ -331,7 +331,7 @@ class OrderController extends Controller
             'billing_city' => 'nullable|string|max:255',
             'billing_address' => 'required',
             'status' => 'required|string|in:pending,processing,shipped,delivered,cancelled',
-            'payment_method' => 'nullable|string|in:stripe,paypal,cod',
+            'payment_method' => 'nullable|string|in:stripe,paypal,cod,wallet',
             'payment_status' => 'required|string|in:pending,paid,failed,refunded,success',
             'order_notes' => 'nullable|string',
 
